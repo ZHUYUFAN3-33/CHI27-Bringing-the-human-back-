@@ -153,8 +153,16 @@ every count. Add `--real` to rehearse the dashboard with countable rows.
 
 ## Deploying
 
-See **[DEPLOY.md](DEPLOY.md)** — Fly app, Managed Postgres, secrets, the tunnel
-for direct SQL access, and the CloudResearch link setup.
+```bash
+brew install flyctl && fly auth login
+./scripts/preflight.sh      # offline checks
+./scripts/deploy.sh         # app + database + secrets + deploy + smoke test
+```
+
+It prints your participant link and admin token at the end, and is safe to
+re-run. **[DEPLOY.md](DEPLOY.md)** covers the step-by-step version, deploying
+from GitHub Actions instead, the database tunnel, CloudResearch setup, running
+the study, and what to do when something breaks.
 
 ---
 

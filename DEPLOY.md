@@ -1,23 +1,66 @@
 # Deploying to Fly.io
 
-Everything below assumes [`flyctl`](https://fly.io/docs/flyctl/install/) is
-installed and you have run `fly auth login`.
+## The short version
+
+```bash
+brew install flyctl          # or: curl -L https://fly.io/install.sh | sh
+fly auth login
+
+npm install
+./scripts/preflight.sh       # checks everything that can be checked offline
+./scripts/deploy.sh          # creates the app, the database, the secrets, deploys
+```
+
+`deploy.sh` prints your participant link and your admin token at the end. **Save
+the admin token** — Fly only shows a digest afterwards.
+
+It is safe to re-run: every step checks before it acts, so a second run just
+redeploys and leaves the database and secrets alone.
+
+To use a different name or region:
+
+```bash
+APP=bringing-human-back REGION=iad ./scripts/deploy.sh
+```
+
+Regions: `nrt` Tokyo, `iad` US east, `lhr` London, `fra` Frankfurt. Put it near
+your participants.
 
 ---
 
-## 1 · Create the app
+## Deploying from GitHub instead
 
-Edit `app` and `primary_region` in `fly.toml` first. Put the region near your
-participants — `nrt` Tokyo, `iad` US east, `lhr` London.
+If you would rather not install flyctl, `.github/workflows/fly-deploy.yml`
+deploys on every push to `main`, after running the test suite.
+
+```bash
+fly tokens create deploy -a study1-survey     # run once, from anywhere with flyctl
+```
+
+Then add the token to the repository under **Settings → Secrets and variables →
+Actions → New repository secret**, named `FLY_API_TOKEN`. After that, pushing to
+`main` deploys. You still need `deploy.sh` (or the manual steps below) once, to
+create the app and the database — CI only deploys to something that exists.
+
+---
+
+## The long version, step by step
+
+Do this if you want to understand or vary what `deploy.sh` does.
+
+### 1 · Create the app
+
+Edit `app` and `primary_region` in `fly.toml` first.
 
 ```bash
 fly apps create study1-survey
 ```
 
-## 2 · Create and attach Managed Postgres
+### 2 · Create and attach Managed Postgres
 
 ```bash
 fly mpg create --name study1-survey-db --region nrt
+fly mpg list                                   # copy the cluster id
 fly mpg attach <cluster-id> -a study1-survey
 ```
 
@@ -28,7 +71,7 @@ state, so that is safe.
 
 The schema is applied automatically the first time the app boots.
 
-## 3 · Set the secrets
+### 3 · Set the secrets
 
 ```bash
 fly secrets set -a study1-survey \
@@ -46,14 +89,12 @@ afterwards. If you lose it, set a new one — nothing depends on the old value.
 `IP_SALT` must be set once and then left alone: rotating it makes the stored
 hashes uncomparable, which is the only thing they are for.
 
-## 4 · Deploy
+### 4 · Deploy
 
 ```bash
 fly deploy -a study1-survey
 fly scale count 2 -a study1-survey     # two machines: redundancy + zero-downtime deploys
 ```
-
-Or run `./scripts/deploy.sh`, which does all of the above and is safe to re-run.
 
 Check it:
 
@@ -61,6 +102,18 @@ Check it:
 curl https://study1-survey.fly.dev/healthz
 # {"ok":true,"instrument":"v5-r2","open":true}
 ```
+
+---
+
+## If something goes wrong
+
+| symptom | what to do |
+|---|---|
+| `fly deploy` builds but the machine keeps restarting | `fly logs -a study1-survey`. A config guard refuses to start in production without `ADMIN_TOKEN` and `IP_SALT`, and says which is missing. |
+| `/healthz` returns 503 | The database is unreachable. `fly mpg status <cluster-id>`, and check `DATABASE_URL` is set: `fly secrets list -a study1-survey`. |
+| `/admin` returns 401 with the right token | The token has a `+` or `/` in it and the URL ate it. Use the `Authorization: Bearer` header, or set a token with no URL-special characters. |
+| The video never loads for participants | The clips must be **Unlisted**, not Private, and embedding must be allowed. Check one directly: `https://youtu.be/FM4xHwqv03M`. |
+| Docker build fails on `npm ci` | `package-lock.json` is out of step with `package.json`. Run `npm install` and commit the lockfile. |
 
 ---
 

@@ -1,0 +1,74 @@
+# Deploys to Fly.io on every push to the main branch.
+#
+# Setup, once:
+#   1. On your own machine (or in the Fly dashboard) create a deploy token:
+#        fly tokens create deploy -a study1-survey
+#   2. Put it in this repository under
+#        Settings → Secrets and variables → Actions → New repository secret
+#        name: FLY_API_TOKEN
+#
+# After that, pushing to main deploys. Nothing else is needed locally.
+
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # also deployable by hand from the Actions tab
+
+concurrency:
+  group: fly-deploy
+  cancel-in-progress: false  # never interrupt a deploy that is mid-rollout
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: study1
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Start the server
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/study1?sslmode=disable
+          ADMIN_TOKEN: ci-token-0123456789abcdefghijkl
+          IP_SALT: ci-salt
+          PORT: "8099"
+          SESSION_START_RATE_MAX: "100000"
+          RATE_LIMIT_MAX: "100000"
+        run: |
+          node src/server.js &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8099/healthz && break; sleep 1; done
+      - name: Simulated participants
+        run: node scripts/simulate.mjs --n 60 --conc 15
+      - name: Browser test
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+          node scripts/browser-test.mjs
+
+  deploy:
+    name: Deploy
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only --ha=false --strategy rolling
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

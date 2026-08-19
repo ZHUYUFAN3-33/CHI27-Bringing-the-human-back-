@@ -6,6 +6,7 @@
    The YouTube gate is opened directly rather than by playing the clip: the
    embed needs a public origin and 70+ seconds of real time per segment. */
 import { chromium } from "playwright";
+import { existsSync } from "node:fs";
 
 const BASE = process.argv[2] || "http://127.0.0.1:8099";
 const results = [];
@@ -14,7 +15,12 @@ const check = (name, ok, detail = "") => {
   console.log(`${ok ? "  ok  " : "  FAIL"} ${name}${detail ? "  · " + detail : ""}`);
 };
 
-const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
+/* Use whatever Chromium is around: an explicit CHROME_PATH, the one this
+   sandbox pre-installs, or Playwright's own download in CI. */
+const SANDBOX_CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const executablePath = process.env.CHROME_PATH
+  || (existsSync(SANDBOX_CHROME) ? SANDBOX_CHROME : undefined);
+const browser = await chromium.launch(executablePath ? { executablePath } : {});
 
 async function openGate(page) {
   /* Mark the current segment's gate as satisfied, then repaint. */
