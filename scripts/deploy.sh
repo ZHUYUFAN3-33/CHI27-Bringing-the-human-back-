@@ -45,7 +45,12 @@ fi
 
 # --- 2 · Postgres -----------------------------------------------------------
 step "Postgres"
-if fly secrets list -a "$APP" 2>/dev/null | grep -q '^DATABASE_URL'; then
+# `fly secrets list` prints a table — ` * NAME │ DIGEST │ STATUS ` — so the name
+# is never at the start of the line. Anchoring on ^ silently reports every secret
+# as missing, which here meant creating a second Postgres cluster on every run.
+secret_set() { fly secrets list -a "$APP" 2>/dev/null | grep -qE "^[[:space:]*]*$1[[:space:]]"; }
+
+if secret_set DATABASE_URL; then
   echo "    DATABASE_URL already set — leaving the existing database alone"
 else
   CLUSTER="${MPG_CLUSTER:-}"
@@ -64,7 +69,7 @@ fi
 
 # --- 3 · secrets ------------------------------------------------------------
 step "Secrets"
-have() { fly secrets list -a "$APP" 2>/dev/null | grep -q "^$1"; }
+have() { secret_set "$1"; }
 
 NEW_TOKEN=""
 declare -a PENDING=()

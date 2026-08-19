@@ -5,3 +5,6 @@ node_modules/
 .DS_Store
 tmp/
 exports/
+
+# local copy of the Fly Postgres superuser credentials — never commit
+.pg-credentials.txt
