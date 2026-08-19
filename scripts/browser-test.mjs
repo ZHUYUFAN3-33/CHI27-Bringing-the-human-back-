@@ -90,6 +90,14 @@ for (let guard = 0; guard < 30; guard++) {
     check("disclosure shows persona and diagram", persona.length > 40 && hasDiagram === 1);
     const profileLines = await page.locator(".persona li.profileline").count();
     check("exactly one profile line is emphasised", profileLines <= 1, `${profileLines} found`);
+    /* naturalWidth is 0 for an image that 404ed, so this fails on a broken
+       path as well as on a missing element. */
+    const photo = await page.evaluate(() => {
+      const img = document.querySelector(".photo img");
+      return img ? { w: img.naturalWidth, h: img.naturalHeight } : null;
+    });
+    check("disclosure shows the OriHime photo", !!photo && photo.w > 0,
+      photo ? `${photo.w}x${photo.h}` : "no .photo img");
   }
 
   if (state.kind === "segment") {
