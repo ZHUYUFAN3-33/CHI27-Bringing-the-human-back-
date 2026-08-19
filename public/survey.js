@@ -160,6 +160,15 @@ function renderDisclosure(p) {
   const d = p.disclosure;
   const card = el("div", "disclosure");
   card.append(el("p", null, esc(d.intro)));
+
+  /* Same photo, same place, in all seven conditions: it shows what OriHime is
+     before the control-source text says who operates it. Sized attributes match
+     the file so the text below does not shift when it loads. */
+  const fig = el("figure", "photo");
+  fig.innerHTML =
+    '<img src="/orihime.jpg" width="1600" height="899" alt="OriHime, a small white tabletop avatar robot, on a table beside a seated person">';
+  card.append(fig);
+
   card.append(el("p", null, esc(d.control)));
 
   const persona = el("div", "persona");
