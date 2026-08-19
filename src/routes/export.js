@@ -1,0 +1,289 @@
+import { pool } from "../db.js";
+import { row, BOM } from "../csv.js";
+import { allItemIds, buildPlan, planItems } from "../../shared/instrument.js";
+
+/* ---------------------------------------------------------------------------
+   Export endpoints. All are behind requireAdmin (see server.js).
+
+   Rows are streamed with a cursor-free keyset scan rather than buffered, so a
+   full export of several thousand participants never holds the whole result in
+   memory and never blocks the event loop long enough to affect participants
+   who are answering at the same time.
+--------------------------------------------------------------------------- */
+
+const PARTICIPANT_COLUMNS = [
+  "id", "short_code", "condition", "ctrl", "profile", "seg_order", "optional_block", "cell",
+  "instrument_ver", "status", "screen_out_reason", "source", "external_pid", "external_study",
+  "external_session", "is_test", "attention_pass", "check_c1_pass", "check_c2_pass",
+  "answered_count", "started_at", "first_answer_at", "last_answer_at", "completed_at",
+  "last_seen_at", "timezone", "ui_language", "screen_w", "screen_h", "ip_hash", "user_agent"
+];
+
+function filters(query) {
+  const where = ["TRUE"];
+  const params = [];
+  if (!/^(1|true|yes)$/i.test(String(query.include_test ?? ""))) where.push("NOT p.is_test");
+  if (query.status) { params.push(String(query.status)); where.push(`p.status = $${params.length}`); }
+  else where.push("p.status <> 'in_progress'");
+  if (/^(1|true|yes)$/i.test(String(query.usable_only ?? ""))) {
+    where.push("p.status = 'completed'");
+    where.push("COALESCE(p.attention_pass, TRUE)");
+    where.push("COALESCE(p.check_c1_pass, FALSE)");
+    where.push("COALESCE(p.check_c2_pass, FALSE)");
+  }
+  if (query.since) { params.push(String(query.since)); where.push(`p.started_at >= $${params.length}::timestamptz`); }
+  return { where: where.join(" AND "), params };
+}
+
+const stamp = () => new Date().toISOString().slice(0, 19).replace(/[:T]/g, "").replace(/-/g, "");
+
+function asCsv(reply, name) {
+  reply.header("content-type", "text/csv; charset=utf-8");
+  reply.header("content-disposition", `attachment; filename="${name}_${stamp()}.csv"`);
+  reply.header("cache-control", "no-store");
+}
+
+/* A pg Cursor would need an extra dependency; a keyset scan over started_at+id
+   gives the same streaming behaviour with the driver we already have. */
+async function* scanParticipants(where, params, batch = 500) {
+  let after = null;
+  for (;;) {
+    const p = [...params];
+    let clause = "";
+    if (after) {
+      p.push(after.started_at, after.id);
+      clause = `AND (p.started_at, p.id) > ($${p.length - 1}::timestamptz, $${p.length}::uuid)`;
+    }
+    const { rows } = await pool.query(
+      `SELECT * FROM participants p
+        WHERE ${where} ${clause}
+        ORDER BY p.started_at, p.id
+        LIMIT ${batch}`, p
+    );
+    if (!rows.length) return;
+    yield rows;
+    after = { started_at: rows.at(-1).started_at, id: rows.at(-1).id };
+    if (rows.length < batch) return;
+  }
+}
+
+export default async function exportRoutes(app) {
+
+  /* -- one row per participant ------------------------------------------- */
+  app.get("/api/export/participants.csv", async (req, reply) => {
+    const { where, params } = filters(req.query);
+    asCsv(reply, "participants");
+    reply.raw.write(BOM + row(PARTICIPANT_COLUMNS));
+    for await (const batch of scanParticipants(where, params)) {
+      let chunk = "";
+      for (const p of batch) chunk += row(PARTICIPANT_COLUMNS.map(c => p[c]));
+      reply.raw.write(chunk);
+    }
+    reply.raw.end();
+    return reply;
+  });
+
+  /* -- long format: one row per answer ----------------------------------- */
+  app.get("/api/export/responses.csv", async (req, reply) => {
+    const { where, params } = filters(req.query);
+    const cols = ["participant_id", "short_code", "condition", "ctrl", "profile", "seg_order",
+                  "optional_block", "status", "is_test", "item_id", "page_key", "item_type",
+                  "segment", "seg_position", "value_num", "value_text", "latency_ms",
+                  "revisions", "answered_at"];
+    asCsv(reply, "responses_long");
+    reply.raw.write(BOM + row(cols));
+    for await (const batch of scanParticipants(where, params)) {
+      const ids = batch.map(p => p.id);
+      const { rows } = await pool.query(
+        `SELECT r.*, p.short_code, p.condition, p.ctrl, p.profile, p.seg_order,
+                p.optional_block, p.status, p.is_test
+           FROM responses r JOIN participants p ON p.id = r.participant_id
+          WHERE r.participant_id = ANY($1::uuid[])
+          ORDER BY p.started_at, r.participant_id, r.item_id`, [ids]
+      );
+      let chunk = "";
+      for (const r of rows) chunk += row(cols.map(c => (c === "participant_id" ? r.participant_id : r[c])));
+      reply.raw.write(chunk);
+    }
+    reply.raw.end();
+    return reply;
+  });
+
+  /* -- wide format: one row per participant, one column per item ---------
+     The header is derived from the instrument, not from the data, so the
+     column set is identical whichever participants happen to be in the file
+     and two exports taken a week apart can be stacked without realigning. */
+  app.get("/api/export/wide.csv", async (req, reply) => {
+    const { where, params } = filters(req.query);
+    const itemIds = allItemIds();
+    const meta = ["participant_id", "short_code", "condition", "ctrl", "profile", "seg_order",
+                  "optional_block", "status", "source", "external_pid", "is_test",
+                  "attention_pass", "check_c1_pass", "check_c2_pass",
+                  "duration_s", "answered_count", "started_at", "completed_at"];
+    const labels = /^(1|true|yes)$/i.test(String(req.query.labels ?? ""));
+
+    asCsv(reply, labels ? "wide_labels" : "wide");
+    reply.raw.write(BOM + row([...meta, ...itemIds]));
+
+    for await (const batch of scanParticipants(where, params)) {
+      const ids = batch.map(p => p.id);
+      const { rows } = await pool.query(
+        `SELECT participant_id, item_id, value_num, value_text
+           FROM responses WHERE participant_id = ANY($1::uuid[])`, [ids]
+      );
+      const byPid = new Map(ids.map(id => [id, new Map()]));
+      for (const r of rows) byPid.get(r.participant_id)?.set(r.item_id, r);
+
+      let chunk = "";
+      for (const p of batch) {
+        const answers = byPid.get(p.id) ?? new Map();
+        const dur = p.first_answer_at && p.last_answer_at
+          ? Math.round((Date.parse(p.last_answer_at) - Date.parse(p.first_answer_at)) / 1000)
+          : null;
+        const metaVals = [
+          p.id, p.short_code, p.condition, p.ctrl, p.profile, p.seg_order, p.optional_block,
+          p.status, p.source, p.external_pid, p.is_test,
+          p.attention_pass, p.check_c1_pass, p.check_c2_pass,
+          dur, p.answered_count, p.started_at, p.completed_at
+        ];
+        const itemVals = itemIds.map(id => {
+          const a = answers.get(id);
+          if (!a) return "";
+          if (labels) return a.value_text ?? a.value_num;
+          return a.value_num ?? a.value_text;
+        });
+        chunk += row([...metaVals, ...itemVals]);
+      }
+      reply.raw.write(chunk);
+    }
+    reply.raw.end();
+    return reply;
+  });
+
+  /* -- page dwell times --------------------------------------------------- */
+  app.get("/api/export/page_times.csv", async (req, reply) => {
+    const { where, params } = filters(req.query);
+    const cols = ["participant_id", "short_code", "condition", "seg_order", "page_key",
+                  "visit", "page_index", "dwell_ms", "entered_at", "left_at"];
+    asCsv(reply, "page_times");
+    reply.raw.write(BOM + row(cols));
+    for await (const batch of scanParticipants(where, params)) {
+      const { rows } = await pool.query(
+        `SELECT t.*, p.short_code, p.condition, p.seg_order
+           FROM page_times t JOIN participants p ON p.id = t.participant_id
+          WHERE t.participant_id = ANY($1::uuid[])
+          ORDER BY t.participant_id, t.page_index, t.visit`, [batch.map(p => p.id)]
+      );
+      let chunk = "";
+      for (const r of rows) chunk += row(cols.map(c => r[c]));
+      reply.raw.write(chunk);
+    }
+    reply.raw.end();
+    return reply;
+  });
+
+  /* -- video gate telemetry ----------------------------------------------- */
+  app.get("/api/export/video_events.csv", async (req, reply) => {
+    const { where, params } = filters(req.query);
+    const cols = ["participant_id", "short_code", "condition", "segment", "seg_position",
+                  "video_id", "event", "detail", "position_s", "watch_s", "at"];
+    asCsv(reply, "video_events");
+    reply.raw.write(BOM + row(cols));
+    for await (const batch of scanParticipants(where, params)) {
+      const { rows } = await pool.query(
+        `SELECT v.*, p.short_code, p.condition
+           FROM video_events v JOIN participants p ON p.id = v.participant_id
+          WHERE v.participant_id = ANY($1::uuid[])
+          ORDER BY v.participant_id, v.id`, [batch.map(p => p.id)]
+      );
+      let chunk = "";
+      for (const r of rows) chunk += row(cols.map(c => r[c]));
+      reply.raw.write(chunk);
+    }
+    reply.raw.end();
+    return reply;
+  });
+
+  /* -- codebook: the instrument itself, so the CSVs are self-documenting ---
+     Anything that varies between participants is reported as varying rather
+     than frozen at whatever the first cell happened to use: a segment's
+     position depends on the randomised order, and the number of ranking rows
+     depends on the control condition (there is no human row under AI-only
+     control, and no AI row under human-only control). */
+  app.get("/api/export/codebook.csv", async (_req, reply) => {
+    const cols = ["item_id", "block", "item_type", "segment", "seg_position",
+                  "required", "group", "value_coding", "stem"];
+    const seen = new Map();
+    for (const cond of ["H1", "H2", "H3", "HA1", "HA2", "HA3", "A"]) {
+      for (const ord of ["O1", "O2", "O3"]) {
+        for (const it of planItems(buildPlan(cond, ord, true))) {
+          const prev = seen.get(it.id);
+          if (prev) {
+            if (prev.seg_position !== it.segPosition) prev.seg_position = "varies with order";
+            if (it.type === "rank" && prev.maxRank !== it.maxRank) prev.maxRank = "n";
+            continue;
+          }
+          seen.set(it.id, {
+            item: it,
+            /* Segment items sit on a page whose number depends on the order,
+               so the block is named by content, not by position. */
+            block: it.segment ? `segment (${it.segment})` : it.pageKey,
+            seg_position: it.segPosition,
+            maxRank: it.maxRank
+          });
+        }
+      }
+    }
+
+    let out = BOM + row(cols);
+    for (const e of seen.values()) {
+      const it = e.item;
+      const coding =
+        it.type === "likert7" ? "1=Strongly disagree ... 7=Strongly agree"
+      : it.type === "mc"      ? it.options.map((o, i) => `${i}=${o}`).join(" | ")
+      : it.type === "rank"    ? (e.maxRank === "n"
+            ? `1..n where n is the number of rows shown (3 or 4, by condition), 1 = greatest; row = ${it.actorKey} (${it.actor})`
+            : `1..${e.maxRank}, 1 = greatest; row = ${it.actorKey} (${it.actor})`)
+      : it.type === "number"  ? `numeric${it.min != null ? `, ${it.min}-${it.max}` : ""}`
+      : "free text";
+      out += row([it.id, e.block, it.type, it.segment, e.seg_position,
+                  it.required, it.group ?? "", coding, it.stem]);
+    }
+    asCsv(reply, "codebook");
+    reply.send(out);
+    return reply;
+  });
+
+  /* -- everything, as one JSON document ----------------------------------- */
+  app.get("/api/export/all.json", async (req, reply) => {
+    const { where, params } = filters(req.query);
+    reply.header("content-type", "application/json; charset=utf-8");
+    reply.header("content-disposition", `attachment; filename="study1_${stamp()}.json"`);
+    reply.raw.write('{"exportedAt":' + JSON.stringify(new Date().toISOString()) + ',"participants":[');
+    let first = true;
+    for await (const batch of scanParticipants(where, params)) {
+      const ids = batch.map(p => p.id);
+      const [{ rows: answers }, { rows: times }, { rows: vids }] = await Promise.all([
+        pool.query(`SELECT * FROM responses    WHERE participant_id = ANY($1::uuid[])`, [ids]),
+        pool.query(`SELECT * FROM page_times   WHERE participant_id = ANY($1::uuid[])`, [ids]),
+        pool.query(`SELECT * FROM video_events WHERE participant_id = ANY($1::uuid[])`, [ids])
+      ]);
+      const group = (rowsIn) => {
+        const m = new Map(ids.map(id => [id, []]));
+        for (const r of rowsIn) m.get(r.participant_id)?.push(r);
+        return m;
+      };
+      const A = group(answers), T = group(times), V = group(vids);
+      for (const p of batch) {
+        const { token, ...safe } = p;   // never export the bearer secret
+        reply.raw.write((first ? "" : ",") + JSON.stringify({
+          ...safe, responses: A.get(p.id), pageTimes: T.get(p.id), videoEvents: V.get(p.id)
+        }));
+        first = false;
+      }
+    }
+    reply.raw.write("]}");
+    reply.raw.end();
+    return reply;
+  });
+}

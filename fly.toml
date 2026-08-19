@@ -1,0 +1,53 @@
+# =============================================================================
+# Fly.io configuration — Study 1 questionnaire
+#
+# Change `app` to your own name before the first deploy, or let
+# `fly launch --no-deploy` write it for you.
+#
+# Sizing note. 700 concurrent participants is a small load for this app: each
+# person sends roughly one request per page turn (~14 over the whole study)
+# plus a keepalive once a minute, so the steady state is on the order of
+# 20 requests a second, each a few milliseconds of Postgres work. Two machines
+# is therefore about redundancy and zero-downtime deploys, not throughput.
+# =============================================================================
+
+app            = "study1-survey"
+primary_region = "nrt"          # Tokyo. Put this near your participants.
+
+[build]
+
+[env]
+  PORT           = "8080"
+  NODE_ENV       = "production"
+  LOG_LEVEL      = "info"
+  # One pool per machine. 2 machines x 10 = 20 Postgres connections, which sits
+  # comfortably inside the PgBouncer limits of a small Managed Postgres cluster.
+  PG_POOL_MAX    = "10"
+
+[http_service]
+  internal_port       = 8080
+  force_https         = true
+  # Never let a machine stop during data collection: a cold start in the middle
+  # of someone's questionnaire is a dropped participant.
+  auto_stop_machines  = false
+  auto_start_machines = true
+  min_machines_running = 2
+  processes           = ["app"]
+
+  [http_service.concurrency]
+    type       = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    grace_period  = "10s"
+    interval      = "15s"
+    method        = "GET"
+    path          = "/healthz"
+    protocol      = "http"
+    timeout       = "4s"
+
+[[vm]]
+  size      = "shared-cpu-1x"
+  memory    = "1gb"
+  processes = ["app"]

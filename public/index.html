@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Research study — OriHime</title>
+<link rel="stylesheet" href="/survey.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+
+<div class="stage">
+  <div class="sheet">
+    <div class="progress"><i id="bar" style="width:0%"></i></div>
+    <div class="sheetbody" id="page">
+      <div class="loading" id="boot">Loading the study…</div>
+    </div>
+    <div class="nav" id="nav" hidden>
+      <button class="btn sec" id="back" type="button">Back</button>
+      <span class="pos" id="poslabel"></span><span class="navwarn" id="navwarn"></span>
+      <button class="btn" id="next" type="button">Next</button>
+    </div>
+  </div>
+</div>
+
+<div class="savebar" id="savebar" role="status" aria-live="polite"></div>
+
+<script type="module" src="/survey.js"></script>
+<noscript>
+  <div class="stage"><div class="sheet"><div class="sheetbody">
+    <h2 class="qtitle">JavaScript is required</h2>
+    <p class="qintro">This study needs JavaScript to show the video interactions.
+    Please enable it, or open the link in a different browser.</p>
+  </div></div></div>
+</noscript>
+</body>
+</html>
