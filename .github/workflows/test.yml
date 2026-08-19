@@ -1,24 +1,34 @@
-# Deploys to Fly.io on every push to the main branch.
+# Runs the test suite on every push to main. It does not deploy: deploying is a
+# deliberate act here, done from a machine that is logged in to Fly.
 #
-# Setup, once:
-#   1. On your own machine (or in the Fly dashboard) create a deploy token:
-#        fly tokens create deploy -a study1-survey
-#   2. Put it in this repository under
-#        Settings → Secrets and variables → Actions → New repository secret
-#        name: FLY_API_TOKEN
+#   ./scripts/deploy.sh
 #
-# After that, pushing to main deploys. Nothing else is needed locally.
+# To hand deploys back to CI, add a deploy token as the repository secret
+# FLY_API_TOKEN (Settings → Secrets and variables → Actions) and append:
+#
+#   deploy:
+#     name: Deploy
+#     needs: test
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: superfly/flyctl-actions/setup-flyctl@master
+#       - run: flyctl deploy --remote-only --ha=false --strategy rolling
+#         env:
+#           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+#
+# Generate the token with:  fly tokens create deploy -a study1-survey
 
-name: Deploy to Fly.io
+name: Test
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:        # also deployable by hand from the Actions tab
+  workflow_dispatch:        # also runnable by hand from the Actions tab
 
 concurrency:
-  group: fly-deploy
-  cancel-in-progress: false  # never interrupt a deploy that is mid-rollout
+  group: test
+  cancel-in-progress: true   # a superseded run tells you nothing useful
 
 jobs:
   test:
@@ -61,14 +71,3 @@ jobs:
           npm install --no-save playwright
           npx playwright install --with-deps chromium
           node scripts/browser-test.mjs
-
-  deploy:
-    name: Deploy
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only --ha=false --strategy rolling
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

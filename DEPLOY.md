@@ -28,19 +28,26 @@ your participants.
 
 ---
 
-## Deploying from GitHub instead
+## What CI does
 
-If you would rather not install flyctl, `.github/workflows/fly-deploy.yml`
-deploys on every push to `main`, after running the test suite.
+`.github/workflows/test.yml` runs on every push to `main`: it boots the server
+against a throwaway Postgres, pushes 60 simulated participants through the
+questionnaire, and runs the Playwright browser test. It does **not** deploy.
+
+Deploying is `./scripts/deploy.sh`, from a machine logged in to Fly. That is
+deliberate — during data collection a deploy is something you should choose to
+do, not something a `git push` does for you.
+
+To hand deploys back to CI, create a token and add it to the repository under
+**Settings → Secrets and variables → Actions → New repository secret**, named
+`FLY_API_TOKEN`; the job to append is commented at the top of `test.yml`.
 
 ```bash
 fly tokens create deploy -a study1-survey     # run once, from anywhere with flyctl
 ```
 
-Then add the token to the repository under **Settings → Secrets and variables →
-Actions → New repository secret**, named `FLY_API_TOKEN`. After that, pushing to
-`main` deploys. You still need `deploy.sh` (or the manual steps below) once, to
-create the app and the database — CI only deploys to something that exists.
+CI only ever deploys to something that already exists, so the first
+`deploy.sh` run (or the manual steps below) is required either way.
 
 ---
 
