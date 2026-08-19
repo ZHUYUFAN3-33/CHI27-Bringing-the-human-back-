@@ -169,10 +169,12 @@ await app.register(fastifyStatic, {
   root: path.join(rootDir, "public"),
   index: ["index.html"],
   maxAge: config.nodeEnv === "production" ? "1h" : 0,
-  setHeaders(res, filePath) {
+  /* @fastify/static v10 hands this hook the Fastify reply, not the raw
+     response, so headers go through reply.header(). */
+  setHeaders(reply, filePath) {
     /* The entry page must never be cached: a stale index.html served after a
        redeploy would run against a changed API. */
-    if (filePath.endsWith("index.html")) res.setHeader("cache-control", "no-store");
+    if (filePath.endsWith("index.html")) reply.header("cache-control", "no-store");
   }
 });
 
