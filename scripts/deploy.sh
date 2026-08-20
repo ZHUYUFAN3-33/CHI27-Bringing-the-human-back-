@@ -47,13 +47,22 @@ fi
 step "Postgres"
 
 # The secret list is read once, and a failed read is not allowed to look like an
-# empty one. `fly secrets list` prints a table — ` * NAME │ DIGEST │ STATUS ` —
-# so a name is never at the start of a line, and the asterisk marks a staged
-# secret. Anchoring on ^NAME matches nothing and reports every secret missing.
+# empty one.
 SECRETS="$(fly secrets list -a "$APP" 2>&1)" \
   || die "could not read the secrets on $APP — refusing to guess. flyctl said:"$'\n'"$SECRETS"
 
-secret_set() { grep -qE "^[[:space:]*]*$1[[:space:]]" <<<"$SECRETS"; }
+# `fly secrets list` prints a table and flags rows in the left margin: `*` for
+# staged, `!` for partially deployed, nothing when settled. Matching the margin
+# character by character has now failed twice — first on `*`, then on `!` — so
+# take the name column and strip whatever is in front of it instead.
+secret_set() {
+  awk -v want="$1" -F'│' '
+    { name = $1
+      sub(/^[^A-Za-z_]+/, "", name)      # margin flag and leading spaces
+      sub(/[[:space:]]+$/, "", name)
+      if (name == want) found = 1 }
+    END { exit !found }' <<<"$SECRETS"
+}
 
 if secret_set DATABASE_URL; then
   echo "    DATABASE_URL already set — leaving the existing database alone"

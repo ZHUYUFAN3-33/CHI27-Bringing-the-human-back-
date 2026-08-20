@@ -646,7 +646,7 @@ export function allItemIds({ optional = true } = {}) {
   });
 }
 
-/** The 21 allocation cells: 7 conditions x 3 segment orders. */
+/** The 42 allocation cells: 7 conditions x 6 segment orders. */
 export function allCells() {
   const cells = [];
   for (const cond of CONDITION_KEYS) {

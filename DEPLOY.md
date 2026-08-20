@@ -209,10 +209,15 @@ returns its allocation slot.
 
 ## Running the study
 
-**Set per-cell targets.** For 700 participants across 42 cells, allowing for the
-15 % exclusion rate the power analysis assumes, put a target on each cell in the
-dashboard. A cell closes itself once it fills, and the randomiser stops offering
-it. When every cell is full, new arrivals get a “study is closed” page instead of
+**Leave the per-cell targets at 0.** The sample is 300: 7 per cell across the 42
+cells, ~43 per condition. Balance does not depend on the targets — the randomiser
+always takes the least-filled cell — and a target counts *starts*, not completes,
+so a cap of 7 (294 slots) would close the study before 300 completes land. Let
+the CloudResearch quota be the stop; expect 36 cells at 7 and 6 at 8.
+
+Targets are still there if you need them: put one on a cell in the dashboard and
+that cell closes itself once it fills, and the randomiser stops offering it. When
+every cell is full, new arrivals get a “study is closed” page instead of
 consuming a slot.
 
 **Pause without redeploying:**

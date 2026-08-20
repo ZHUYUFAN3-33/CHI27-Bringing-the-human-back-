@@ -217,5 +217,5 @@ has been pasted anywhere shared.
 - [ ] **The study information page is generic.** Replace it with the IRB-approved text. `grep -n 'renderInfo' public/survey.js`
 - [ ] **Confirm the three clips are Unlisted and embeddable.**
 - [x] ~~Clear the pre-recruitment rows.~~ Done: the nine `v5-r2` rows were deleted and the counters are back to zero. Only test rows remain, and they neither export nor hold a slot.
-- [ ] **Set per-cell targets** in the dashboard. For 700 participants across 42 cells that is ~17 each, allowing for the 15 % exclusion rate the power analysis assumes. Each condition still receives 100, which is what the main effects are powered on.
+- [ ] **Leave the per-cell targets at 0.** The sample is 300, which is 7 per cell across the 42 cells and ~43 per condition. Balance does not come from the targets — the randomiser always takes the least-filled cell — and a target counts *starts*, not completes, so a cap of 7 (294 slots) would close the study before 300 completes land. Let the CloudResearch quota be the stop. Expect 36 cells at 7 and 6 at 8 when it closes.
 - [ ] **Decide the fallback policy** — whether a `fallback_confirm` watch counts as usable data.
