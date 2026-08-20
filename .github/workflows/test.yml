@@ -21,10 +21,26 @@
 
 name: Test
 
+# Manual only. Running on every push meant a failure e-mail for each one, and
+# the failures were the runner rather than the code: `playwright install
+# --with-deps` shells out to apt, which took five minutes on a good day and
+# hung indefinitely on a bad one. Deploying does not depend on this, so it is
+# now something you ask for.
+#
+#   Actions -> Test -> Run workflow
+#
+# Or locally, against a server you already have running:
+#
+#   npm install --no-save playwright && npx playwright install chromium
+#   BASE=http://localhost:8099 node scripts/browser-test.mjs
+#
+# To put it back on every push, restore:
+#   on:
+#     push:
+#       branches: [main]
+#     workflow_dispatch:
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:        # also runnable by hand from the Actions tab
+  workflow_dispatch:
 
 concurrency:
   group: test
