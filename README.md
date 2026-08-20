@@ -174,10 +174,11 @@ opens.
 
 ## Known limitations
 
-- **`AV1` options are placeholders.** The comprehension check still reads
-  `[correct line from spoken dialogue]` / `[distractor 1…3]`. These must be
-  written from the real clips before launch. The item is live and stored; only
-  the wording is pending.
+- **`AV1` is written from the shooting script, not from the cut.** The
+  comprehension check now carries one true and three false statements per
+  segment, drawn from the v1.4 script — which itself flags segments R and A as
+  reproduced from working text rather than diffed against the v1.2 master.
+  Confirm every option against the audio of the final clips before launch.
 - **The video gate cannot stop someone who leaves a clip playing on mute.** It
   stops the two cheap defeats — never pressing play, and dragging the scrubber —
   because it requires both an `ended` event and wall-clock time covering 90 % of

@@ -103,24 +103,68 @@ export const ORDERS = {
 };
 export const ORDER_KEYS = Object.keys(ORDERS);
 
+/* `av1` is the comprehension check, and it is asked about whichever segment the
+   participant saw first — which is randomised. The options therefore belong to
+   the segment, not to the questionnaire: one shared set would have matched the
+   clip for only a third of participants.
+
+   Each set is one thing that is actually said or shown, and three that are
+   plausible for the same scene and are not. The correct option sits at a
+   different index in each segment so its position carries no information, and
+   `correct` is stripped by publicPlan — the browser never receives the key.
+
+   Written from the v1.4 shooting script. The script flags segments R and A as
+   reproduced from working text rather than diffed against the v1.2 master, so
+   confirm each line against the audio of the final cut before recruiting. */
 export const SEGMENTS = {
   REL: {
     yt: "FM4xHwqv03M",
     desc: "A person and OriHime have a casual conversation about recent life experiences.",
     neg: "Imagine that OriHime made a hurtful comment, and the other person was left feeling worse.",
-    pos: "Imagine instead that OriHime made a thoughtful comment, and the other person was left feeling better."
+    pos: "Imagine instead that OriHime made a thoughtful comment, and the other person was left feeling better.",
+    av1: {
+      /* Anchored on the botanical garden rather than the plum trees. The script
+         marks the trees as the anchor but also flags them as a spring marker
+         that may be recut for an autumn sample; the visit itself survives that
+         edit, and is the more salient detail either way. */
+      options: [
+        "She spent the whole weekend catching up on work.",
+        "She visited a botanical garden at the weekend.",
+        "She went to a concert with friends.",
+        "She was away travelling for most of the week."
+      ],
+      correct: 1
+    }
   },
   ADV: {
     yt: "MkcK6cGjjwM",
     desc: "A person describes work overload or work–life strain, and OriHime offers a recommendation.",
     neg: "Imagine that OriHime gave unsuitable advice on workload management, and the person’s situation worsened.",
-    pos: "Imagine instead that OriHime gave suitable advice on workload management, and the person’s situation improved."
+    pos: "Imagine instead that OriHime gave suitable advice on workload management, and the person’s situation improved.",
+    av1: {
+      options: [
+        "Hand one of the projects over to a colleague.",
+        "Turn off notifications for the whole day.",
+        "Keep the first hour of the day for her own work.",
+        "Ask for the deadline to be moved back."
+      ],
+      correct: 2
+    }
   },
   COL: {
     yt: "hPlQYCCJ4do",
     desc: "A person and OriHime discuss scheduling, responsibilities, and preparation for a small project.",
     neg: "Imagine that OriHime made an impractical decision on schedule management, and the project missed an important deadline.",
-    pos: "Imagine instead that OriHime made a practical decision on schedule management, and the project met an important deadline."
+    pos: "Imagine instead that OriHime made a practical decision on schedule management, and the project met an important deadline.",
+    av1: {
+      options: [
+        "The air conditioning was set to twenty-two degrees.",
+        "A window was opened to cool the room.",
+        "The documents had to go out by the end of the week.",
+        "The printed list was already sorted by department."
+      ],
+      correct: 0
+    }
   }
 };
 
@@ -372,14 +416,10 @@ export function buildPlan(cond, order, optional) {
 
     const items = [];
 
-    /* Comprehension check, first segment only. */
+    /* Comprehension check, first segment only, drawn from that segment. */
     if (i === 0) {
-      items.push(mc(q("AV1"), "Which of the following did you hear in the interaction you just watched?", [
-        "[correct line from spoken dialogue]",
-        "[distractor 1]",
-        "[distractor 2]",
-        "[distractor 3]"
-      ], { ...meta, group: "comprehension", pendingCopy: true }));
+      items.push(mc(q("AV1"), "Which of the following happened in the interaction you just watched?",
+        S.av1.options, { ...meta, group: "comprehension", expected: S.av1.correct }));
     }
 
     /* Block A — OriHime referent, identical wording in all seven conditions. */

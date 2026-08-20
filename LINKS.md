@@ -213,8 +213,7 @@ has been pasted anywhere shared.
 
 ## Before recruitment opens
 
-- [ ] **AV1 answer options are still placeholders.** `[correct line from spoken dialogue]`, `[distractor 1]`… must be written from the real dialogue.
-      `grep -n 'correct line from spoken dialogue' shared/instrument.js`
+- [ ] **Check AV1 against the finished clips.** The options are written per segment from the v1.4 shooting script, which flags segments R and A as not yet diffed against the v1.2 master. One option per segment must be true of the audio as cut, and the other three must not be.
 - [ ] **The study information page is generic.** Replace it with the IRB-approved text. `grep -n 'renderInfo' public/survey.js`
 - [ ] **Confirm the three clips are Unlisted and embeddable.**
 - [x] ~~Clear the pre-recruitment rows.~~ Done: the nine `v5-r2` rows were deleted and the counters are back to zero. Only test rows remain, and they neither export nor hold a slot.

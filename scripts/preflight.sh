@@ -13,6 +13,7 @@ chk "lockfile present"          '[ -f package-lock.json ]'
 chk "every source file parses"  'for f in $(find src shared public -name "*.js"); do node --check "$f" || exit 1; done'
 chk "every cell builds, ids unique, orders counterbalanced"  'node scripts/plan-check.mjs'
 chk "all 42 cells defined"      'node -e "import(\"./shared/instrument.js\").then(m=>{if(m.allCells().length!==42) process.exit(1)})"'
+chk "AV1 copy is written"       '! grep -q "correct line from spoken dialogue\|distractor 1" shared/instrument.js'
 chk "Dockerfile copies exist"   'for d in src shared public private db; do [ -d "$d" ] || exit 1; done'
 chk "fly.toml present"          '[ -f fly.toml ]'
 chk "flyctl installed"          'command -v fly'
@@ -20,8 +21,8 @@ chk "logged in to Fly"          'fly auth whoami'
 
 echo
 echo "Things only you can check:"
-echo "  · AV1 options are still placeholders — write them from the real clips"
-echo "     grep -n 'correct line from spoken dialogue' shared/instrument.js"
+echo "  · AV1 is written from the shooting script — confirm each option against"
+echo "    the audio of the final cut, per segment"
 echo "  · the study information page is generic — replace with your approved text"
 echo "     grep -n 'renderInfo' public/survey.js"
 echo "  · the three YouTube clips must be Unlisted (not Private) and embeddable"
