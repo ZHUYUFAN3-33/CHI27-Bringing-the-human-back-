@@ -30,9 +30,12 @@ your participants.
 
 ## What CI does
 
-`.github/workflows/test.yml` runs on every push to `main`: it boots the server
-against a throwaway Postgres, pushes 60 simulated participants through the
-questionnaire, and runs the Playwright browser test. It does **not** deploy.
+`.github/workflows/test.yml` boots the server against a throwaway Postgres,
+pushes 60 simulated participants through the questionnaire, and runs the
+Playwright browser test. It does **not** deploy, and it runs only when asked:
+**Actions → Test → Run workflow**. It used to run on every push, until the
+runner's browser install began taking five minutes on a good day and hanging on
+a bad one, which produced failure mail carrying no information.
 
 Deploying is `./scripts/deploy.sh`, from a machine logged in to Fly. That is
 deliberate — during data collection a deploy is something you should choose to
@@ -107,7 +110,7 @@ Check it:
 
 ```bash
 curl https://study1-survey.fly.dev/healthz
-# {"ok":true,"instrument":"v5-r2","open":true}
+# {"ok":true,"instrument":"v6","open":true}
 ```
 
 ---
@@ -206,7 +209,7 @@ returns its allocation slot.
 
 ## Running the study
 
-**Set per-cell targets.** For 700 participants across 21 cells, allowing for the
+**Set per-cell targets.** For 700 participants across 42 cells, allowing for the
 15 % exclusion rate the power analysis assumes, put a target on each cell in the
 dashboard. A cell closes itself once it fills, and the randomiser stops offering
 it. When every cell is full, new arrivals get a “study is closed” page instead of

@@ -15,7 +15,7 @@ server-side randomisation, storage, resume, quality flags, and export.
 | | |
 |---|---|
 | **Participant app** | `/` — the questionnaire, no researcher chrome |
-| **Design mockup** | `/preview` — the original panelled mockup, unchanged, behind the admin token |
+| **Questionnaire preview** | `/preview?token=…` — the participant app against any cell you pick; `/mockup` is the original design document |
 | **Dashboard** | `/admin?token=…` — live cell balance, drop-off, quality flags |
 | **Exports** | `/api/export/*.csv`, `/api/export/all.json` — behind the same token |
 | **Health** | `/healthz` — used by Fly's checks |
@@ -24,8 +24,8 @@ server-side randomisation, storage, resume, quality flags, and export.
 
 ## The parts that matter for the study
 
-**Randomisation is a server decision.** A participant is assigned one of the 21
-design cells (7 conditions × 3 segment orders) by a single atomic SQL statement
+**Randomisation is a server decision.** A participant is assigned one of the 42
+design cells (7 conditions × 6 segment orders, the full counterbalance) by a single atomic SQL statement
 that takes the least-filled open cell, ties broken at random. If the browser
 picked, a refresh or a cleared cache would re-randomise the same person and the
 cells would drift apart under differential drop-out.
@@ -54,7 +54,7 @@ except the final submit, and that retries.
 
 **Quality flags are derived on the server** at submit time, from what is actually
 in the database: the attention check (`AT1`), and the two manipulation checks
-(`C1` control source, `C2` pilot profile) scored against the framing text that
+(`C1` control source, `C2` operator profile) scored against the framing text that
 participant was actually shown.
 
 ---
@@ -68,7 +68,7 @@ src/
   server.js            Fastify app, auth, static, graceful drain
   config.js            every setting, read from the environment
   db.js                Postgres pool + migrations
-  allocation.js        balanced randomisation across the 21 cells
+  allocation.js        balanced randomisation across the 42 cells
   routes/session.js    start / resume / keepalive
   routes/save.js       page saves, screen-out, submit
   routes/admin.js      dashboard API

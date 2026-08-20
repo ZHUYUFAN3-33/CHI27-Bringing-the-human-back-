@@ -1,4 +1,4 @@
-/* Balanced randomisation across the 21 design cells (7 conditions x 3 orders).
+/* Balanced randomisation across the 42 design cells (7 conditions x 6 orders).
    ---------------------------------------------------------------------------
    Assignment must be a server decision. If the browser picked, a refresh or a
    cleared cache would re-randomise the same person, and the cells would drift
@@ -118,7 +118,7 @@ export async function setCellTarget(cell, target) {
   return rows[0] ?? null;
 }
 
-/** Apply one target to every cell at once, e.g. 700/21 = 34 per cell. */
+/** Apply one target to every cell at once, e.g. 700/42 = 17 per cell. */
 export async function setAllTargets(target) {
   const { rows } = await q(
     `UPDATE allocation SET target = $1 RETURNING cell, target`, [target]

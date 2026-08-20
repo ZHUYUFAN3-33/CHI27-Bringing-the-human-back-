@@ -30,7 +30,7 @@ no code change.
 https://study1-survey.fly.dev/admin?token=<TOKEN>
 ```
 
-Allocation across the 21 cells (7 conditions × 3 segment orders), drop-off by
+Allocation across the 42 cells (7 conditions × 6 segment orders), drop-off by
 page, recent participants, and the export panel. `Recount assigned` re-derives
 every counter from the participants table — run it after piloting and before
 recruitment opens.
@@ -56,7 +56,7 @@ https://study1-survey.fly.dev/preview?token=<TOKEN>&condition=HA2&order=O3&optio
 | parameter | values | meaning |
 |---|---|---|
 | `condition` | `H1` `H2` `H3` `HA1` `HA2` `HA3` `A` | control source × operator profile |
-| `order` | `O1` `O2` `O3` | REL·ADV·COL / ADV·COL·REL / COL·REL·ADV |
+| `order` | `O1`…`O6` | the six permutations: REL·ADV·COL, ADV·COL·REL, COL·REL·ADV, REL·COL·ADV, ADV·REL·COL, COL·ADV·REL |
 | `optional` | `1` `0` | the NARS + SCM attitude block |
 
 ### Design mockup
@@ -217,6 +217,6 @@ has been pasted anywhere shared.
       `grep -n 'correct line from spoken dialogue' shared/instrument.js`
 - [ ] **The study information page is generic.** Replace it with the IRB-approved text. `grep -n 'renderInfo' public/survey.js`
 - [ ] **Confirm the three clips are Unlisted and embeddable.**
-- [ ] **Clear the pre-recruitment rows.** Everything collected so far is instrument `v5-r2`; TP1–TP3 and AC1 no longer exist and several stems changed, so those rows are not comparable with v6. Mark them as test data or delete them, then press `Recount assigned`.
-- [ ] **Set per-cell targets** in the dashboard. For 700 participants across 21 cells, allowing for the 15 % exclusion rate the power analysis assumes.
+- [x] ~~Clear the pre-recruitment rows.~~ Done: the nine `v5-r2` rows were deleted and the counters are back to zero. Only test rows remain, and they neither export nor hold a slot.
+- [ ] **Set per-cell targets** in the dashboard. For 700 participants across 42 cells that is ~17 each, allowing for the 15 % exclusion rate the power analysis assumes. Each condition still receives 100, which is what the main effects are powered on.
 - [ ] **Decide the fallback policy** — whether a `fallback_confirm` watch counts as usable data.

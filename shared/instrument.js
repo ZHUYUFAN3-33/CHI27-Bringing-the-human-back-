@@ -82,10 +82,24 @@ export const CONDITIONS = {
 };
 export const CONDITION_KEYS = Object.keys(CONDITIONS);
 
+/* All six permutations, not the three cyclic rotations.
+   The rotations balance position — each segment appears once in each slot —
+   but they only ever produce three of the six adjacent pairs: REL→ADV, ADV→COL
+   and COL→REL. ADV→REL, COL→ADV and REL→COL never occurred, so a segment
+   effect could not be separated from what preceded it. With all six, every
+   ordered pair appears exactly twice and position stays balanced.
+
+   This doubles the design cells to 42, but a cell is the randomisation unit,
+   not the analysis unit: each condition still receives n/7, so the power for
+   the effects of interest is unchanged. scripts/plan-check.mjs enforces both
+   balances, so a future edit cannot quietly reintroduce the confound. */
 export const ORDERS = {
   O1: ["REL", "ADV", "COL"],
   O2: ["ADV", "COL", "REL"],
-  O3: ["COL", "REL", "ADV"]
+  O3: ["COL", "REL", "ADV"],
+  O4: ["REL", "COL", "ADV"],
+  O5: ["ADV", "REL", "COL"],
+  O6: ["COL", "ADV", "REL"]
 };
 export const ORDER_KEYS = Object.keys(ORDERS);
 
