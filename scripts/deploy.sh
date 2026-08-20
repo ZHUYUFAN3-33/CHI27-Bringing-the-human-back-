@@ -45,25 +45,38 @@ fi
 
 # --- 2 · Postgres -----------------------------------------------------------
 step "Postgres"
-# `fly secrets list` prints a table — ` * NAME │ DIGEST │ STATUS ` — so the name
-# is never at the start of the line. Anchoring on ^ silently reports every secret
-# as missing, which here meant creating a second Postgres cluster on every run.
-secret_set() { fly secrets list -a "$APP" 2>/dev/null | grep -qE "^[[:space:]*]*$1[[:space:]]"; }
+
+# The secret list is read once, and a failed read is not allowed to look like an
+# empty one. `fly secrets list` prints a table — ` * NAME │ DIGEST │ STATUS ` —
+# so a name is never at the start of a line, and the asterisk marks a staged
+# secret. Anchoring on ^NAME matches nothing and reports every secret missing.
+SECRETS="$(fly secrets list -a "$APP" 2>&1)" \
+  || die "could not read the secrets on $APP — refusing to guess. flyctl said:"$'\n'"$SECRETS"
+
+secret_set() { grep -qE "^[[:space:]*]*$1[[:space:]]" <<<"$SECRETS"; }
 
 if secret_set DATABASE_URL; then
   echo "    DATABASE_URL already set — leaving the existing database alone"
 else
+  # Provisioning is never the fallback path. A transient API error here used to
+  # read as "no database" and silently bought another $38/month cluster, so a
+  # new one now has to be asked for by name.
   CLUSTER="${MPG_CLUSTER:-}"
   if [[ -z "$CLUSTER" ]]; then
-    echo "    creating a Managed Postgres cluster (this takes a couple of minutes)"
-    fly mpg create --name "${APP}-db" --region "$REGION" || true
-    echo
-    echo "    Clusters on this account:"
-    fly mpg list || true
+    [[ "${CREATE_DB:-}" == "1" ]] || die \
+"$APP has no DATABASE_URL and no database was named, so this run is stopping
+    rather than creating a paid one by default.
+
+      attach an existing cluster:   MPG_CLUSTER=<id> $0
+      let this script create one:   CREATE_DB=1 $0        (Managed Postgres, from \$38/month)
+      list what you already have:   fly mpg list -o <org>"
+
+    echo "    CREATE_DB=1 — creating a Managed Postgres cluster (a couple of minutes)"
+    fly mpg create --name "${APP}-db" --region "$REGION" --plan "${MPG_PLAN:-Basic}"
     echo
     read -r -p "    Paste the cluster id to attach: " CLUSTER
   fi
-  [[ -n "$CLUSTER" ]] || die "no cluster id given — re-run with MPG_CLUSTER=<id> ./scripts/deploy.sh"
+  [[ -n "$CLUSTER" ]] || die "no cluster id given — re-run with MPG_CLUSTER=<id> $0"
   fly mpg attach "$CLUSTER" -a "$APP"
 fi
 
