@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Fastify from "fastify";
@@ -157,6 +158,45 @@ await app.register(async scope => {
   await scope.register(exportRoutes);
 });
 
+/* ------------------------------------------------------------ asset version
+   index.html is no-store, but it asked for /survey.js by that bare name, and
+   the browser holds those for an hour. So a fix deployed mid-collection did not
+   reach anyone who had already loaded the page, and the data would carry two
+   different behaviours with nothing to tell them apart.
+
+   The HTML is rewritten once at boot to point at /survey.js?v=<digest of the
+   file>. The name changes exactly when the contents change, so a deploy lands
+   immediately and an unchanged file still comes from cache. */
+
+const ASSET_HASH = (() => {
+  const h = crypto.createHash("sha256");
+  for (const f of ["survey.js", "survey.css", "net.js"]) {
+    h.update(fs.readFileSync(path.join(rootDir, "public", f)));
+  }
+  return h.digest("hex").slice(0, 12);
+})();
+
+const htmlCache = new Map();
+function versionedHtml(dir, file) {
+  const key = `${dir}/${file}`;
+  if (!htmlCache.has(key)) {
+    const src = fs.readFileSync(path.join(rootDir, dir, file), "utf8");
+    htmlCache.set(key, src.replace(
+      /(["'])\/(survey\.js|survey\.css|net\.js)\1/g,
+      (_m, quote, name) => `${quote}/${name}?v=${ASSET_HASH}${quote}`
+    ));
+  }
+  return htmlCache.get(key);
+}
+function sendHtml(reply, dir, file) {
+  return reply
+    .header("content-type", "text/html; charset=utf-8")
+    .header("cache-control", "no-store")
+    .send(versionedHtml(dir, file));
+}
+
+app.log.info({ assets: ASSET_HASH }, "asset version");
+
 /* The researcher dashboard and the original design mockup both sit behind the
    admin token. The mockup is kept verbatim so the team can still compare cells
    side by side; it never touches the database. */
@@ -167,27 +207,33 @@ app.get("/admin", { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("
    the original design document, which carries its own copy of the wording and
    will drift from the instrument — it is kept for the annotations, not as a
    description of what participants see. */
-app.get("/preview", { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("preview.html", path.join(rootDir, "private")));
-app.get("/mockup",  { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("mockup.html",  path.join(rootDir, "private")));
+app.get("/preview", { onRequest: requireAdmin }, (_req, reply) => sendHtml(reply, "private", "preview.html"));
+app.get("/mockup",  { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("mockup.html", path.join(rootDir, "private")));
+
+/* The entry page is served from memory so the asset URLs carry the version. */
+app.get("/", (_req, reply) => sendHtml(reply, "public", "index.html"));
 
 /* Participant app. index.html is served for the survey routes so a refresh
    mid-survey does not 404. */
 await app.register(fastifyStatic, {
   root: path.join(rootDir, "public"),
-  index: ["index.html"],
+  index: false,                    // "/" is handled above
   maxAge: config.nodeEnv === "production" ? "1h" : 0,
   /* @fastify/static v10 hands this hook the Fastify reply, not the raw
      response, so headers go through reply.header(). */
   setHeaders(reply, filePath) {
-    /* The entry page must never be cached: a stale index.html served after a
-       redeploy would run against a changed API. */
-    if (filePath.endsWith("index.html")) reply.header("cache-control", "no-store");
+    /* A versioned URL can be held as long as the browser likes: a change to the
+       file changes the URL. Without ?v= it stays at the shorter default, so a
+       direct hit on /survey.js is never frozen for a year. */
+    if (/\.(js|css)$/.test(filePath) && reply.request.query?.v === ASSET_HASH) {
+      reply.header("cache-control", "public, max-age=31536000, immutable");
+    }
   }
 });
 
 app.setNotFoundHandler((req, reply) => {
   if (req.url.startsWith("/api/")) return reply.code(404).send({ error: "not_found" });
-  return reply.sendFile("index.html");
+  return sendHtml(reply, "public", "index.html");
 });
 
 app.setErrorHandler((err, req, reply) => {
