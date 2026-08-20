@@ -135,6 +135,17 @@ table.rank label.hit{display:block;padding:4px 0;cursor:pointer}
 }
 .gate.open{border-color:#BFE3DD;background:#EEF8F6;color:#1F6F66}
 .gate.err{border-color:#E9C4C1;background:#FDF0EF;color:#8C2019}
+
+/* Shown only when the embedded player refuses to run. */
+.fallback{
+  display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+  margin:-12px 0 20px;padding:14px;border:1px solid #E9C4C1;border-radius:4px;
+  background:var(--sheet);
+}
+.fallback .fblink{font-size:14.5px;font-weight:600;color:var(--ink)}
+.fallback .fbnote{margin:0;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.fallback .fbbtn{align-self:stretch}
+.fallback .fbbtn:disabled{opacity:.45;cursor:not-allowed}
 .gate .pip{width:8px;height:8px;border-radius:50%;background:#C4CAD3;flex:none}
 .gate.open .pip{background:#2A9D8F}
 .locked{opacity:.38;pointer-events:none;filter:grayscale(.5)}

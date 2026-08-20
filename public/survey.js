@@ -185,8 +185,17 @@ function renderDisclosure(p) {
 }
 
 function renderSegment(p) {
+  /* The IFrame API replaces the element it is handed, and the replacement
+     carries width/height attributes that beat aspect-ratio — which pinned the
+     player to 360px tall at every screen size, so a phone got a nearly square
+     box with the 16:9 clip letterboxed inside it. Handing the API a bare inner
+     div keeps the sized wrapper, and .video iframe finally has something to
+     match. */
   const shell = el("div", "video");
-  shell.id = `yt_${p.key}`;
+  shell.id = `ytbox_${p.key}`;
+  const mount = el("div");
+  mount.id = `yt_${p.key}`;
+  shell.append(mount);
   pageEl.append(shell);
 
   const gate = el("div", "gate");
@@ -446,9 +455,12 @@ window.onYouTubeIframeAPIReady = () => {
 
 function mountPlayer(page) {
   if (!YT_READY || !window.YT?.Player) return;      // retried from onYouTubeIframeAPIReady
+  /* The mounted flag lives on the wrapper: the element the API is given does
+     not survive the call, so a flag set on it would be lost. */
   const host = document.getElementById(`yt_${page.key}`);
-  if (!host || host.dataset.mounted) return;
-  host.dataset.mounted = "1";
+  const shell = document.getElementById(`ytbox_${page.key}`);
+  if (!host || !shell || shell.dataset.mounted) return;
+  shell.dataset.mounted = "1";
 
   const seg = page.segment;
   const dur = page.video.duration;
@@ -463,6 +475,10 @@ function mountPlayer(page) {
       onError: e => {
         S.gates[seg].error = e.data;
         logVideo(page, "error", { detail: String(e.data) });
+        /* The queue is only drained by a page turn, and this error is exactly
+           what stops the participant turning the page. Send it now, or the one
+           failure worth knowing about is the one that never reaches us. */
+        flushVideoQueue();
         paintGate(page);
       },
       onStateChange: e => {
@@ -491,6 +507,14 @@ function mountPlayer(page) {
 }
 
 const videoQueue = [];
+
+/* Normally the queue rides along with the next page save. When the gate is shut
+   there may never be a next page, so this sends it on its own. */
+function flushVideoQueue() {
+  if (!videoQueue.length) return;
+  enqueue("/api/save", { videoEvents: videoQueue.splice(0, videoQueue.length) });
+}
+
 function logVideo(page, event, extra = {}) {
   videoQueue.push({
     segment: page.segment,
@@ -513,12 +537,16 @@ function paintGate(page) {
   if (g.done) {
     gate.classList.add("open");
     qs.classList.remove("locked");
-    txt.textContent = "Thank you. Please answer the questions below.";
+    document.getElementById(`fb_${page.key}`)?.remove();
+    txt.textContent = g.fallback
+      ? "Thank you. Please answer the questions below about the interaction you watched."
+      : "Thank you. Please answer the questions below.";
   } else if (g.error != null) {
     gate.classList.add("err");
     qs.classList.add("locked");
-    txt.textContent = "The video could not be loaded. Please check your connection and reload this page. " +
-                      "Your answers so far are saved.";
+    txt.textContent = "The video could not be played here — an ad blocker or a network restriction is " +
+                      "the usual cause. You can watch it on YouTube instead. Your answers so far are saved.";
+    renderFallback(page);
   } else {
     qs.classList.add("locked");
     txt.textContent = (g.started && g.watch)
@@ -526,6 +554,79 @@ function paintGate(page) {
       : "Please watch the whole interaction. The questions below open when it has finished.";
   }
   updateNext();
+}
+
+/* -- fallback when the embedded player will not run ------------------------
+   Without this the participant is simply stuck: the gate never opens, Next
+   stays disabled, and the only way out is to abandon the study — which reads
+   in the data as an ordinary drop-out. The clip is offered on YouTube instead,
+   and the confirmation unlocks only after the clip has had time to play, so a
+   fallback watch still costs what a real watch costs. It is recorded as its own
+   event, so these rows can be excluded from analysis if that is the call. */
+
+function renderFallback(page) {
+  const gate = document.getElementById(`gate_${page.key}`);
+  if (!gate || document.getElementById(`fb_${page.key}`)) return;
+
+  const g = S.gates[page.segment];
+  const need = Math.round(page.video.duration * S.plan.gateFraction);
+
+  const box = el("div", "fallback");
+  box.id = `fb_${page.key}`;
+
+  const link = el("a", "fblink", "Open the interaction on YouTube");
+  link.href = `https://www.youtube.com/watch?v=${encodeURIComponent(page.video.id)}`;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+
+  const note = el("p", "fbnote");
+  const btn = el("button", "btn fbbtn", "I have watched the whole interaction");
+  btn.type = "button";
+  btn.disabled = true;
+
+  const paint = () => {
+    if (!g.fallbackStarted) {
+      note.textContent = "Open the clip first — this button unlocks once it has had time to play through.";
+      btn.disabled = true;
+      return;
+    }
+    const left = Math.max(0, need - Math.round((Date.now() - g.fallbackStarted) / 1000));
+    btn.disabled = left > 0;
+    note.textContent = left > 0
+      ? `You can confirm in ${left}s, about as long as the interaction runs.`
+      : "When you have watched the whole interaction, confirm below.";
+  };
+
+  link.addEventListener("click", () => {
+    if (g.fallbackStarted == null) {
+      g.fallbackStarted = Date.now();
+      logVideo(page, "fallback_open", { detail: `err:${g.error}` });
+      flushVideoQueue();
+    }
+    paint();
+  });
+
+  btn.addEventListener("click", () => {
+    const watched = g.fallbackStarted ? (Date.now() - g.fallbackStarted) / 1000 : 0;
+    g.watch = Math.max(g.watch ?? 0, watched);
+    g.done = true;
+    g.fallback = true;
+    logVideo(page, "fallback_confirm", { watchS: watched, detail: `err:${g.error}` });
+    /* Also emitted under the name the resume query counts, or a refresh would
+       lock the page again for someone who has already watched the clip. */
+    logVideo(page, "gate_open", { watchS: watched, detail: "fallback" });
+    flushVideoQueue();
+    paintGate(page);
+  });
+
+  box.append(link, note, btn);
+  gate.after(box);
+  paint();
+
+  const tick = setInterval(() => {
+    if (g.done || !document.getElementById(`fb_${page.key}`)) return clearInterval(tick);
+    paint();
+  }, 1000);
 }
 
 /* ---------------------------------------------------- required-item checks */

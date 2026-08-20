@@ -106,6 +106,19 @@ for (let guard = 0; guard < 30; guard++) {
       const locked = await page.locator(".locked").count();
       check("items are locked before the clip plays", locked === 1);
       check("Next is disabled while the gate is shut", await page.locator("#next").isDisabled());
+      /* The IFrame API replaces the node it is given and stamps width/height
+         attributes on the replacement, which beat aspect-ratio. If the player
+         is ever mounted on the wrapper again the box stops being 16:9 and a
+         phone gets a letterboxed clip in a nearly square frame. */
+      const box = await page.evaluate(() => {
+        const shell = document.querySelector(".video");
+        if (!shell) return null;
+        const r = shell.getBoundingClientRect();
+        return { ratio: r.width / r.height, childIsFrame: shell.firstElementChild?.tagName === "IFRAME" };
+      });
+      check("the video box keeps a 16:9 ratio", !!box && Math.abs(box.ratio - 16 / 9) < 0.05,
+        box ? box.ratio.toFixed(3) : "no .video");
+      check("the player mounts inside the sized wrapper", !!box && box.childIsFrame);
     }
     await openGate(page);
     await page.waitForTimeout(60);
