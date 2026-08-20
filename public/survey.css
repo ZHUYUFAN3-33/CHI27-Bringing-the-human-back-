@@ -103,6 +103,21 @@ table.rank label.hit{display:block;padding:4px 0;cursor:pointer}
 .disclosure p{font-size:15px;line-height:1.68;margin:0 0 13px;color:var(--ink)}
 .disclosure p:last-child{margin-bottom:0}
 
+/* The information sheet: headed sections, so a participant can find the part
+   they care about instead of reading a wall to get to it. */
+.infosheet .lede{
+  font-size:15.5px;color:var(--ink-2);margin:0 0 22px;
+  padding-bottom:18px;border-bottom:1px solid var(--rule);
+}
+.infosheet section{margin:0 0 22px}
+.infosheet section:last-child{margin-bottom:0}
+.infosheet h3{
+  margin:0 0 9px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  font-family:var(--mono);font-weight:600;color:var(--ink-2);
+}
+.infosheet section p{margin:0 0 9px}
+.infosheet section p:last-child{margin-bottom:0}
+
 /* The OriHime photo on the disclosure page. aspect-ratio matches the file, so
    the box reserves exactly the right space before the image loads and nothing
    below it jumps; object-fit:cover then has nothing to crop. */

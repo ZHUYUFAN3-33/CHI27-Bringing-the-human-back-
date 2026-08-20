@@ -193,30 +193,56 @@ function render() {
   updateNext();
 }
 
+/* The information page is the consent document. It is set as headed sections
+   rather than one column of bolded lead-ins, because it is read by someone
+   deciding whether to take part and they should be able to find "can I stop"
+   without reading the paragraph above it. Wording follows the approved ethics
+   application: duration, storage, retention and funder all come from there. */
 function renderInfo() {
-  const box = el("div", "disclosure");
-  box.innerHTML = `
-    <p>Thank you for your interest in this study. Please read this page before deciding whether to take part.</p>
-    <p><b>What you will do.</b> You will read a short description, watch three video clips of a person talking with a
-       robot called OriHime, and answer questions about each one. The study takes about 15–20 minutes.
-       You will need sound.</p>
-    <p><b>Your data.</b> We record your answers, how long each page took, and whether each clip played through.
-       We do not record your name, and we do not store your IP address. Your responses are analysed in aggregate
-       and may be shared as an anonymous dataset alongside a published paper.</p>
-    <p><b>Taking part is voluntary.</b> You can close the page at any time without giving a reason. Because responses
-       are not linked to your identity, we cannot remove your data once it has been submitted.</p>
-    <p><b>One important note.</b> Some details of this study are not described in full until the end. There is a full
-       explanation on the last page, before you finish.</p>`;
-  /* Who is running this, and how to reach them. The ethics application names
-     the funder, so it is stated here rather than left to the platform listing. */
-  const who = [];
-  if (window.__STUDY_FUNDING__) {
-    who.push(`<b>Who is running this study.</b> This research is funded by ${esc(window.__STUDY_FUNDING__)}.`);
-  }
+  const box = el("div", "disclosure infosheet");
+
+  const section = (heading, body) =>
+    `<section><h3>${esc(heading)}</h3>${body}</section>`;
+
+  let html = `<p class="lede">Thank you for your interest in this study. Please read this page
+    before deciding whether to take part.</p>`;
+
+  html += section("What you will do", `
+    <p>You will read a short description, watch three video clips of a person talking with a robot
+       called OriHime, and answer questions about each one.</p>
+    <p>It takes about <b>20–30 minutes</b>, and you will need <b>sound</b>.</p>`);
+
+  html += section("Who is running this study", `
+    <p>This research is carried out at the <b>Keio University Graduate School of Media Design</b>${
+      window.__STUDY_FUNDING__
+        ? `, funded by ${esc(window.__STUDY_FUNDING__)}`
+        : ""
+    }.</p>`);
+
+  html += section("Your data", `
+    <p>We record your answers, how long each page took, and whether each clip played through.
+       <b>We do not record your name, and we do not store your IP address.</b></p>
+    <p>Responses are held on a secured server during collection and kept on access-controlled
+       Keio University storage afterwards, reachable only by the authorised researchers. They are
+       retained until <b>31 August 2036</b>, then deleted or irreversibly anonymised.</p>
+    <p>Results are reported in aggregate, and the responses may be shared as an anonymous dataset
+       alongside a published paper.</p>`);
+
+  html += section("Taking part is voluntary", `
+    <p>You can close the page at any time, without giving a reason and without penalty.</p>
+    <p>At the end you receive a completion code. If you later want your responses removed, send us
+       that code and we will delete them — it is the only thing that identifies your answers.</p>`);
+
+  html += section("One important note", `
+    <p>Some details of this study are not described in full until the end. There is a complete
+       explanation on the last page, before you finish.</p>`);
+
   if (window.__STUDY_CONTACT__) {
-    who.push(`<b>Questions?</b> You can contact the researcher at ${esc(window.__STUDY_CONTACT__)}.`);
+    html += section("Questions", `
+      <p>You can contact the researcher at <b>${esc(window.__STUDY_CONTACT__)}</b>.</p>`);
   }
-  if (who.length) box.innerHTML += `<p>${who.join(" ")}</p>`;
+
+  box.innerHTML = html;
   pageEl.append(box);
 }
 
