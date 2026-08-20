@@ -164,6 +164,12 @@ re-run. **[DEPLOY.md](DEPLOY.md)** covers the step-by-step version, deploying
 from GitHub Actions instead, the database tunnel, CloudResearch setup, running
 the study, and what to do when something breaks.
 
+**[LINKS.md](LINKS.md)** is the one-page index of the deployed study: the
+participant and pilot links, the dashboard, the questionnaire preview and how to
+point it at any cell, every export endpoint and its query parameters, the
+operational commands, and the checklist that has to be clear before recruitment
+opens.
+
 ---
 
 ## Known limitations
