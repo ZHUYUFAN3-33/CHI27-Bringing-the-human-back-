@@ -933,10 +933,16 @@ function completionPage(code, redirectUrl, alreadyDone) {
   pageEl.append(el("p", "eyebrow", "Complete"));
   pageEl.append(el("h2", "qtitle", alreadyDone ? "You have already completed this study" : "Thank you for taking part"));
 
+  /* With a redirect configured the platform records the completion itself, and
+     the code is only there for the participant whose redirect does not fire.
+     Telling everyone to copy a code they do not need is how a support inbox
+     fills up. */
   const wrap = el("div", "centered");
-  wrap.append(el("p", "qintro", "Your completion code is"));
+  wrap.append(el("p", "qintro", redirectUrl ? "Your completion code, in case you need it" : "Your completion code is"));
   wrap.append(el("div", "bigcode", esc(code)));
-  wrap.append(el("p", "hint", "Copy this code into the study platform to confirm your participation."));
+  wrap.append(el("p", "hint", redirectUrl
+    ? "You should not have to enter this — you are being returned to the study platform automatically."
+    : "Copy this code into the study platform to confirm your participation."));
   pageEl.append(wrap);
 
   if (redirectUrl) {
