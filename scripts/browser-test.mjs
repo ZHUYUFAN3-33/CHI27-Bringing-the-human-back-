@@ -191,7 +191,11 @@ for (let guard = 0; guard < 30; guard++) {
 
 check("reached the disclosure page", sawDisclosure);
 check("reached the segment pages", sawSegment && segmentsSeen === 3, `${segmentsSeen} segments`);
-check("walked the expected number of pages", pages === 13, `${pages} pages`);
+/* Compared against the plan the server actually sent rather than a number
+   written here, which went stale the moment the three consent pages became
+   one. The walk stops on the debrief, so it turns every page but the last. */
+const planPages = await page.evaluate(() => window.__t.S.plan.pages.length);
+check("walked every page of the plan", pages === planPages - 1, `${pages} of ${planPages - 1}`);
 
 /* Refresh in the middle: answers and position must come back. */
 const beforeCount = await page.evaluate(() => window.__t.S.answers.size);

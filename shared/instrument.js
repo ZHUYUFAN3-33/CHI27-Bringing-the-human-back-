@@ -316,29 +316,30 @@ export function buildPlan(cond, order, optional) {
   });
 
   /* -- 1 · consent and eligibility -------------------------------------
-     In the live build each item sits on its own page, and answering No ends
-     the survey. The mockup combined them for side-by-side preview only. */
+     One page, three items. Online consent is part of the approved procedure,
+     and eligibility is recorded from the participant rather than inferred from
+     the panel, so all three questions stay — but a person who has already
+     accepted the study on CloudResearch should not have to turn three pages of
+     one question each to start it.
+
+     They remain three separate items, not one combined tick: screening out is
+     recorded with a reason, and `under_18`, `declined_consent` and `no_video`
+     are three different things to report in a flow diagram. Answering No to
+     any of them ends the survey. */
   pages.push({
-    key: "consent_age",
+    key: "consent",
     kind: "screener",
     eyebrow: "Section 1",
     title: "Consent and eligibility",
-    intro: "Please confirm the following before continuing.",
-    items: [mc("E1", "Are you 18 years old or older?", ["Yes", "No"], { screenOut: [1], screenOutReason: "under_18" })]
-  });
-  pages.push({
-    key: "consent_agree",
-    kind: "screener",
-    eyebrow: "Section 1",
-    title: "Consent and eligibility",
-    items: [mc("E2", "I have read the study information and agree to take part.", ["Yes, I agree", "No"], { screenOut: [1], screenOutReason: "declined_consent" })]
-  });
-  pages.push({
-    key: "consent_video",
-    kind: "screener",
-    eyebrow: "Section 1",
-    title: "Consent and eligibility",
-    items: [mc("E3", "Can you watch a short video with sound on your current device?", ["Yes", "No"], { screenOut: [1], screenOutReason: "no_video" })]
+    intro: "Please confirm all three before continuing.",
+    items: [
+      mc("E1", "Are you 18 years old or older?", ["Yes", "No"],
+        { screenOut: [1], screenOutReason: "under_18" }),
+      mc("E2", "I have read the study information and agree to take part.", ["Yes, I agree", "No"],
+        { screenOut: [1], screenOutReason: "declined_consent" }),
+      mc("E3", "Can you watch a short video with sound on your current device?", ["Yes", "No"],
+        { screenOut: [1], screenOutReason: "no_video" })
+    ]
   });
 
   /* -- 2 · background --------------------------------------------------- */
