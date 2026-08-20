@@ -50,7 +50,12 @@ export const config = {
   /* Study information shown before consent. Markdown-lite: blank line = new
      paragraph. Keep the ethics-approved wording here. */
   studyInfoUrl: process.env.STUDY_INFO_URL || "",
-  contactEmail: process.env.CONTACT_EMAIL || "",
+  /* Free text, not necessarily an address: a WhatsApp number is a contact
+     point too. CONTACT_EMAIL is still read so an existing deployment keeps
+     working. */
+  contact: process.env.STUDY_CONTACT || process.env.CONTACT_EMAIL || "",
+  /* Grant or funder to name on the information page. */
+  funding: process.env.STUDY_FUNDING || "",
 
   /* Ops -------------------------------------------------------------------- */
   rateLimitMax: int(process.env.RATE_LIMIT_MAX, 240),      // per participant token, per window

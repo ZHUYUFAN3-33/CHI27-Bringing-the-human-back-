@@ -147,7 +147,8 @@ app.get("/api/config", async () => ({
   instrumentVersion: INSTRUMENT_VERSION,
   recruitment: config.recruitment,
   studyInfoUrl: config.studyInfoUrl || null,
-  contactEmail: config.contactEmail || null
+  contact: config.contact || null,
+  funding: config.funding || null
 }));
 
 await app.register(sessionRoutes);

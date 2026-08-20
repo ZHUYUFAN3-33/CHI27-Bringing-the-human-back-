@@ -4,7 +4,7 @@ import {
   allocationSnapshot, reconcileAllocation, setCellTarget, setAllTargets, setCellEnabled
 } from "../allocation.js";
 import {
-  CONDITION_KEYS, ORDER_KEYS, INSTRUMENT_VERSION,
+  CONDITION_KEYS, ORDER_KEYS, CONDITIONS, ORDERS, INSTRUMENT_VERSION,
   buildPlan, publicPlan, planItems
 } from "../../shared/instrument.js";
 
@@ -157,9 +157,16 @@ export default async function adminRoutes(app) {
     return { updated: rows.length };
   });
 
+  /* The design as the instrument defines it. The preview's control bar builds
+     itself from this rather than listing the cells again in its own markup —
+     a hardcoded list is how the preview ended up still offering three segment
+     orders after the design moved to six. */
   app.get("/api/admin/design", async () => ({
-    conditions: CONDITION_KEYS,
-    orders: ORDER_KEYS,
+    conditions: CONDITION_KEYS.map(key => ({
+      key, ctrl: CONDITIONS[key].ctrl, profile: CONDITIONS[key].profile
+    })),
+    orders: ORDER_KEYS.map(key => ({ key, segments: ORDERS[key] })),
+    cells: CONDITION_KEYS.length * ORDER_KEYS.length,
     instrumentVersion: INSTRUMENT_VERSION
   }));
 }

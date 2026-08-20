@@ -70,8 +70,10 @@
 <div class="savebar" id="savebar" role="status" aria-live="polite"></div>
 
 <script>
-  const CONDITIONS = ["H1", "H2", "H3", "HA1", "HA2", "HA3", "A"];
-  const ORDERS = { O1: "REL·ADV·COL", O2: "ADV·COL·REL", O3: "COL·REL·ADV" };
+  /* The design is fetched, never listed here. A hardcoded copy is why this bar
+     still offered three segment orders after the study moved to six. */
+  let CONDITIONS = [];
+  let ORDERS = [];
 
   const url = new URL(location.href);
   const cell = {
@@ -129,27 +131,52 @@
     sel.selectedIndex = window.__t.S.page;
   }
 
-  const conds = document.getElementById("conds");
-  CONDITIONS.forEach(c => {
-    const b = document.createElement("button");
-    b.type = "button"; b.dataset.cond = c; b.textContent = c === "A" ? "A · no human" : c;
-    b.addEventListener("click", () => { cell.condition = c; reload(); });
-    conds.append(b);
-  });
+  async function buildDesignButtons() {
+    const res = await fetch("/api/admin/design", {
+      headers: { authorization: `Bearer ${window.__PREVIEW__.token}` }
+    });
+    if (!res.ok) {
+      document.getElementById("readout").textContent =
+        `could not read the design (HTTP ${res.status}) — check the token in the address bar`;
+      return;
+    }
+    const design = await res.json();
+    CONDITIONS = design.conditions;
+    ORDERS = design.orders;
 
-  const orders = document.getElementById("orders");
-  Object.entries(ORDERS).forEach(([k, label]) => {
-    const b = document.createElement("button");
-    b.type = "button"; b.dataset.order = k; b.textContent = label;
-    b.addEventListener("click", () => { cell.order = k; reload(); });
-    orders.append(b);
-  });
+    const conds = document.getElementById("conds");
+    conds.innerHTML = "";
+    CONDITIONS.forEach(c => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.cond = c.key;
+      b.textContent = c.profile == null ? `${c.key} · no human` : c.key;
+      b.addEventListener("click", () => { cell.condition = c.key; reload(); });
+      conds.append(b);
+    });
+
+    const orders = document.getElementById("orders");
+    orders.innerHTML = "";
+    ORDERS.forEach(o => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.order = o.key;
+      b.textContent = o.segments.join("·");
+      b.title = o.key;
+      b.addEventListener("click", () => { cell.order = o.key; reload(); });
+      orders.append(b);
+    });
+
+    paintButtons();
+  }
 
   document.querySelectorAll("[data-opt]").forEach(b =>
     b.addEventListener("click", () => { cell.optional = b.dataset.opt === "1"; reload(); }));
 
   document.getElementById("pagesel")
     .addEventListener("change", e => window.__previewGoto(Number(e.target.value)));
+
+  buildDesignButtons();
 </script>
 <script type="module" src="/survey.js"></script>
 </body>

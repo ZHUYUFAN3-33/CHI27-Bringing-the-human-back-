@@ -207,9 +207,16 @@ function renderInfo() {
        are not linked to your identity, we cannot remove your data once it has been submitted.</p>
     <p><b>One important note.</b> Some details of this study are not described in full until the end. There is a full
        explanation on the last page, before you finish.</p>`;
-  if (window.__STUDY_CONTACT__) {
-    box.innerHTML += `<p><b>Questions?</b> Contact ${esc(window.__STUDY_CONTACT__)}.</p>`;
+  /* Who is running this, and how to reach them. The ethics application names
+     the funder, so it is stated here rather than left to the platform listing. */
+  const who = [];
+  if (window.__STUDY_FUNDING__) {
+    who.push(`<b>Who is running this study.</b> This research is funded by ${esc(window.__STUDY_FUNDING__)}.`);
   }
+  if (window.__STUDY_CONTACT__) {
+    who.push(`<b>Questions?</b> You can contact the researcher at ${esc(window.__STUDY_CONTACT__)}.`);
+  }
+  if (who.length) box.innerHTML += `<p>${who.join(" ")}</p>`;
   pageEl.append(box);
 }
 
@@ -989,5 +996,6 @@ window.__t = { S, paintGate, render, updateNext };
 /* ---------------------------------------------------------------- go */
 
 fetch("/api/config").then(r => r.json()).then(cfg => {
-  if (cfg.contactEmail) window.__STUDY_CONTACT__ = cfg.contactEmail;
+  if (cfg.contact) window.__STUDY_CONTACT__ = cfg.contact;
+  if (cfg.funding) window.__STUDY_FUNDING__ = cfg.funding;
 }).catch(() => {}).finally(boot);
