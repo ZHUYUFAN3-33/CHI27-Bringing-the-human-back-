@@ -29,10 +29,12 @@ name: Test
 #
 #   Actions -> Test -> Run workflow
 #
-# Or locally, against a server you already have running:
+# Or locally, which takes about a minute and needs no runner. The base URL is
+# a positional argument, and it can be the deployed study — the walk runs with
+# ?test=1, so its row is flagged as test data and gives its slot back:
 #
 #   npm install --no-save playwright && npx playwright install chromium
-#   BASE=http://localhost:8099 node scripts/browser-test.mjs
+#   node scripts/browser-test.mjs https://study1-survey.fly.dev
 #
 # To put it back on every push, restore:
 #   on:

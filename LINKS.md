@@ -144,6 +144,23 @@ fly secrets set -a study1-survey STUDY_OPEN=true    # resume
 
 Anyone already in progress can always finish, whatever `STUDY_OPEN` says.
 
+### Checking a deploy
+
+The browser test walks the whole questionnaire in a real browser and can be
+pointed at the deployed study. It runs with `?test=1`, so its row is flagged as
+test data, stays out of every export, and returns its allocation slot. About a
+minute, and worth doing after any change to the instrument:
+
+```bash
+npm install --no-save playwright && npx playwright install chromium
+node scripts/browser-test.mjs https://study1-survey.fly.dev
+```
+
+The same job exists in CI at `.github/workflows/test.yml`, but it is manual —
+`Actions → Test → Run workflow`. It was on every push until the runner's
+`playwright install --with-deps` step started taking five minutes on a good day
+and hanging on a bad one, which produced failure e-mail with no signal in it.
+
 ### What is running
 
 | | |
