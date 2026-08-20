@@ -54,6 +54,13 @@ async function fillPage(page) {
         return;
       }
       if (it.type === "likert7" || it.type === "mc") return clickFirstFree(it.id);
+      if (it.type === "select") {
+        const sel = document.querySelector(`select[name="${CSS.escape(it.id)}"]`);
+        if (!sel) return;
+        sel.value = it.options.find(o => o.value === "JP")?.value ?? it.options[0].value;
+        sel.dispatchEvent(new Event("change", { bubbles: true }));
+        return;
+      }
       const el = document.querySelector(`[data-item="${CSS.escape(it.id)}"] input`);
       if (!el) return;
       el.value = it.type === "number" ? "34" : "Japan";
@@ -88,8 +95,25 @@ for (let guard = 0; guard < 30; guard++) {
     const persona = await page.textContent(".persona");
     const hasDiagram = await page.locator(".diagram svg").count();
     check("disclosure shows persona and diagram", persona.length > 40 && hasDiagram === 1);
-    const profileLines = await page.locator(".persona li.profileline").count();
-    check("exactly one profile line is emphasised", profileLines <= 1, `${profileLines} found`);
+    /* The operator profile is a line of its own above the diagram now, and only
+       the six human cells have one. Whichever cell this run drew, it must have
+       exactly one or none — never a second copy left behind in the persona box. */
+    const profile = await page.evaluate(() => {
+      const lines = [...document.querySelectorAll(".disclosure .profileline")];
+      return { count: lines.length, bold: lines[0]?.querySelector("strong")?.textContent ?? null,
+               staleBullet: document.querySelectorAll(".persona li.profileline").length };
+    });
+    check("at most one operator profile line", profile.count <= 1, `${profile.count} found`);
+    check("no profile bullet left in the persona box", profile.staleBullet === 0);
+    if (profile.count === 1) {
+      check("the profile line emphasises the disability status", !!profile.bold, profile.bold ?? "nothing bold");
+      const beforeDiagram = await page.evaluate(() => {
+        const p = document.querySelector(".disclosure .profileline");
+        const d = document.querySelector(".diagram");
+        return !!(p && d) && (p.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+      });
+      check("the profile line sits above the diagram", beforeDiagram);
+    }
     /* naturalWidth is 0 for an image that 404ed, so this fails on a broken
        path as well as on a missing element. */
     const photo = await page.evaluate(() => {
@@ -200,6 +224,10 @@ for (let i = 0; i < 4; i++) {                              // through consent to
     const mod = window.__t, p = mod.S.plan.pages[mod.S.page];
     p.items.forEach(it => {
       if (it.type === "mc") document.querySelector(`input[name="${CSS.escape(it.id)}"]`)?.click();
+      else if (it.type === "select") {
+        const s = document.querySelector(`select[name="${CSS.escape(it.id)}"]`);
+        if (s) { s.value = it.options[0].value; s.dispatchEvent(new Event("change", { bubbles: true })); }
+      }
       else { const e = document.querySelector(`[data-item="${CSS.escape(it.id)}"] input`);
              if (e) { e.value = it.type === "number" ? "30" : "Japan"; e.dispatchEvent(new Event("input", { bubbles: true })); } }
     });

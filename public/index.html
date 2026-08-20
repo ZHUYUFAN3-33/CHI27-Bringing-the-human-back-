@@ -4,7 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<meta name="referrer" content="no-referrer">
+<!-- Origin only, never the path or query. no-referrer looks safer but sends
+     YouTube nothing to verify the embed against, which is one of the ways a
+     player answers with error 153 and locks the participant out of the gate.
+     This still keeps ?participantId= off the wire. -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Research study — OriHime</title>
 <link rel="stylesheet" href="/survey.css">
 <link rel="icon" href="data:,">

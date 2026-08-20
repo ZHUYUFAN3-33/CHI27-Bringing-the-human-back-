@@ -120,7 +120,13 @@ table.rank label.hit{display:block;padding:4px 0;cursor:pointer}
 .persona ul{margin:0;padding-left:18px}
 .persona li{font-size:14.5px;line-height:1.62;margin-bottom:6px;color:var(--ink)}
 .persona li:last-child{margin-bottom:0}
-.persona li.profileline{font-weight:600}
+/* The operator profile: its own line between the control text and the diagram,
+   not a bullet inside the persona box. */
+.disclosure .profileline{
+  margin:0 0 15px;padding:12px 14px;border-radius:4px;
+  border:1px solid var(--rule);border-left:3px solid var(--signal);
+  background:var(--sheet);font-size:15px;line-height:1.6;
+}
 
 .diagram{margin:4px 0 18px;padding:10px 8px 4px;background:var(--sheet);border:1px solid var(--rule);border-radius:4px}
 .diagram svg{display:block;width:100%;height:auto}

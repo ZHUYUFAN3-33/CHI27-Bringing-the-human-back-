@@ -13,7 +13,9 @@
    them as frozen once the study is live (see INSTRUMENT_VERSION below).
    ========================================================================== */
 
-export const INSTRUMENT_VERSION = "v5-r2";
+import { COUNTRIES } from "./countries.js";
+
+export const INSTRUMENT_VERSION = "v6";
 
 /* ---------------------------------------------------------------- referents */
 
@@ -21,43 +23,50 @@ export const INSTRUMENT_VERSION = "v5-r2";
    Block B (controller block) uses the human where a human exists,
    the AI only in condition A. */
 export const REFERENT = {
-  H:  "The human controlling OriHime",
-  HA: "The human controlling OriHime",
+  H:  "The human operator of OriHime",
+  HA: "The human operator of OriHime",
   A:  "The AI controlling OriHime"
 };
 
+/* `**` marks the words the renderer sets in bold. Escaping happens before the
+   markers are read, so a marker can never smuggle markup into the page. The
+   emphasis is not decoration: control source is the manipulation, and it has to
+   survive a participant skimming this page. */
 export const CONTROL_TEXT = {
-  H:  "The OriHime here is controlled in real time by a trained human pilot. The human pilot chooses what OriHime says and does. No AI system generates responses or makes decisions.",
-  HA: "The OriHime here is controlled by a trained human pilot with AI assistance. The AI can suggest wording or movements, but the human pilot can accept, change, or reject suggestions and make the final decisions.",
-  A:  "The OriHime here is controlled entirely by an AI system. There is no human pilot. The AI system generates OriHime’s responses and controls its movements in real time."
+  H:  "The OriHime here is controlled in real time by a trained **human operator**. The human operator chooses what OriHime says and does. **No AI system** generates responses or makes decisions.",
+  HA: "The OriHime here is controlled by a trained **human operator with AI assistance**. The AI can suggest wording or movements, but the **human operator** can accept, change, or reject suggestions and **makes the final decisions**.",
+  A:  "The OriHime here is controlled **entirely by an AI system**. There is **no human operator**. The AI system generates OriHime’s responses and controls its movements in real time."
 };
 
-export const INTRO_TEXT = "OriHime is an avatar robot that communicates through speech, head movements, and gestures. You will see OriHime take part in three short interactions. Please read the information below carefully.";
+export const INTRO_TEXT = "OriHime is a robot that communicates through speech, head movements, and gestures. You will see OriHime take part in three short interactions. Please read the information below carefully.";
 
 /* Persona blocks. Everything is fixed except the single profile line.
    The AI condition receives a matched block so that the amount of text, and the
    presence of a competence assurance, do not themselves vary with control source. */
 export const PERSONA_HUMAN = {
-  head: "About the pilot",
+  head: "About the operator",
   lines: [
-    "This pilot works with OriHime for a few hours on most days.",
-    "This pilot has been doing this work for about a year.",
-    null,                                                    // profile line slots in here
-    "All pilots complete the same training and meet the same standard before they start this work."
+    "This operator works with OriHime for a few hours on most days.",
+    "This operator has been doing this work for about a year.",
+    "All operators complete the same training and meet the same standard before they start this work."
   ]
 };
 export const PERSONA_AI = {
   head: "About the system",
   lines: [
     "This system operates OriHime for a few hours on most days.",
-    "This system has been used for this work for about a year.",
-    "All systems complete the same testing and meet the same standard before they are used for this work."
+    "This system has been in use for this work for about a year.",
+    "All systems are trained and tested to the same standard before they are used for this work."
   ]
 };
-export const PROFILE_TEXT = {
-  1: "This pilot does not have a disability.",
-  2: "This pilot has an intellectual disability.",
-  3: "This pilot has a mobility-related disability."
+
+/* The operator's profile no longer rides in the persona list. It is the second
+   manipulation, and as the third bullet of four it was read past: it now leads
+   the disclosure, above the diagram, in its own sentence. */
+export const PROFILE_STATEMENT = {
+  1: "The operator of this OriHime **does not have a disability**.",
+  2: "The operator of this OriHime **has an intellectual disability**.",
+  3: "The operator of this OriHime **has a mobility-related disability**."
 };
 
 /* ---------------------------------------------------------------- design */
@@ -111,9 +120,12 @@ export const GATE_FRACTION = 0.9;
 /* One fixed option set for R1/R2, identical in all three segments.
    Keys are stable; only the rows present vary with control source. */
 export const ACTORS = {
-  CTRL: "The person controlling OriHime",
+  CTRL: "The human operator of OriHime",
   AI:   "The AI system or its provider",
-  ORG:  "The provider of OriHime",
+  /* Phrased like the AI row so the two are answered on the same terms: naming
+     only the provider made this the one option that could not be read as the
+     thing in the video. */
+  ORG:  "The OriHime or its provider",
   USER: "The person in the video who talked with OriHime"
 };
 
@@ -179,6 +191,23 @@ const EDUCATION = [
 
 const GENDER = ["Male", "Female", "Nonbinary", "Prefer not to say"];
 
+/* Household income before tax, in US dollars. Brackets rather than a free
+   number: people answer brackets, and the analysis is ordinal either way.
+   The currency is stated in the stem because the sample is international. */
+const INCOME = [
+  "Under $25,000",
+  "$25,000 – $49,999",
+  "$50,000 – $74,999",
+  "$75,000 – $99,999",
+  "$100,000 – $149,999",
+  "$150,000 or more",
+  "Prefer not to say"
+];
+
+/* The country list is 255 entries, which is a dropdown, not a radio stack.
+   The stored value is the ISO code, so the row survives a display-name change. */
+const COUNTRY_OPTIONS = COUNTRIES.map(([value, label]) => ({ value, label }));
+
 const pad2 = n => String(n).padStart(2, "0");
 
 /* ---------------------------------------------------------------- helpers */
@@ -191,6 +220,10 @@ const mc = (id, stem, options, extra = {}) =>
 
 const shortText = (id, stem, extra = {}) =>
   ({ id, type: "text", stem, required: true, ...extra });
+
+/* Dropdown. `options` are {value,label}: the value is stored, the label shown. */
+const select = (id, stem, options, extra = {}) =>
+  ({ id, type: "select", stem, options, required: true, ...extra });
 
 const number = (id, stem, extra = {}) =>
   ({ id, type: "number", stem, required: true, ...extra });
@@ -258,9 +291,11 @@ export function buildPlan(cond, order, optional) {
     intro: "These brief questions ask about your previous experience.",
     items: [
       number("BG_age", "What is your age in years?", { min: 18, max: 120 }),
-      shortText("BG_country", "In which country do you currently live?", { maxLength: 80 }),
+      select("BG_country", "In which country do you currently live?", COUNTRY_OPTIONS,
+        { placeholder: "Select a country" }),
       mc("BG_gender", "What gender do you identify with?", GENDER),
       mc("BG_education", "What is the highest level of education you have completed?", EDUCATION),
+      mc("BG_income", "What was your total household income last year, before tax, in US dollars?", INCOME),
       mc("BG_freq_disability", "How often do you see or interact with people with disabilities in your personal or professional life?", FREQ),
       mc("BG_freq_ai", "How often do you use AI tools in your personal or professional life?", FREQ),
       mc("BG_freq_robot", "How often do you see or interact with a robot in your personal or professional life?", FREQ)
@@ -288,18 +323,11 @@ export function buildPlan(cond, order, optional) {
   }
 
   /* -- 4 · condition disclosure — the only disclosure point --------------
-     Control source and pilot profile are given here together, before any video
+     Control source and operator profile are given here together, before any video
      plays and before any item is answered. Nothing later reveals or hints at
      condition information: that is what makes the study a test of prior
      attribution rather than inference from behaviour. */
-  const personaLines = isHuman
-    ? [
-        { text: PERSONA_HUMAN.lines[0] },
-        { text: PERSONA_HUMAN.lines[1] },
-        { text: PROFILE_TEXT[c.profile], profile: true },
-        { text: PERSONA_HUMAN.lines[3] }
-      ]
-    : PERSONA_AI.lines.map(t => ({ text: t }));
+  const persona = isHuman ? PERSONA_HUMAN : PERSONA_AI;
 
   pages.push({
     key: "disclosure",
@@ -309,9 +337,14 @@ export function buildPlan(cond, order, optional) {
     disclosure: {
       intro: INTRO_TEXT,
       control: CONTROL_TEXT[c.ctrl],
+      /* Its own sentence, above the diagram, where the control text has just
+         established who is operating. Null under AI-only: there is no operator
+         to have a profile, which is what makes A a reference cell and not a
+         fourth level of the profile factor. */
+      profile: isHuman ? PROFILE_STATEMENT[c.profile] : null,
       arrangement: c.ctrl,                       // drives the diagram: H | HA | A
-      personaHead: (isHuman ? PERSONA_HUMAN : PERSONA_AI).head,
-      personaLines
+      personaHead: persona.head,
+      personaLines: persona.lines.map(text => ({ text }))
     },
     items: [mc("D1", "Please confirm that you have read the description above.", ["I have read it"])]
   });
@@ -340,10 +373,7 @@ export function buildPlan(cond, order, optional) {
       likert(q("OH1"), "In this interaction, OriHime was trustworthy for this task.", meta),
       likert(q("OH2"), "In this interaction, OriHime was useful for this task.", meta),
       likert(q("OH3"), "I would be willing to take part in an interaction like this one with OriHime.", meta),
-      likert(q("AU1"), "This interaction felt genuine, rather than like the execution of a program.", meta),
-      likert(q("TP1"), "In this interaction, OriHime offered a recommendation that the other person would then decide about on their own.", meta),
-      likert(q("TP2"), "In this interaction, OriHime and the other person adjusted their plans in response to each other.", meta),
-      likert(q("TP3"), "This interaction was mainly social, rather than focused on getting something done.", meta)
+      likert(q("AU1"), "This interaction felt genuine, rather than like the execution of a program.", meta)
     ];
     /* Attention check rides in the middle segment, whichever content that is. */
     if (i === 1) {
@@ -360,7 +390,7 @@ export function buildPlan(cond, order, optional) {
       likert(q("CR2"), `${ref} was competent.`, meta)
     ];
     if (isHuman) {
-      blockB.push(likert(q("CR3"), `${ref} decided what OriHime said and did.`, meta));
+      blockB.push(likert(q("CR3"), `${ref} was in control of what OriHime said and did.`, meta));
     }
 
     const actorKeys = actorKeysFor(c.ctrl);
@@ -382,14 +412,13 @@ export function buildPlan(cond, order, optional) {
         id: q("__blockB"),
         type: "matrix",
         instruction: isHuman
-          ? "The next questions are about the human pilot described at the beginning of the study. Please answer about the interaction you have just watched."
+          ? "The next questions are about the human operator described at the beginning of the study. Please answer about the interaction you have just watched."
           : "The next questions are about the AI system described at the beginning of the study. Please answer about the interaction you have just watched.",
         rows: blockB,
         ...meta
       },
       rank("R1", "Who should bear the greatest responsibility for this outcome?", S.neg),
-      rank("R2", "Who should receive the greatest credit for this outcome?", S.pos),
-      likert(q("AC1"), "In this interaction, it was clear who or what should be held accountable if something went wrong.", meta)
+      rank("R2", "Who should receive the greatest credit for this outcome?", S.pos)
     );
 
     pages.push({
@@ -424,7 +453,7 @@ export function buildPlan(cond, order, optional) {
   });
 
   /* -- 7 · manipulation checks ------------------------------------------
-     Control source and pilot profile are separate manipulations, so they are
+     Control source and operator profile are separate manipulations, so they are
      checked separately: folding both into a single eight-option question makes
      it impossible to say which manipulation failed. */
   const C1_CORRECT = { H: 0, HA: 1, A: 2 }[c.ctrl];
@@ -437,16 +466,16 @@ export function buildPlan(cond, order, optional) {
     noBack: true,
     items: [
       mc("C1", "Based on the description you read at the beginning, who or what controlled OriHime?", [
-        "A trained human pilot, with no AI involvement",
-        "A trained human pilot, assisted by an AI system",
-        "An AI system only, with no human pilot",
+        "A trained human operator, with no AI involvement",
+        "A trained human operator, assisted by an AI system",
+        "An AI system only, with no human operator",
         "I do not remember"
       ], { group: "manipulation_check", expected: C1_CORRECT }),
-      mc("C2", "Based on that same description, what were you told about the pilot?", [
-        "The pilot does not have a disability",
-        "The pilot has an intellectual disability",
-        "The pilot has a mobility-related disability",
-        "There was no human pilot in the description I read",
+      mc("C2", "Based on that same description, what were you told about the operator?", [
+        "The operator does not have a disability",
+        "The operator has an intellectual disability",
+        "The operator has a mobility-related disability",
+        "There was no human operator in the description I read",
         "I do not remember"
       ], { group: "manipulation_check", expected: C2_CORRECT })
     ]
@@ -603,6 +632,7 @@ export function publicPlan(plan) {
       id: it.id, type: it.type, stem: it.stem, required: it.required !== false
     };
     if (it.options) out.options = it.options;
+    if (it.placeholder) out.placeholder = it.placeholder;
     if (it.min != null) out.min = it.min;
     if (it.max != null) out.max = it.max;
     if (it.maxLength != null) out.maxLength = it.maxLength;

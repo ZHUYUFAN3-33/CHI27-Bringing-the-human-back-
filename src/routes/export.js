@@ -245,6 +245,14 @@ export default async function exportRoutes(app) {
             ? `1..n where n is the number of rows shown (3 or 4, by condition), 1 = greatest; row = ${it.actorKey} (${it.actor})`
             : `1..${e.maxRank}, 1 = greatest; row = ${it.actorKey} (${it.actor})`)
       : it.type === "number"  ? `numeric${it.min != null ? `, ${it.min}-${it.max}` : ""}`
+      /* A select stores the option key, not its position. Short lists are
+         written out; the country list is 255 rows, so it is named rather than
+         inlined into one CSV cell. */
+      : it.type === "select"  ? (it.options.length <= 20
+            ? it.options.map(o => `${o.value}=${o.label}`).join(" | ")
+            : `${it.options.length} options, stored as the option key — ` +
+              `ISO 3166-1 alpha-2 for country, e.g. ` +
+              it.options.slice(0, 2).map(o => `${o.value}=${o.label}`).join(", "))
       : "free text";
       out += row([it.id, e.block, it.type, it.segment, e.seg_position,
                   it.required, it.group ?? "", coding, it.stem]);

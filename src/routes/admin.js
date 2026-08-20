@@ -3,9 +3,45 @@ import { config } from "../config.js";
 import {
   allocationSnapshot, reconcileAllocation, setCellTarget, setAllTargets, setCellEnabled
 } from "../allocation.js";
-import { CONDITION_KEYS, ORDER_KEYS, INSTRUMENT_VERSION } from "../../shared/instrument.js";
+import {
+  CONDITION_KEYS, ORDER_KEYS, INSTRUMENT_VERSION,
+  buildPlan, publicPlan, planItems
+} from "../../shared/instrument.js";
 
 export default async function adminRoutes(app) {
+
+  /* The plan for any chosen cell, without a participant row, an allocation slot
+     or a token. /preview renders this with the participant runtime, so the team
+     reviews the questionnaire itself rather than a second copy of the wording.
+     Answer keys ride along because this endpoint is behind the admin token —
+     they are what publicPlan strips before a participant ever sees a page. */
+  app.get("/api/admin/preview-plan", async (req, reply) => {
+    const condition = String(req.query.condition ?? CONDITION_KEYS[0]);
+    const order     = String(req.query.order ?? ORDER_KEYS[0]);
+    const optional  = !/^(0|false|no)$/i.test(String(req.query.optional ?? "1"));
+
+    if (!CONDITION_KEYS.includes(condition)) {
+      return reply.code(400).send({ error: "unknown_condition", allowed: CONDITION_KEYS });
+    }
+    if (!ORDER_KEYS.includes(order)) {
+      return reply.code(400).send({ error: "unknown_order", allowed: ORDER_KEYS });
+    }
+
+    const plan = buildPlan(condition, order, optional);
+    return {
+      design: {
+        condition, order, optional,
+        ctrl: plan.ctrl, profile: plan.profile, segOrder: plan.segOrder,
+        instrumentVersion: INSTRUMENT_VERSION,
+        itemCount: planItems(plan).length
+      },
+      /* Every id, with the answer keys the participant build never receives. */
+      keys: planItems(plan)
+        .filter(it => it.group || it.expected != null)
+        .map(it => ({ id: it.id, group: it.group ?? null, expected: it.expected ?? null })),
+      plan: publicPlan(plan)
+    };
+  });
 
   /* Headline numbers for the dashboard. One round trip, all aggregates. */
   app.get("/api/admin/summary", async () => {

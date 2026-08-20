@@ -19,7 +19,10 @@ const S = {
   gates: {},              // segment -> {started, watch, done, error}
   pageEnteredAt: null,
   visits: new Map(),      // pageKey -> visit number
-  done: false
+  done: false,
+  preview: false,         // researcher view: renders, never records
+  design: null,           // preview only: which cell is on screen
+  keys: null              // preview only: the answer keys publicPlan strips
 };
 
 const $  = sel => document.querySelector(sel);
@@ -30,6 +33,11 @@ const el = (tag, cls, html) => {
   return n;
 };
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+/* **bold** for the framing text. Escaping runs first, so the only markup that
+   can ever reach the page is the <strong> put there on the next line — a stem
+   containing a literal <b> is still shown as text. */
+const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 
 const pageEl = $("#page"), navEl = $("#nav"), barEl = $("#bar");
 const backBtn = $("#back"), nextBtn = $("#next"), warnEl = $("#navwarn"), posEl = $("#poslabel");
@@ -51,6 +59,8 @@ onStatus((state, detail) => {
 /* ---------------------------------------------------------------- boot */
 
 async function boot() {
+  if (window.__PREVIEW__) return bootPreview();
+
   const params = Object.fromEntries(new URLSearchParams(location.search));
   let session;
 
@@ -106,6 +116,52 @@ async function boot() {
   setInterval(() => { if (!S.done) post("/api/session/ping", {}).catch(() => {}); }, 60_000);
 }
 
+/* ---------------------------------------------------------------- preview
+   The researcher view is this same runtime pointed at a chosen cell instead of
+   an allocated one. Nothing about the questionnaire is re-implemented here, so
+   a change to the instrument shows up in the preview by construction — the old
+   preview was a second copy of the wording and could only ever agree with the
+   study by hand. Nothing is written: no participant row, no allocation slot. */
+
+async function bootPreview() {
+  S.preview = true;
+  navEl.hidden = false;
+  await previewLoad(window.__PREVIEW__.cell ?? {});
+}
+
+async function previewLoad({ condition = "H1", order = "O1", optional = true } = {}) {
+  const qs = new URLSearchParams({ condition, order, optional: optional ? "1" : "0" });
+  let data;
+  try {
+    const res = await fetch(`/api/admin/preview-plan?${qs}`, {
+      headers: { authorization: `Bearer ${window.__PREVIEW__.token}` }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    data = await res.json();
+  } catch (err) {
+    return terminal("The preview could not load",
+      `${err.message}. Check that the admin token in the address bar is current.`);
+  }
+
+  S.plan = data.plan;
+  S.design = data.design;
+  S.keys = new Map(data.keys.map(k => [k.id, k]));
+  S.completion = { code: "PREVIEW", redirectUrl: null, platform: "preview" };
+  S.answers.clear();
+  S.gates = {};
+  /* Clips are playable but never gate the page. */
+  S.plan.pages.filter(p => p.kind === "segment").forEach(p => {
+    S.gates[p.segment] = { started: null, watch: 0, done: true, error: null };
+  });
+  S.page = 0;
+  window.__PREVIEW__.onLoaded?.(data.design);
+  render();
+}
+
+/* The control bar in preview.html drives the runtime through these. */
+window.__previewLoad = previewLoad;
+window.__previewGoto = i => { S.page = Math.max(0, Math.min(i, S.plan.pages.length - 1)); render(); };
+
 /* ---------------------------------------------------------------- render */
 
 function render() {
@@ -128,6 +184,7 @@ function render() {
 
   barEl.style.width = (S.page / (S.plan.pages.length - 1) * 100) + "%";
   posEl.textContent = `Page ${S.page + 1} of ${S.plan.pages.length}`;
+  if (S.preview) window.__PREVIEW__.onPage?.(S.page, S.plan.pages[S.page]);
   backBtn.disabled = S.page === 0 || !!p.noBack;
   backBtn.style.visibility = p.noBack ? "hidden" : "visible";
   nextBtn.textContent = S.page === S.plan.pages.length - 2 ? "Submit" : "Next";
@@ -140,8 +197,8 @@ function renderInfo() {
   const box = el("div", "disclosure");
   box.innerHTML = `
     <p>Thank you for your interest in this study. Please read this page before deciding whether to take part.</p>
-    <p><b>What you will do.</b> You will read a short description, watch three video clips of a person talking with an
-       avatar robot called OriHime, and answer questions about each one. The study takes about 15–20 minutes.
+    <p><b>What you will do.</b> You will read a short description, watch three video clips of a person talking with a
+       robot called OriHime, and answer questions about each one. The study takes about 15–20 minutes.
        You will need sound.</p>
     <p><b>Your data.</b> We record your answers, how long each page took, and whether each clip played through.
        We do not record your name, and we do not store your IP address. Your responses are analysed in aggregate
@@ -166,22 +223,25 @@ function renderDisclosure(p) {
      the file so the text below does not shift when it loads. */
   const fig = el("figure", "photo");
   fig.innerHTML =
-    '<img src="/orihime.jpg" width="1600" height="899" alt="OriHime, a small white tabletop avatar robot, on a table beside a seated person">';
+    '<img src="/orihime.jpg" width="1600" height="899" alt="OriHime, a small white tabletop robot, on a table beside a seated person">';
   card.append(fig);
 
-  card.append(el("p", null, esc(d.control)));
+  card.append(el("p", null, md(d.control)));
+
+  /* The profile is the second manipulation and gets its own line here, between
+     the control text and the diagram. It used to be the third of four bullets
+     inside the persona box, where it read as one more fact about a stranger. */
+  if (d.profile) card.append(el("p", "profileline", md(d.profile)));
+
+  card.append(diagram(d.arrangement));
 
   const persona = el("div", "persona");
   persona.append(el("h4", null, esc(d.personaHead)));
   const ul = el("ul");
-  d.personaLines.forEach(line => {
-    const li = el("li", line.profile ? "profileline" : null, esc(line.text));
-    ul.append(li);
-  });
+  d.personaLines.forEach(line => ul.append(el("li", null, md(line.text))));
   persona.append(ul);
   card.append(persona);
   pageEl.append(card);
-  pageEl.append(diagram(d.arrangement));
 }
 
 function renderSegment(p) {
@@ -214,9 +274,9 @@ function renderSegment(p) {
 function renderDebrief() {
   const box = el("div", "disclosure");
   box.innerHTML = `
-    <p>In this study, the description of who or what controlled OriHime, and the description of the pilot, were
+    <p>In this study, the description of who or what controlled OriHime, and the description of the operator, were
        experimentally varied between participants, while the videos themselves were identical for everyone.</p>
-    <p>The study examines how information about control and pilot characteristics shapes judgments.
+    <p>The study examines how information about control and operator characteristics shapes judgments.
        It does not test whether any disability group is more or less capable.</p>`;
   pageEl.append(box);
 
@@ -249,6 +309,7 @@ function buildItem(item, page) {
     case "rank":   return rankBlock(item);
     case "likert7":return matrixBlock({ instruction: null, rows: [item] });
     case "mc":     return mcBlock(item);
+    case "select": return selectBlock(item);
     case "number":
     case "text":   return textBlock(item);
     default:       return el("div");
@@ -319,6 +380,42 @@ function mcBlock(item) {
     opts.append(l);
   });
   wrap.append(opts);
+  return wrap;
+}
+
+/* -- dropdown -------------------------------------------------------------
+   For option sets too long to stack as radios — the country list is 255 rows.
+   The stored value is the option's own key, not its position, so the list can
+   be reordered later without changing what an earlier answer means. */
+
+function selectBlock(item) {
+  const wrap = el("div", "q");
+  wrap.dataset.item = item.id;
+  wrap.append(el("p", "stem", esc(item.stem) + (item.required ? '<span class="req">*</span>' : "")));
+
+  const sel = document.createElement("select");
+  sel.name = item.id;
+  sel.setAttribute("aria-label", item.stem);
+
+  const blank = document.createElement("option");
+  blank.value = "";
+  blank.textContent = item.placeholder ?? "Select one";
+  sel.append(blank);
+
+  item.options.forEach(o => {
+    const opt = document.createElement("option");
+    opt.value = o.value;
+    opt.textContent = o.label;
+    sel.append(opt);
+  });
+
+  sel.value = S.answers.get(item.id)?.text ?? "";
+  sel.addEventListener("change", () => {
+    if (!sel.value) { S.answers.delete(item.id); updateNext(); return; }
+    setAnswer(item.id, { num: null, text: sel.value }, wrap);
+  });
+
+  wrap.append(sel);
   return wrap;
 }
 
@@ -647,6 +744,9 @@ function missingOn(page) {
 }
 
 function gateClosed(page) {
+  /* A reviewer is reading the questionnaire, not taking it: the clip is there
+     to play if they want it, but it never blocks the page. */
+  if (S.preview) return false;
   return page.kind === "segment" && !S.gates[page.segment]?.done;
 }
 
@@ -655,12 +755,14 @@ function updateNext() {
   if (page.kind === "debrief") return;
   const miss = missingOn(page);
   const shut = gateClosed(page);
-  nextBtn.disabled = shut || miss.length > 0;
-  warnEl.textContent = shut
-    ? "Please watch the clip first"
-    : miss.length
-      ? `${miss.length} ${miss.length === 1 ? "item" : "items"} still to answer`
-      : "";
+  nextBtn.disabled = !S.preview && (shut || miss.length > 0);
+  warnEl.textContent = S.preview
+    ? (miss.length ? `${miss.length} unanswered — not enforced in preview` : "")
+    : shut
+      ? "Please watch the clip first"
+      : miss.length
+        ? `${miss.length} ${miss.length === 1 ? "item" : "items"} still to answer`
+        : "";
 }
 
 /* ---------------------------------------------------------------- navigation */
@@ -714,6 +816,7 @@ function markMissing(ids) {
 /* ---------------------------------------------------------------- saving */
 
 function savePage(page, nextPage) {
+  if (S.preview) return;                 // a reviewer writes nothing to the study
   const ids = new Set(requiredIds(page));
   page.items.forEach(it => { if (it.type !== "matrix" && it.type !== "rank") ids.add(it.id); });
 
@@ -742,6 +845,11 @@ function savePage(page, nextPage) {
 }
 
 async function submit(btn) {
+  if (S.preview) {
+    btn.disabled = true;
+    btn.textContent = "Preview — nothing submitted";
+    return;
+  }
   btn.disabled = true;
   btn.textContent = "Submitting…";
 
@@ -850,8 +958,8 @@ function diagram(ctrl) {
   const LEFT = 44, ROW = 100, RIGHT = 372, TOP = 12;
   let inner = ctrl === "A"
     ? node(LEFT, ROW, "AI system", "NO HUMAN PILOT", "ai")
-    : node(LEFT, ROW, "Human pilot", "TRAINED PERSON", "human");
-  inner += node(RIGHT, ROW, "OriHime", "AVATAR ROBOT", "robot");
+    : node(LEFT, ROW, "Human operator", "TRAINED PERSON", "human");
+  inner += node(RIGHT, ROW, "OriHime", "ROBOT", "robot");
   inner += `<line x1="228" y1="129" x2="362" y2="129" stroke="#171A1F" stroke-width="1.6" marker-end="url(#arw)"/>
             <text x="295" y="120" text-anchor="middle" font-size="11" fill="#565E6B"
                   font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">controls</text>`;

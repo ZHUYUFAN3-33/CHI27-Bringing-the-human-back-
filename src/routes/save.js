@@ -35,6 +35,15 @@ function coerce(item, raw) {
       if (!Number.isInteger(n) || n < 1 || n > item.maxRank) return null;
       return { value_num: n, value_text: item.actor };
     }
+    case "select": {
+      /* The client sends the option key. It is stored only if the instrument
+         still offers it, so a stale page or a hand-edited request cannot put a
+         country code in the table that the codebook does not define. */
+      const key = String(text ?? "").trim();
+      const opt = item.options?.find(o => o.value === key);
+      if (!opt) return null;
+      return { value_num: null, value_text: opt.value };
+    }
     case "number": {
       const n = Number(num);
       if (!Number.isFinite(n)) return null;

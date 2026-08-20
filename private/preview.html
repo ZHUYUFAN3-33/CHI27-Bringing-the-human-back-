@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Study 1 — questionnaire preview</title>
+<link rel="stylesheet" href="/survey.css">
+<link rel="icon" href="data:,">
+<style>
+  /* The bar is the only thing this page adds. Everything below it is the
+     participant runtime, rendering the same plan the study serves. */
+  :root{ --chrome:#141A22; --chrome-2:#1D2530; --chrome-3:#2A3442;
+         --pale:#C9D2DE; --dim:#7C8899; --signal:#E8A33D; --live:#4ECDC4; }
+  .bar{
+    background:var(--chrome); color:var(--pale); padding:14px 18px 16px;
+    font:13px/1.5 ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  .bar h1{margin:0 0 12px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--signal)}
+  .bar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:9px}
+  .bar .lab{color:var(--dim);min-width:74px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .bar button{
+    background:var(--chrome-2);color:var(--pale);border:1px solid var(--chrome-3);
+    border-radius:3px;padding:6px 11px;font:inherit;cursor:pointer;
+  }
+  .bar button:hover{border-color:var(--dim)}
+  .bar button[aria-pressed="true"]{background:var(--signal);color:#1A1206;border-color:var(--signal);font-weight:700}
+  .bar .read{color:var(--dim);margin-top:4px}
+  .bar .read b{color:var(--live);font-weight:600}
+  .bar select{
+    background:var(--chrome-2);color:var(--pale);border:1px solid var(--chrome-3);
+    border-radius:3px;padding:6px 9px;font:inherit;width:auto;max-width:280px;
+  }
+  .bar .warn{color:var(--signal)}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <h1>Study 1 · questionnaire preview</h1>
+
+  <div class="grp"><span class="lab">Condition</span><span id="conds"></span></div>
+  <div class="grp"><span class="lab">Order</span><span id="orders"></span></div>
+  <div class="grp"><span class="lab">Attitudes</span>
+    <button type="button" data-opt="1">Included</button>
+    <button type="button" data-opt="0">Dropped</button>
+  </div>
+  <div class="grp"><span class="lab">Page</span><select id="pagesel"></select></div>
+
+  <div class="read" id="readout">loading…</div>
+  <div class="read warn">Preview only — no participant row, no allocation slot, nothing saved.
+    Every page is reachable, answers are not compulsory, and the clips never gate the page.</div>
+</div>
+
+<div class="stage">
+  <div class="sheet">
+    <div class="progress"><i id="bar" style="width:0%"></i></div>
+    <div class="sheetbody" id="page">
+      <div class="loading" id="boot">Loading the questionnaire…</div>
+    </div>
+    <div class="nav" id="nav" hidden>
+      <button class="btn sec" id="back" type="button">Back</button>
+      <span class="pos" id="poslabel"></span><span class="navwarn" id="navwarn"></span>
+      <button class="btn" id="next" type="button">Next</button>
+    </div>
+  </div>
+</div>
+
+<div class="savebar" id="savebar" role="status" aria-live="polite"></div>
+
+<script>
+  const CONDITIONS = ["H1", "H2", "H3", "HA1", "HA2", "HA3", "A"];
+  const ORDERS = { O1: "REL·ADV·COL", O2: "ADV·COL·REL", O3: "COL·REL·ADV" };
+
+  const url = new URL(location.href);
+  const cell = {
+    condition: url.searchParams.get("condition") || "H1",
+    order:     url.searchParams.get("order")     || "O1",
+    optional:  url.searchParams.get("optional")  !== "0"
+  };
+
+  /* The token travels in the address bar because that is how /preview itself is
+     opened; it is the same admin token the dashboard uses. */
+  window.__PREVIEW__ = {
+    token: url.searchParams.get("token") || "",
+    cell,
+    onLoaded(design) {
+      document.getElementById("readout").innerHTML =
+        `instrument <b>${design.instrumentVersion}</b> · cell <b>${design.condition}|${design.order}</b>` +
+        ` · control <b>${design.ctrl}</b> · profile <b>${design.profile ?? "none"}</b>` +
+        ` · segments <b>${design.segOrder.join(" ")}</b> · stored items <b>${design.itemCount}</b>`;
+      paintButtons();
+      buildPageList();
+    },
+    onPage(i) {
+      const sel = document.getElementById("pagesel");
+      if (sel.selectedIndex !== i) sel.selectedIndex = i;
+    }
+  };
+
+  function reload() {
+    for (const [k, v] of Object.entries(cell)) {
+      url.searchParams.set(k, k === "optional" ? (v ? "1" : "0") : v);
+    }
+    history.replaceState(null, "", url);        // a preview is worth linking to
+    window.__previewLoad(cell);
+  }
+
+  function paintButtons() {
+    document.querySelectorAll("#conds button").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.cond === cell.condition)));
+    document.querySelectorAll("#orders button").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.order === cell.order)));
+    document.querySelectorAll("[data-opt]").forEach(b =>
+      b.setAttribute("aria-pressed", String((b.dataset.opt === "1") === cell.optional)));
+  }
+
+  function buildPageList() {
+    const sel = document.getElementById("pagesel");
+    sel.innerHTML = "";
+    /* Read from the runtime's own plan, so the list cannot disagree with it. */
+    window.__t.S.plan.pages.forEach((p, i) => {
+      const o = document.createElement("option");
+      o.value = String(i);
+      o.textContent = `${i + 1}. ${p.title}`;
+      sel.append(o);
+    });
+    sel.selectedIndex = window.__t.S.page;
+  }
+
+  const conds = document.getElementById("conds");
+  CONDITIONS.forEach(c => {
+    const b = document.createElement("button");
+    b.type = "button"; b.dataset.cond = c; b.textContent = c === "A" ? "A · no human" : c;
+    b.addEventListener("click", () => { cell.condition = c; reload(); });
+    conds.append(b);
+  });
+
+  const orders = document.getElementById("orders");
+  Object.entries(ORDERS).forEach(([k, label]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.dataset.order = k; b.textContent = label;
+    b.addEventListener("click", () => { cell.order = k; reload(); });
+    orders.append(b);
+  });
+
+  document.querySelectorAll("[data-opt]").forEach(b =>
+    b.addEventListener("click", () => { cell.optional = b.dataset.opt === "1"; reload(); }));
+
+  document.getElementById("pagesel")
+    .addEventListener("change", e => window.__previewGoto(Number(e.target.value)));
+</script>
+<script type="module" src="/survey.js"></script>
+</body>
+</html>

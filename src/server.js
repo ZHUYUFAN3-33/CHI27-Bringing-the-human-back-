@@ -161,7 +161,14 @@ await app.register(async scope => {
    admin token. The mockup is kept verbatim so the team can still compare cells
    side by side; it never touches the database. */
 app.get("/admin", { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("admin.html", path.join(rootDir, "private")));
-app.get("/preview", { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("mockup.html", path.join(rootDir, "private")));
+
+/* /preview runs the participant app itself against a chosen cell, so what the
+   team reviews is the questionnaire that will actually be served. /mockup is
+   the original design document, which carries its own copy of the wording and
+   will drift from the instrument — it is kept for the annotations, not as a
+   description of what participants see. */
+app.get("/preview", { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("preview.html", path.join(rootDir, "private")));
+app.get("/mockup",  { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("mockup.html",  path.join(rootDir, "private")));
 
 /* Participant app. index.html is served for the survey routes so a refresh
    mid-survey does not 404. */
