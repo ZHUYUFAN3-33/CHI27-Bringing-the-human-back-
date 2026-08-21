@@ -114,14 +114,19 @@ for (let guard = 0; guard < 30; guard++) {
       });
       check("the profile line sits above the diagram", beforeDiagram);
     }
-    /* naturalWidth is 0 for an image that 404ed, so this fails on a broken
-       path as well as on a missing element. */
+    /* naturalWidth is 0 both for an image that 404ed and for one still in
+       flight, so wait for it to settle before reading — asserting immediately
+       made this fail about one run in three on a slow fetch. */
+    await page.waitForFunction(() => {
+      const img = document.querySelector(".photo img");
+      return img && img.complete;
+    }, { timeout: 10000 }).catch(() => {});
     const photo = await page.evaluate(() => {
       const img = document.querySelector(".photo img");
-      return img ? { w: img.naturalWidth, h: img.naturalHeight } : null;
+      return img ? { w: img.naturalWidth, h: img.naturalHeight, done: img.complete } : null;
     });
     check("disclosure shows the OriHime photo", !!photo && photo.w > 0,
-      photo ? `${photo.w}x${photo.h}` : "no .photo img");
+      photo ? `${photo.w}x${photo.h}${photo.done ? "" : " (still loading)"}` : "no .photo img");
   }
 
   if (state.kind === "segment") {

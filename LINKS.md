@@ -59,6 +59,26 @@ https://study1-survey.fly.dev/preview?token=<TOKEN>&condition=HA2&order=O3&optio
 | `order` | `O1`…`O6` | the six permutations: REL·ADV·COL, ADV·COL·REL, COL·REL·ADV, REL·COL·ADV, ADV·REL·COL, COL·ADV·REL |
 | `optional` | `1` `0` | the NARS + SCM attitude block |
 
+### Wording editor
+
+```
+https://study1-survey.fly.dev/editor?token=<TOKEN>
+```
+
+Edits the *text* of the questionnaire without touching its shape. Item ids,
+types, option counts and the design stay in `shared/instrument.js`; a path that
+does not already exist cannot be written, so no edit can add an item, remove
+one, or change what a column means. Every change is logged with the old value,
+the new one and how many people had already answered.
+
+While no real participant exists, wording changes freely. Once one does, saving
+asks for a new instrument version and stamps it on everyone from that point —
+without it the data would carry two questionnaires with nothing to separate
+them. Changing wording mid-collection is a decision, not a typo fix.
+
+`/api/export/instrument_overrides.csv` lists everything currently overridden,
+so a paper can report the wording that was on the screen.
+
 ### Design mockup
 
 ```
