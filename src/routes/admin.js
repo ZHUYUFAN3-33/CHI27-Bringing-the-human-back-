@@ -23,6 +23,26 @@ function suggestVersion(current) {
   return current + "b";
 }
 
+/* A shared admin token says the caller is allowed to edit; it does not say
+   which researcher actually did it. Every mutating wording request therefore
+   carries a human-readable name and the server refuses anonymous changes even
+   if a caller bypasses /preview and talks to the API directly. */
+function requiredEditor(req, reply) {
+  const editor = String(req.body?.editor ?? "").trim().replace(/\s+/g, " ");
+  if (!editor) {
+    reply.code(400).send({
+      error: "editor_required",
+      message: "Enter your name before changing questionnaire wording."
+    });
+    return null;
+  }
+  if (editor.length > 100) {
+    reply.code(400).send({ error: "editor_too_long", message: "Editor name must be 100 characters or fewer." });
+    return null;
+  }
+  return editor;
+}
+
 export default async function adminRoutes(app) {
 
   /* The plan for any chosen cell, without a participant row, an allocation slot
@@ -232,6 +252,8 @@ export default async function adminRoutes(app) {
      that changes the questionnaire is publish, below, and that is where the
      guard belongs. */
   app.post("/api/admin/instrument", async (req, reply) => {
+    const editor = requiredEditor(req, reply);
+    if (!editor) return;
     const path  = String(req.body?.path ?? "");
     const raw   = req.body?.value;
     const value = raw == null ? null : String(raw);
@@ -252,11 +274,13 @@ export default async function adminRoutes(app) {
     }
 
     const participants = await nonTestParticipants();
-    const before = await setOverride(path, value, { version: currentVersion(), participants });
+    const before = await setOverride(path, value, {
+      version: currentVersion(), participants, editor
+    });
     const pending = await draftDiff();
 
-    req.log.info({ path, before, after: value }, "instrument draft edited");
-    return { ok: true, path, value, previous: before, pending: pending.length };
+    req.log.info({ path, before, after: value, editor }, "instrument draft edited");
+    return { ok: true, path, value, previous: before, pending: pending.length, editor };
   });
 
   /* -- publishing ----------------------------------------------------------
@@ -269,6 +293,8 @@ export default async function adminRoutes(app) {
      The version is stamped on every participant from here on, so it is
      recorded against the publication rather than against any one edit. */
   app.post("/api/admin/instrument/publish", async (req, reply) => {
+    const editor = requiredEditor(req, reply);
+    if (!editor) return;
     const participants = await nonTestParticipants();
     const pending = await draftDiff();
 
@@ -304,22 +330,26 @@ export default async function adminRoutes(app) {
     const publication = await publishDraft({
       version,
       participants,
+      publishedBy: editor,
       note: req.body?.note ? String(req.body.note).slice(0, 500) : null
     });
     /* This machine now. Every other machine within config.instrumentPollMs,
        which is what the status endpoint reports. */
     await loadOverrides(req.log);
 
-    req.log.warn({ publication, changed: pending.length, participants }, "instrument published");
+    req.log.warn({ publication, changed: pending.length, participants, editor }, "instrument published");
     return { ok: true, publication, changed: pending.length, sync: await syncState() };
   });
 
   /* Throw the draft away and start again from what participants are seeing. */
-  app.post("/api/admin/instrument/discard", async (req) => {
+  app.post("/api/admin/instrument/discard", async (req, reply) => {
+    const editor = requiredEditor(req, reply);
+    if (!editor) return;
     const pending = await draftDiff();
-    const restored = await discardDraft();
-    req.log.warn({ discarded: pending.length }, "instrument draft discarded");
-    return { ok: true, discarded: pending.length, paths: restored };
+    const participants = await nonTestParticipants();
+    const restored = await discardDraft({ version: currentVersion(), participants, editor });
+    req.log.warn({ discarded: pending.length, editor }, "instrument draft discarded");
+    return { ok: true, discarded: restored.discarded, paths: restored.paths, editor };
   });
 
   /* Mark rows as test data so they drop out of every export and every count.

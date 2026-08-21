@@ -179,8 +179,8 @@ export async function ensureInitialPublication(log) {
       `SELECT value FROM instrument_overrides WHERE path = 'meta.instrument_version'`
     );
     await client.query(
-      `INSERT INTO instrument_publications (instrument_ver, paths, note)
-       VALUES ($1, (SELECT COUNT(*) FROM instrument_published), $2)`,
+      `INSERT INTO instrument_publications (instrument_ver, paths, published_by, note)
+       VALUES ($1, (SELECT COUNT(*) FROM instrument_published), 'system', $2)`,
       [verRows[0]?.value || INSTRUMENT_VERSION,
        "initial — the wording that was already live when publishing was introduced"]
     );
@@ -434,25 +434,33 @@ export async function nonTestParticipants() {
 }
 
 /** Save one field into the draft. `value === null` reverts to the code text. */
-export async function setOverride(path, value, { version, participants }) {
-  const { rows: prev } = await q(`SELECT value FROM instrument_overrides WHERE path = $1`, [path]);
-  const before = prev[0]?.value ?? null;
-
-  if (value === null) {
-    await q(`DELETE FROM instrument_overrides WHERE path = $1`, [path]);
-  } else {
-    await q(
-      `INSERT INTO instrument_overrides (path, value, updated_at) VALUES ($1, $2, now())
-       ON CONFLICT (path) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
-      [path, value]
+export async function setOverride(path, value, { version, participants, editor }) {
+  return withTx(async client => {
+    const { rows: prev } = await client.query(
+      `SELECT value FROM instrument_overrides WHERE path = $1 FOR UPDATE`, [path]
     );
-  }
-  await q(
-    `INSERT INTO instrument_override_log (path, old_value, new_value, instrument_ver, participants)
-     VALUES ($1,$2,$3,$4,$5)`,
-    [path, before, value, version, participants]
-  );
-  return before;
+    const before = prev[0]?.value ?? null;
+
+    if (value === null) {
+      await client.query(`DELETE FROM instrument_overrides WHERE path = $1`, [path]);
+    } else {
+      await client.query(
+        `INSERT INTO instrument_overrides (path, value, updated_at) VALUES ($1, $2, now())
+         ON CONFLICT (path) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+        [path, value]
+      );
+    }
+    /* The wording change and its author are one transaction: an audit insert
+       failure rolls the edit back, so anonymous/unlogged wording can never be
+       left in the draft. */
+    await client.query(
+      `INSERT INTO instrument_override_log
+         (path, old_value, new_value, instrument_ver, participants, editor_name, action)
+       VALUES ($1,$2,$3,$4,$5,$6,'edit')`,
+      [path, before, value, version, participants, editor]
+    );
+    return before;
+  });
 }
 
 /* ------------------------------------------------------------------ publishing */
@@ -462,7 +470,7 @@ export async function setOverride(path, value, { version, participants }) {
  * served a half-applied set, and one new generation, so every other machine
  * picks it up on its next poll.
  */
-export async function publishDraft({ version, participants, note }) {
+export async function publishDraft({ version, participants, publishedBy, note }) {
   return withTx(async client => {
     await client.query(`DELETE FROM instrument_published`);
     await client.query(
@@ -470,30 +478,44 @@ export async function publishDraft({ version, participants, note }) {
        SELECT path, value FROM instrument_overrides WHERE ${CONTENT_ONLY}`
     );
     const { rows } = await client.query(
-      `INSERT INTO instrument_publications (instrument_ver, paths, participants, note)
-       VALUES ($1, (SELECT COUNT(*) FROM instrument_published), $2, $3)
-       RETURNING id, at, instrument_ver, paths, participants, note`,
-      [version, participants, note ?? null]
+      `INSERT INTO instrument_publications
+         (instrument_ver, paths, participants, published_by, note)
+       VALUES ($1, (SELECT COUNT(*) FROM instrument_published), $2, $3, $4)
+       RETURNING id, at, instrument_ver, paths, participants, published_by, note`,
+      [version, participants, publishedBy, note ?? null]
     );
     return rows[0];
   });
 }
 
 /** Throw the draft away and start again from what participants are seeing. */
-export async function discardDraft() {
+export async function discardDraft({ version, participants, editor }) {
   return withTx(async client => {
+    /* A discard is a change to the draft too. Log every path it reverses before
+       replacing the draft, otherwise the audit trail says who typed a change
+       but not who threw it away. */
+    const { rowCount: discarded } = await client.query(
+      `INSERT INTO instrument_override_log
+         (path, old_value, new_value, instrument_ver, participants, editor_name, action)
+       SELECT COALESCE(d.path, p.path), d.value, p.value, $1, $2, $3, 'discard'
+         FROM (SELECT path, value FROM instrument_overrides WHERE ${CONTENT_ONLY}) d
+         FULL OUTER JOIN instrument_published p ON p.path = d.path
+        WHERE d.value IS DISTINCT FROM p.value`,
+      [version, participants, editor]
+    );
     await client.query(`DELETE FROM instrument_overrides WHERE ${CONTENT_ONLY}`);
     const { rowCount } = await client.query(
       `INSERT INTO instrument_overrides (path, value, updated_at)
        SELECT path, value, now() FROM instrument_published`
     );
-    return rowCount;
+    return { paths: rowCount, discarded };
   });
 }
 
 export async function overrideHistory(limit = 200) {
   const { rows } = await q(
-    `SELECT path, old_value, new_value, instrument_ver, participants, at
+    `SELECT path, old_value, new_value, instrument_ver, participants,
+            editor_name, action, at
        FROM instrument_override_log ORDER BY at DESC LIMIT $1`, [limit]
   );
   return rows;
@@ -501,7 +523,7 @@ export async function overrideHistory(limit = 200) {
 
 export async function publicationHistory(limit = 200) {
   const { rows } = await q(
-    `SELECT id, instrument_ver, paths, participants, note, at
+    `SELECT id, instrument_ver, paths, participants, published_by, note, at
        FROM instrument_publications ORDER BY id DESC LIMIT $1`, [limit]
   );
   return rows;

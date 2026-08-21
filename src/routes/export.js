@@ -299,10 +299,12 @@ export default async function exportRoutes(app) {
      an analysis say which questionnaire a given response was answered under,
      and a limitations section say exactly when the wording moved. */
   app.get("/api/export/instrument_publications.csv", async (_req, reply) => {
-    const cols = ["id", "at", "instrument_version", "overridden_paths", "participants_at_the_time", "note"];
+    const cols = ["id", "at", "instrument_version", "overridden_paths",
+                  "participants_at_the_time", "published_by", "note"];
     let out = BOM + row(cols);
     for (const p of await publicationHistory(1000)) {
-      out += row([p.id, p.at, p.instrument_ver, p.paths, p.participants, p.note ?? ""]);
+      out += row([p.id, p.at, p.instrument_ver, p.paths, p.participants,
+                  p.published_by, p.note ?? ""]);
     }
     asCsv(reply, "instrument_publications");
     reply.send(out);

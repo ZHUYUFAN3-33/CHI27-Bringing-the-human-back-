@@ -36,6 +36,13 @@
     background:var(--chrome-2);color:var(--pale);border:1px solid var(--chrome-3);
     border-radius:3px;padding:6px 9px;font:inherit;width:auto;max-width:280px;
   }
+  .bar input.editor{
+    background:var(--chrome-2);color:var(--pale);border:1px solid var(--chrome-3);
+    border-radius:3px;padding:6px 9px;font:inherit;width:min(250px,60vw);
+  }
+  .bar input.editor:focus{outline:none;border-color:var(--signal)}
+  .bar input.editor.missing{border-color:var(--bad);box-shadow:0 0 0 1px var(--bad)}
+  .bar .identity-note{color:var(--dim);font-size:11px}
   .bar .warn{color:var(--signal)}
 
   /* Which deployment am I looking at. A change made on a laptop against a
@@ -174,6 +181,11 @@
     <button type="button" data-stage="draft">Draft</button>
     <button type="button" data-stage="live">What participants see</button>
   </div>
+  <div class="grp"><span class="lab">Editor</span>
+    <input class="editor" type="text" id="editorname" maxlength="100"
+           placeholder="Enter your name to make changes" autocomplete="name">
+    <span class="identity-note">required for every saved edit, publish and discard</span>
+  </div>
   <div class="grp"><span class="lab">Wording</span>
     <button type="button" id="editmode">Edit the text</button>
     <button type="button" id="openall">All text…</button>
@@ -216,6 +228,8 @@
 
   const url = new URL(location.href);
   const TOKEN = url.searchParams.get("token") || "";
+  let rememberedEditor = "";
+  try { rememberedEditor = sessionStorage.getItem("study1_editor_name") || ""; } catch { /* unavailable */ }
 
   /* `stage` rides in the cell object because the runtime passes the whole thing
      to preview-plan: draft is the wording being worked on, live is what is
@@ -238,7 +252,8 @@
     confirming: false,
     drawerMode: null,           // "all" | "history"
     query: "",
-    editedOnly: false
+    editedOnly: false,
+    editor: rememberedEditor
   };
 
   const $ = id => document.getElementById(id);
@@ -252,6 +267,22 @@
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw Object.assign(new Error(body.message || body.error || `HTTP ${res.status}`), { body, status: res.status });
     return body;
+  }
+
+  function requiredEditor(note = null) {
+    const input = $("editorname");
+    const editor = input.value.trim().replace(/\s+/g, " ");
+    if (editor) return editor;
+    input.classList.add("missing");
+    input.focus();
+    const message = "Enter your name before changing questionnaire wording.";
+    if (note) {
+      note.className = "note err";
+      note.textContent = message;
+    } else {
+      flash(message);
+    }
+    return null;
   }
 
   /* The token travels in the address bar because that is how /preview itself is
@@ -450,11 +481,13 @@
   async function publish() {
     const note = $("pubnote");
     const btn = $("confirmgo");
+    const editor = requiredEditor(note);
+    if (!editor) return;
     btn.disabled = true;
     note.className = "note";
     note.textContent = "publishing…";
 
-    const body = {};
+    const body = { editor };
     if (state.publish.participants > 0) {
       const v = $("newver").value.trim();
       if (!v) { note.className = "note err"; note.textContent = "a new version is required"; btn.disabled = false; return; }
@@ -490,10 +523,14 @@
   }
 
   async function discard() {
+    const editor = requiredEditor();
+    if (!editor) return;
     if (!confirm(`Throw away ${state.publish.pending} unpublished ` +
                  `${state.publish.pending === 1 ? "change" : "changes"} and go back to the wording ` +
                  `participants are seeing? This cannot be undone.`)) return;
-    await apiJson("/api/admin/instrument/discard", { method: "POST", body: "{}" });
+    await apiJson("/api/admin/instrument/discard", {
+      method: "POST", body: JSON.stringify({ editor })
+    });
     closeEditor();
     await refreshPublish();
     reload();
@@ -643,12 +680,16 @@
   async function write(path, value) {
     const note = $("ednote");
     const save = $("edsave");
+    const editor = requiredEditor(note);
+    if (!editor) return;
     save.disabled = true;
     note.className = "note";
     note.textContent = "saving…";
 
     try {
-      await apiJson("/api/admin/instrument", { method: "POST", body: JSON.stringify({ path, value }) });
+      await apiJson("/api/admin/instrument", {
+        method: "POST", body: JSON.stringify({ path, value, editor })
+      });
     } catch (err) {
       note.className = "note err";
       note.textContent = err.message;
@@ -770,7 +811,7 @@
       <h3>Published · ${h.publications.length}</h3>
       ${h.publications.length ? h.publications.map(p => `
         <div class="ev">
-          <div class="when">${esc(when(p.at))} · publication ${p.id}</div>
+          <div class="when">${esc(when(p.at))} · publication ${p.id} · by <b>${esc(p.published_by || "legacy / unknown")}</b></div>
           <div>instrument <b>${esc(p.instrument_ver)}</b> · ${p.paths} overridden ${p.paths === 1 ? "field" : "fields"}
                · ${p.participants} real participants at the time</div>
           ${p.note ? `<div class="when">${esc(p.note)}</div>` : ""}
@@ -778,7 +819,7 @@
       <h3>Draft edits · ${h.log.length}</h3>
       ${h.log.length ? h.log.map(e => `
         <div class="ev">
-          <div class="when">${esc(when(e.at))} · ${esc(e.path)}</div>
+          <div class="when">${esc(when(e.at))} · ${esc(e.path)} · ${esc(e.action || "edit")} by <b>${esc(e.editor_name || "legacy / unknown")}</b></div>
           ${e.old_value != null ? `<div class="from">${esc(e.old_value)}</div>` : ""}
           <div class="to">${e.new_value == null ? "— restored the wording in code —" : esc(e.new_value)}</div>
         </div>`).join("") : '<p class="empty">nothing edited yet</p>'}`;
@@ -791,6 +832,13 @@
   }
 
   /* ------------------------------------------------------------------ wiring */
+
+  $("editorname").value = state.editor;
+  $("editorname").addEventListener("input", e => {
+    state.editor = e.target.value;
+    e.target.classList.remove("missing");
+    try { sessionStorage.setItem("study1_editor_name", state.editor); } catch { /* unavailable */ }
+  });
 
   document.querySelectorAll("[data-opt]").forEach(b =>
     b.addEventListener("click", () => { cell.optional = b.dataset.opt === "1"; reload({ keepPage: false }); }));

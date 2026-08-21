@@ -288,6 +288,18 @@ if (!ADMIN) {
   await pv.goto(`${BASE}/preview?${query}`, { waitUntil: "networkidle" });
   await pv.waitForSelector("h2.qtitle", { timeout: 15000 });
   check("preview renders the questionnaire", (await pv.locator("h2.qtitle").count()) === 1);
+  check("preview requires an editor name", (await pv.locator("#editorname").count()) === 1);
+  await pv.locator("#editorname").fill("Automated browser test");
+
+  /* The name requirement belongs on the server, not only on the input. This
+     request is deliberately rejected and therefore safe even when the script
+     is pointed at the deployed study. */
+  const anonymousEdit = await call("/api/admin/instrument", {
+    method: "POST", body: JSON.stringify({ path: "page.info.title", value: "must not be saved" })
+  });
+  check("the API refuses an anonymous wording change",
+    anonymousEdit.status === 400 && anonymousEdit.body.error === "editor_required",
+    JSON.stringify(anonymousEdit.body).slice(0, 140));
 
   /* Every addressable sentence, on every page of this cell. */
   const rendered = await pv.evaluate(() => {
@@ -330,12 +342,14 @@ if (!ADMIN) {
       return call("/api/admin/instrument/publish", {
         method: "POST",
         body: JSON.stringify(pending.participants > 0
-          ? { acknowledge: true, newVersion: pending.suggestedVersion }
-          : {})
+          ? { editor: "Automated browser test", acknowledge: true, newVersion: pending.suggestedVersion }
+          : { editor: "Automated browser test" })
       });
     };
 
-    await call("/api/admin/instrument", { method: "POST", body: JSON.stringify({ path: PATH, value: probe }) });
+    await call("/api/admin/instrument", { method: "POST", body: JSON.stringify({
+      path: PATH, value: probe, editor: "Automated browser test"
+    }) });
     const draftTitle = await titleAt("draft");
     const liveTitle  = await titleAt("live");
     check("a saved edit shows up in the draft", draftTitle === probe, String(draftTitle));
@@ -353,7 +367,9 @@ if (!ADMIN) {
 
     /* Put it back, so a CI database and a laptop are both left as they were
        found. */
-    await call("/api/admin/instrument", { method: "POST", body: JSON.stringify({ path: PATH, value: null }) });
+    await call("/api/admin/instrument", { method: "POST", body: JSON.stringify({
+      path: PATH, value: null, editor: "Automated browser test"
+    }) });
     await publishNow();
     check("reverting restores the wording in the code", (await titleAt("live")) !== probe);
     check("nothing is left unpublished",

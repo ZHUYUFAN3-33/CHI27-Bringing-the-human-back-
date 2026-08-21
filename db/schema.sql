@@ -232,9 +232,14 @@ CREATE TABLE IF NOT EXISTS instrument_publications (
   instrument_ver TEXT NOT NULL,
   paths          INTEGER NOT NULL DEFAULT 0,   -- overridden paths live after this publish
   participants   INTEGER NOT NULL DEFAULT 0,   -- non-test rows at the time
+  published_by   TEXT NOT NULL DEFAULT 'system',
   note           TEXT,
   at             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- CREATE TABLE IF NOT EXISTS does not add columns to an existing deployment.
+ALTER TABLE instrument_publications
+  ADD COLUMN IF NOT EXISTS published_by TEXT NOT NULL DEFAULT 'legacy / unknown';
 
 -- Every draft edit, kept forever. Wording is what a questionnaire *is*: if it
 -- changed during collection, the analysis has to be able to say when and to
@@ -246,6 +251,8 @@ CREATE TABLE IF NOT EXISTS instrument_override_log (
   path           TEXT NOT NULL,
   old_value      TEXT,
   new_value      TEXT,
+  editor_name    TEXT NOT NULL DEFAULT 'system',
+  action         TEXT NOT NULL DEFAULT 'edit',
   -- the version that was LIVE when the edit was drafted, which is not
   -- necessarily the version it eventually went out under: that is on the
   -- publication row, and a draft can sit unpublished for as long as you like
@@ -253,5 +260,10 @@ CREATE TABLE IF NOT EXISTS instrument_override_log (
   participants   INTEGER NOT NULL DEFAULT 0,   -- non-test rows at the time of the edit
   at             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE instrument_override_log
+  ADD COLUMN IF NOT EXISTS editor_name TEXT NOT NULL DEFAULT 'legacy / unknown';
+ALTER TABLE instrument_override_log
+  ADD COLUMN IF NOT EXISTS action TEXT NOT NULL DEFAULT 'edit';
 
 CREATE INDEX IF NOT EXISTS instrument_override_log_at_idx ON instrument_override_log (at DESC);

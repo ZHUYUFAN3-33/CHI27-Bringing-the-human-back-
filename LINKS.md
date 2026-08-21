@@ -62,11 +62,12 @@ https://study1-survey.fly.dev/preview?token=<TOKEN>&condition=HA2&order=O3&optio
 
 #### Changing the wording
 
-This needs no code, no deploy and no terminal. **Open the link above, press
-*Edit the text*, click the sentence you want to change, change it, press
-*Save*.** Saving puts it in the draft, which only this page can see. When the
-draft reads the way you want, press **Publish to participants**. That is the
-whole procedure.
+This needs no code, no deploy and no terminal. **Open the link above, enter your
+name, press *Edit the text*, click the sentence you want to change, change it,
+press *Save*.** Saving puts it in the draft, which only this page can see. The
+server refuses anonymous edits even if someone calls the API directly, and the
+name is shown in History. When the draft reads the way you want, press
+**Publish to participants**. Publishing and discarding also record who did it.
 
 | | |
 |---|---|
