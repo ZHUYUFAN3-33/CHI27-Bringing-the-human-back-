@@ -15,7 +15,7 @@
 
 import { COUNTRIES } from "./countries.js";
 
-export const INSTRUMENT_VERSION = "v6";
+export const INSTRUMENT_VERSION = "v6b";
 
 /* ---------------------------------------------------------------- referents */
 
@@ -189,8 +189,8 @@ export const SEGMENTS = {
   REL: {
     yt: "FM4xHwqv03M",
     desc: "A person and OriHime have a casual conversation about recent life experiences.",
-    neg: "Imagine that OriHime made a hurtful comment, and the other person was left feeling worse.",
-    pos: "Imagine instead that OriHime made a thoughtful comment, and the other person was left feeling better.",
+    neg: "Imagine that OriHime made a hurtful comment, leaving the person talking with Orihime to feel worse.",
+    pos: "Imagine instead that OriHime made a thoughtful comment, leading the person talking with Orihime to feel better.",
     av1: {
       /* Anchored on the botanical garden rather than the plum trees. The script
          marks the trees as the anchor but also flags them as a spring marker
@@ -208,8 +208,8 @@ export const SEGMENTS = {
   ADV: {
     yt: "MkcK6cGjjwM",
     desc: "A person describes work overload or work–life strain, and OriHime offers a recommendation.",
-    neg: "Imagine that OriHime gave unsuitable advice on workload management, and the person’s situation worsened.",
-    pos: "Imagine instead that OriHime gave suitable advice on workload management, and the person’s situation improved.",
+    neg: "Imagine that OriHime gave unsuitable advice on workload management, leading the situation of the person talking with Orihime to worsen.",
+    pos: "Imagine instead that OriHime gave suitable advice on workload management, leading the situation of the person talking with Orihime to improve.",
     av1: {
       options: [
         "Hand one of the projects over to a colleague.",
@@ -223,8 +223,8 @@ export const SEGMENTS = {
   COL: {
     yt: "hPlQYCCJ4do",
     desc: "A person and OriHime discuss scheduling, responsibilities, and preparation for a small project.",
-    neg: "Imagine that OriHime updated and printed the document incorrectly, leading the user to incorrectly complete her task.",
-    pos: "Imagine instead that OriHime updated and printed the document correctly, leading the user to correctly complete her task.",
+    neg: "Imagine that OriHime updated and printed the document incorrectly, leading the person talking with Orihime to incorrectly complete her task.",
+    pos: "Imagine instead that OriHime updated and printed the document correctly, leading the person talking with Orihime to correctly complete her task.",
     av1: {
       options: [
         "The air conditioning was set to twenty-two degrees.",
