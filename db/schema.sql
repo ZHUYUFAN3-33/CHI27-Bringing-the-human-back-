@@ -184,7 +184,7 @@ GROUP BY a.cell, a.condition, a.seg_order, a.enabled, a.target, a.assigned
 ORDER BY a.condition, a.seg_order;
 
 -- -----------------------------------------------------------------------------
--- instrument_overrides — wording edited from /editor, layered over the code
+-- Wording edited from /preview, layered over the code.
 --
 -- The instrument in shared/instrument.js stays the source of truth for
 -- structure: item ids, types, how many options an item has, and the design.
@@ -195,20 +195,60 @@ ORDER BY a.condition, a.seg_order;
 --   item.REL_OH1.stem          item.BG_income.option.3
 --   text.control.HA            text.profile.2
 --   page.background.intro      segment.COL.desc
+--   info.data.body             info.lede
+--
+-- Two tables, because editing and publishing are different acts. Saving a
+-- sentence is a draft: the researcher is still deciding, and a half-finished
+-- edit must not be on a participant's screen while they decide. Publishing is
+-- the moment the questionnaire changes, and it is the one that gets the
+-- version guard, the audit row, and the reload on every machine.
 -- -----------------------------------------------------------------------------
+
+-- The draft. What /preview shows the researcher. Participants never read this.
 CREATE TABLE IF NOT EXISTS instrument_overrides (
   path        TEXT PRIMARY KEY,
   value       TEXT NOT NULL,
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Every edit, kept forever. Wording is what a questionnaire *is*: if it changed
--- during collection, the analysis has to be able to say when and to what.
+-- What participants are actually served. Replaced wholesale by a publish, so
+-- it is always exactly one coherent set of wording and never a half-applied
+-- one. A path missing here means the participant gets the code wording.
+CREATE TABLE IF NOT EXISTS instrument_published (
+  path        TEXT PRIMARY KEY,
+  value       TEXT NOT NULL
+);
+
+-- One row per publish, kept forever, and the only thing that tells a running
+-- machine its cached wording is stale: `id` is the generation counter every
+-- machine polls. It is also the record a paper needs — which wording was on
+-- the screen, under which instrument version, between which two times.
+--
+-- Never empty after the first boot: instrument-runtime seeds an `initial` row
+-- from whatever was already overridden, so an existing deployment does not
+-- silently revert to the wording in code the moment this ships.
+CREATE TABLE IF NOT EXISTS instrument_publications (
+  id             BIGSERIAL PRIMARY KEY,
+  instrument_ver TEXT NOT NULL,
+  paths          INTEGER NOT NULL DEFAULT 0,   -- overridden paths live after this publish
+  participants   INTEGER NOT NULL DEFAULT 0,   -- non-test rows at the time
+  note           TEXT,
+  at             TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Every draft edit, kept forever. Wording is what a questionnaire *is*: if it
+-- changed during collection, the analysis has to be able to say when and to
+-- what. This is the keystroke-level record; instrument_publications above is
+-- the record of what participants were actually given, and the two answer
+-- different questions.
 CREATE TABLE IF NOT EXISTS instrument_override_log (
   id             BIGSERIAL PRIMARY KEY,
   path           TEXT NOT NULL,
   old_value      TEXT,
   new_value      TEXT,
+  -- the version that was LIVE when the edit was drafted, which is not
+  -- necessarily the version it eventually went out under: that is on the
+  -- publication row, and a draft can sit unpublished for as long as you like
   instrument_ver TEXT NOT NULL,
   participants   INTEGER NOT NULL DEFAULT 0,   -- non-test rows at the time of the edit
   at             TIMESTAMPTZ NOT NULL DEFAULT now()

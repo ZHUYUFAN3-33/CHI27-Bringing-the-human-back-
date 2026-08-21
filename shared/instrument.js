@@ -69,6 +69,75 @@ export const PROFILE_STATEMENT = {
   3: "The operator of this OriHime **has a mobility-related disability**."
 };
 
+/* ------------------------------------------------------- study information
+
+   The consent document, as data rather than as markup. It used to be a wall of
+   template literals inside renderInfo() in public/survey.js, which meant the
+   one page the ethics committee actually approves was the one page nobody
+   could change without a deploy. Here it is addressable — info.<key>.heading
+   and info.<key>.body — so the approved wording can be typed in from /preview.
+
+   Conventions, and they are the same two the framing text already uses:
+     · a blank line starts a new paragraph
+     · **double asterisks** set bold
+   Plus one more that only applies here: {funding} and {contact} are replaced
+   with the values configured for the deployment, and a section that names a
+   `requires` key is dropped entirely when that value is not set. That is what
+   keeps an empty STUDY_FUNDING from printing "funded by ." on a consent form.
+
+   Headings are used rather than one column of bolded lead-ins because this is
+   read by someone deciding whether to take part, and they should be able to
+   find "can I stop" without reading the paragraph above it. */
+export const INFO_PAGE = {
+  lede: "Thank you for your interest in this study. Please read this page before deciding whether to take part.",
+  sections: [
+    {
+      key: "what",
+      heading: "What you will do",
+      body:
+        "You will read a short description, watch three video clips of a person talking with a robot called OriHime, and answer questions about each one.\n\n" +
+        "It takes about **20–30 minutes**, and you will need **sound**."
+    },
+    {
+      key: "who",
+      heading: "Who is running this study",
+      body: "This research is carried out at the **Keio University Graduate School of Media Design**."
+    },
+    {
+      key: "funding",
+      heading: "Funding",
+      requires: "funding",
+      body: "This work is funded by **{funding}**."
+    },
+    {
+      key: "data",
+      heading: "Your data",
+      body:
+        "We record your answers, how long each page took, and whether each clip played through. **We do not record your name, and we do not store your IP address.**\n\n" +
+        "Responses are held on a secured server during collection and kept on access-controlled Keio University storage afterwards, reachable only by the authorised researchers. They are retained until **31 August 2036**, then deleted or irreversibly anonymised.\n\n" +
+        "Results are reported in aggregate, and the responses may be shared as an anonymous dataset alongside a published paper."
+    },
+    {
+      key: "voluntary",
+      heading: "Taking part is voluntary",
+      body:
+        "You can close the page at any time, without giving a reason and without penalty.\n\n" +
+        "At the end you receive a completion code. If you later want your responses removed, send us that code and we will delete them — it is the only thing that identifies your answers."
+    },
+    {
+      key: "note",
+      heading: "One important note",
+      body: "Some details of this study are not described in full until the end. There is a complete explanation on the last page, before you finish."
+    },
+    {
+      key: "questions",
+      heading: "Questions",
+      requires: "contact",
+      body: "You can contact the researcher at **{contact}**."
+    }
+  ]
+};
+
 /* ---------------------------------------------------------------- design */
 
 export const CONDITIONS = {
@@ -306,12 +375,19 @@ export function buildPlan(cond, order, optional) {
   const isHuman = c.ctrl !== "A";
   const pages = [];
 
-  /* -- 0 · study information ------------------------------------------- */
+  /* -- 0 · study information -------------------------------------------
+     Copied out of INFO_PAGE rather than referenced, because applyOverrides
+     rewrites the text in place and must never reach the shared constant: one
+     participant's plan cannot be allowed to change another's. */
   pages.push({
     key: "info",
     kind: "info",
     eyebrow: "Before you begin",
     title: "Study information",
+    info: {
+      lede: INFO_PAGE.lede,
+      sections: INFO_PAGE.sections.map(s => ({ ...s }))
+    },
     items: []
   });
 
@@ -674,7 +750,9 @@ export function allCells() {
 export function publicPlan(plan) {
   const stripItem = it => {
     if (it.type === "matrix") {
-      return { type: "matrix", instruction: it.instruction, rows: it.rows.map(stripItem) };
+      /* The id travels: it is a block name, not an answer key, and /preview
+         needs it to know which instruction it is looking at. */
+      return { id: it.id, type: "matrix", instruction: it.instruction, rows: it.rows.map(stripItem) };
     }
     if (it.type === "rank") {
       return {
@@ -708,6 +786,7 @@ export function publicPlan(plan) {
       matrix: !!p.matrix,
       matrixInstruction: p.matrixInstruction ?? null,
       noBack: !!p.noBack,
+      info: p.info ?? null,
       disclosure: p.disclosure ?? null,
       segment: p.segment ?? null,
       segPosition: p.segPosition ?? null,

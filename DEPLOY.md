@@ -110,7 +110,18 @@ Check it:
 
 ```bash
 curl https://study1-survey.fly.dev/healthz
-# {"ok":true,"instrument":"v6","open":true}
+# {"ok":true,"instrument":"v6","overrides":12,"generation":4,"open":true}
+```
+
+`overrides` is how many strings this machine is serving from the database
+rather than from the repository, and `generation` is the publication it loaded.
+On a study that has published wording, either of them coming back `0` means
+this machine failed to read it and is serving the questionnaire as written in
+code — a real change to the instrument, and a deploy to roll back. Run the
+check against both machines:
+
+```bash
+for i in 1 2 3 4; do curl -s https://study1-survey.fly.dev/healthz; echo; done
 ```
 
 ---
@@ -228,6 +239,24 @@ fly secrets set -a study1-survey STUDY_OPEN=true    # resume
 ```
 
 Anyone already in progress can always finish.
+
+**Changing the wording needs no deploy.** The text of the questionnaire is data,
+not code: it lives in the database and is edited from `/preview`. Save puts a
+change in a draft only this page can see; *Publish to participants* is what
+changes the study.
+
+The machine handling the publish reloads at once, and every other machine picks
+it up on its next poll of `instrument_publications` — `INSTRUMENT_POLL_MS`,
+five seconds by default. This matters because `min_machines_running = 2`:
+reloading only in the process that took the write is how half of the
+participants would end up on wording nobody had approved. Postgres
+`LISTEN/NOTIFY` would be the obvious alternative and cannot be used, because
+`DATABASE_URL` is a PgBouncer transaction-pooling URL.
+
+Structure — item ids, types, how many options an item has, the answer keys, the
+design — stays in `shared/instrument.js` and does need a deploy. That division
+is deliberate: no edit made from a browser can change the shape of the data
+already collected.
 
 **After piloting**, press *Recount assigned* in the dashboard. Test rows return
 their slot at the start, but the button re-derives every counter from the

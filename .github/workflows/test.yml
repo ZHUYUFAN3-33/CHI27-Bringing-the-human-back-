@@ -95,6 +95,13 @@ jobs:
         # --with-deps shells out to apt, which is what used to take five minutes
         # and sometimes never returned. ubuntu-latest already carries what the
         # headless shell needs, and the download itself is cached above.
+        #
+        # ADMIN_TOKEN turns on the /preview checks: that every sentence the
+        # questionnaire renders is one the wording API will accept, and that a
+        # saved edit stays out of the participants' hands until it is published.
+        # The write half only runs because the base URL is local.
+        env:
+          ADMIN_TOKEN: ci-token-0123456789abcdefghijkl
         run: |
           npm install --no-save playwright
           npx playwright install chromium

@@ -252,6 +252,120 @@ check("phone shows the scale anchors under the matrix", key !== false);
 check("no console errors", consoleErrors.filter(e => !/youtube|ERR_BLOCKED|net::/i.test(e)).length === 0,
       consoleErrors.slice(0, 2).join(" | "));
 
+/* ------------------------------------------------------------------ /preview
+   The researcher view is the participant runtime with an editor around it, and
+   the join between them is fragile in exactly one place: every sentence the
+   questionnaire renders carries the path the API will be asked to write, and if
+   those two ever disagree, clicking a sentence opens an editor that cannot save
+   it. Nothing short of rendering the real pages catches that.
+
+   The write half of this — save, publish, revert — only runs against a local
+   server. This script can be pointed at the deployed study, LINKS.md says so,
+   and publishing wording into a running study from a test would be an
+   unforgivable way to find that out. */
+
+const ADMIN = process.env.ADMIN_TOKEN || "";
+const LOCAL = /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])([:/]|$)/.test(BASE);
+
+if (!ADMIN) {
+  console.log("  skip  /preview checks — set ADMIN_TOKEN to include them");
+} else {
+  const pctx = await browser.newContext({ viewport: { width: 1400, height: 1000 } });
+  const pv = await pctx.newPage();
+  const pvErrors = [];
+  pv.on("console", m => { if (m.type() === "error") pvErrors.push(m.text()); });
+  pv.on("pageerror", e => pvErrors.push("pageerror: " + e.message));
+
+  /* One call shape for every admin request the checks below make. */
+  const call = (path, opts = {}) => pv.evaluate(async ([p, o, token]) => {
+    const res = await fetch(p, {
+      ...o, headers: { "content-type": "application/json", authorization: "Bearer " + token }
+    });
+    return { status: res.status, body: await res.json().catch(() => ({})) };
+  }, [path, opts, ADMIN]);
+
+  const query = new URLSearchParams({ token: ADMIN, condition: "H2", order: "O1" });
+  await pv.goto(`${BASE}/preview?${query}`, { waitUntil: "networkidle" });
+  await pv.waitForSelector("h2.qtitle", { timeout: 15000 });
+  check("preview renders the questionnaire", (await pv.locator("h2.qtitle").count()) === 1);
+
+  /* Every addressable sentence, on every page of this cell. */
+  const rendered = await pv.evaluate(() => {
+    const seen = new Set();
+    const n = window.__t.S.plan.pages.length;
+    for (let i = 0; i < n; i++) {
+      window.__previewGoto(i);
+      document.querySelectorAll("[data-path]").forEach(el => seen.add(el.dataset.path));
+    }
+    window.__previewGoto(0);
+    return [...seen];
+  });
+  const editable = new Set((await call("/api/admin/instrument")).body.fields?.map(f => f.path) ?? []);
+  const orphans = rendered.filter(p => !editable.has(p));
+  check("every sentence on screen has a path the API will accept",
+    rendered.length > 40 && orphans.length === 0,
+    orphans.length ? `orphans: ${orphans.slice(0, 4).join(", ")}` : `${rendered.length} paths`);
+  check("the consent document is editable", rendered.some(p => p.startsWith("info.")),
+    rendered.filter(p => p.startsWith("info.")).length + " info paths");
+
+  /* Edit mode: clicking a sentence must open the editor for that sentence and
+     not for the one next to it. */
+  await pv.click("#editmode");
+  await pv.click('[data-path="info.lede"]');
+  await pv.waitForSelector("#dock", { state: "visible", timeout: 5000 }).catch(() => {});
+  const dockPath = await pv.evaluate(() => document.querySelector("#dock .path")?.textContent ?? "");
+  check("clicking a sentence opens the editor for that sentence", dockPath.includes("info.lede"), dockPath);
+
+  if (!LOCAL) {
+    console.log("  skip  the publish round trip — only run against a local server");
+  } else {
+    const PATH = "page.consent.title";
+    const probe = `PROBE ${Date.now()}`;
+    const titleAt = async stage => (
+      await call(`/api/admin/preview-plan?condition=H2&order=O1&stage=${stage}`)
+    ).body.plan?.pages?.find(p => p.key === "consent")?.title;
+
+    const publishNow = async () => {
+      const pending = (await call("/api/admin/instrument/pending")).body;
+      return call("/api/admin/instrument/publish", {
+        method: "POST",
+        body: JSON.stringify(pending.participants > 0
+          ? { acknowledge: true, newVersion: pending.suggestedVersion }
+          : {})
+      });
+    };
+
+    await call("/api/admin/instrument", { method: "POST", body: JSON.stringify({ path: PATH, value: probe }) });
+    const draftTitle = await titleAt("draft");
+    const liveTitle  = await titleAt("live");
+    check("a saved edit shows up in the draft", draftTitle === probe, String(draftTitle));
+    /* The whole point of the split. If this ever fails, a half-finished
+       sentence is on a participant's screen. */
+    check("a saved edit does not reach participants", liveTitle !== probe, String(liveTitle));
+    check("the unpublished count notices it",
+      (await call("/api/admin/instrument/pending")).body.changes.length >= 1);
+
+    const pub = await publishNow();
+    check("publishing succeeds", pub.status === 200, JSON.stringify(pub.body).slice(0, 140));
+    check("publishing is what reaches participants", (await titleAt("live")) === probe);
+    check("the machine that published is in sync",
+      (await call("/api/admin/instrument/status")).body.inSync === true);
+
+    /* Put it back, so a CI database and a laptop are both left as they were
+       found. */
+    await call("/api/admin/instrument", { method: "POST", body: JSON.stringify({ path: PATH, value: null }) });
+    await publishNow();
+    check("reverting restores the wording in the code", (await titleAt("live")) !== probe);
+    check("nothing is left unpublished",
+      (await call("/api/admin/instrument/pending")).body.changes.length === 0);
+  }
+
+  check("no console errors in /preview",
+    pvErrors.filter(e => !/youtube|ERR_BLOCKED|net::/i.test(e)).length === 0,
+    pvErrors.slice(0, 2).join(" | "));
+  await pctx.close();
+}
+
 await browser.close();
 
 const failed = results.filter(r => !r.ok);

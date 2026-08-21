@@ -1,7 +1,7 @@
 import { pool } from "../db.js";
 import { row, BOM } from "../csv.js";
-import { allItemIds } from "../../shared/instrument.js";
-import { runtimeItems, overrideEntries, currentVersion } from "../instrument-runtime.js";
+import { allItemIds, CONDITION_KEYS, ORDER_KEYS } from "../../shared/instrument.js";
+import { runtimeItems, overrideEntries, currentVersion, publicationHistory } from "../instrument-runtime.js";
 
 /* ---------------------------------------------------------------------------
    Export endpoints. All are behind requireAdmin (see server.js).
@@ -55,15 +55,21 @@ async function* scanParticipants(where, params, batch = 500) {
       p.push(after.started_at, after.id);
       clause = `AND (p.started_at, p.id) > ($${p.length - 1}::timestamptz, $${p.length}::uuid)`;
     }
+    /* The keyset cursor must carry started_at at full microsecond precision.
+       node-postgres parses timestamptz into a JS Date, which keeps only
+       milliseconds — feeding that truncated value back into the > comparison
+       re-emits the batch-boundary row, and the export then holds the same
+       participant twice. The ::text cast round-trips exactly. */
     const { rows } = await pool.query(
-      `SELECT * FROM participants p
+      `SELECT p.*, p.started_at::text AS scan_started_at FROM participants p
         WHERE ${where} ${clause}
         ORDER BY p.started_at, p.id
         LIMIT ${batch}`, p
     );
     if (!rows.length) return;
+    after = { started_at: rows.at(-1).scan_started_at, id: rows.at(-1).id };
+    for (const r of rows) delete r.scan_started_at;
     yield rows;
-    after = { started_at: rows.at(-1).started_at, id: rows.at(-1).id };
     if (rows.length < batch) return;
   }
 }
@@ -122,6 +128,17 @@ export default async function exportRoutes(app) {
                   "attention_pass", "check_c1_pass", "check_c2_pass",
                   "duration_s", "answered_count", "started_at", "completed_at"];
     const labels = /^(1|true|yes)$/i.test(String(req.query.labels ?? ""));
+    /* In labels mode a rank item must still export its rank: its value_text is
+       the actor's name (the row header), which is the same for every rank and
+       says nothing about the answer. */
+    const rankIds = new Set();
+    if (labels) {
+      for (const cond of CONDITION_KEYS) {
+        for (const ord of ORDER_KEYS) {
+          for (const it of runtimeItems(cond, ord, true)) if (it.type === "rank") rankIds.add(it.id);
+        }
+      }
+    }
 
     asCsv(reply, labels ? "wide_labels" : "wide");
     reply.raw.write(BOM + row([...meta, ...itemIds]));
@@ -150,7 +167,7 @@ export default async function exportRoutes(app) {
         const itemVals = itemIds.map(id => {
           const a = answers.get(id);
           if (!a) return "";
-          if (labels) return a.value_text ?? a.value_num;
+          if (labels) return rankIds.has(id) ? (a.value_num ?? a.value_text) : (a.value_text ?? a.value_num);
           return a.value_num ?? a.value_text;
         });
         chunk += row([...metaVals, ...itemVals]);
@@ -215,8 +232,8 @@ export default async function exportRoutes(app) {
     const cols = ["item_id", "block", "item_type", "segment", "seg_position",
                   "required", "group", "value_coding", "stem"];
     const seen = new Map();
-    for (const cond of ["H1", "H2", "H3", "HA1", "HA2", "HA3", "A"]) {
-      for (const ord of ["O1", "O2", "O3"]) {
+    for (const cond of CONDITION_KEYS) {
+      for (const ord of ORDER_KEYS) {
         for (const it of runtimeItems(cond, ord, true)) {
           const prev = seen.get(it.id);
           if (prev) {
@@ -264,14 +281,30 @@ export default async function exportRoutes(app) {
   });
 
   /* -- the wording actually served ---------------------------------------
-     If anything was edited from /editor, the paper needs to be able to say
-     what was on the screen, not what the repository says today. */
+     What participants were given, not what is being drafted in /preview and
+     not what the repository says today. The paper has to be able to quote the
+     sentence that was on the screen. */
   app.get("/api/export/instrument_overrides.csv", async (_req, reply) => {
     const cols = ["path", "value", "instrument_version"];
     const v = currentVersion();
     let out = BOM + row(cols);
     for (const [path, value] of overrideEntries()) out += row([path, value, v]);
     asCsv(reply, "instrument_overrides");
+    reply.send(out);
+    return reply;
+  });
+
+  /* -- and when each wording started being served -------------------------
+     One row per publish. With participants.instrument_ver, this is what lets
+     an analysis say which questionnaire a given response was answered under,
+     and a limitations section say exactly when the wording moved. */
+  app.get("/api/export/instrument_publications.csv", async (_req, reply) => {
+    const cols = ["id", "at", "instrument_version", "overridden_paths", "participants_at_the_time", "note"];
+    let out = BOM + row(cols);
+    for (const p of await publicationHistory(1000)) {
+      out += row([p.id, p.at, p.instrument_ver, p.paths, p.participants, p.note ?? ""]);
+    }
+    asCsv(reply, "instrument_publications");
     reply.send(out);
     return reply;
   });

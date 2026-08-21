@@ -14,7 +14,10 @@ import sessionRoutes, { clientIp } from "./routes/session.js";
 import saveRoutes from "./routes/save.js";
 import adminRoutes from "./routes/admin.js";
 import exportRoutes from "./routes/export.js";
-import { loadOverrides, currentVersion } from "./instrument-runtime.js";
+import {
+  loadOverrides, watchOverrides, ensureInitialPublication,
+  currentVersion, overrideCount, currentGeneration
+} from "./instrument-runtime.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(here, "..");
@@ -131,10 +134,22 @@ function requireAdmin(req, reply, done) {
 
 /* ---------------------------------------------------------------- routes */
 
+/* `overrides` and `generation` are here so that a deploy can be checked rather
+   than assumed. If the published wording failed to load, this machine quietly
+   serves the questionnaire as written in the repository — which is a real
+   change to the instrument and would otherwise be invisible until someone read
+   a page. A deploy that drops these to 0 on a study that has published wording
+   is a deploy to roll back. */
 app.get("/healthz", async (_req, reply) => {
   try {
     await healthy();
-    return { ok: true, instrument: currentVersion(), open: config.studyOpen };
+    return {
+      ok: true,
+      instrument: currentVersion(),
+      overrides: overrideCount(),
+      generation: currentGeneration(),
+      open: config.studyOpen
+    };
   } catch (err) {
     reply.code(503);
     return { ok: false, error: err.message };
@@ -204,16 +219,23 @@ app.log.info({ assets: ASSET_HASH }, "asset version");
 app.get("/admin", { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("admin.html", path.join(rootDir, "private")));
 
 /* /preview runs the participant app itself against a chosen cell, so what the
-   team reviews is the questionnaire that will actually be served. /mockup is
-   the original design document, which carries its own copy of the wording and
-   will drift from the instrument — it is kept for the annotations, not as a
-   description of what participants see. */
+   team reviews is the questionnaire that will actually be served — and, since
+   it is already rendering every sentence, it is also where those sentences are
+   edited. Text only, and the guardrails live in the API rather than in this
+   page, so they hold whatever the browser does.
+
+   /mockup is the original design document, which carries its own copy of the
+   wording and will drift from the instrument — it is kept for the annotations,
+   not as a description of what participants see. */
 app.get("/preview", { onRequest: requireAdmin }, (_req, reply) => sendHtml(reply, "private", "preview.html"));
 app.get("/mockup",  { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("mockup.html", path.join(rootDir, "private")));
 
-/* Wording editor. Text only, and the guardrails live in the API rather than
-   in this page, so they hold whatever the browser does. */
-app.get("/editor",  { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("editor.html", path.join(rootDir, "private")));
+/* /editor was a second page listing every editable string by path. It is gone:
+   editing the questionnaire while looking at something that is not the
+   questionnaire is how wording and layout drift apart, and asking a
+   non-programmer to recognise `item.REL_OH1.stem` was never reasonable. */
+app.get("/editor", { onRequest: requireAdmin }, (req, reply) =>
+  reply.redirect(302, `/preview${req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : ""}`));
 
 /* The entry page is served from memory so the asset URLs carry the version. */
 app.get("/", (_req, reply) => sendHtml(reply, "public", "index.html"));
@@ -252,11 +274,20 @@ app.setErrorHandler((err, req, reply) => {
 
 /* ---------------------------------------------------------------- boot */
 
+let stopWatching = () => {};
+
 try {
   await migrate(app.log);
-  /* Wording edited from /editor lives in the database; load it before the
-     first participant can be served a plan. */
+  /* An existing deployment already has wording live. Give it a publication row
+     before anything reads the published set, or the first boot after this
+     shipped would serve the instrument in code to everybody. */
+  await ensureInitialPublication(app.log);
+  /* Published wording lives in the database; load it before the first
+     participant can be served a plan. */
   await loadOverrides(app.log);
+  /* And keep watching, because the machine that publishes is not necessarily
+     this one. */
+  stopWatching = watchOverrides(app.log);
 } catch (err) {
   app.log.error({ err }, "migration failed");
   if (config.nodeEnv === "production") process.exit(1);
@@ -274,6 +305,7 @@ for (const sig of ["SIGINT", "SIGTERM"]) {
     if (closing) return;
     closing = true;
     app.log.info(`${sig} received, draining`);
+    stopWatching();
     try { await app.close(); } catch (err) { app.log.error({ err }, "close failed"); }
     try { await pool.end(); } catch { /* already gone */ }
     process.exit(0);

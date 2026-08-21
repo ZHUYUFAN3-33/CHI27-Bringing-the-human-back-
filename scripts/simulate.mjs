@@ -63,6 +63,7 @@ function answerPage(page, opts) {
       return;
     }
     if (it.type === "number") out.push({ id: it.id, num: 18 + Math.floor(Math.random() * 50), at: now(), latencyMs: 1500, revisions: 0 });
+    if (it.type === "select") out.push({ id: it.id, text: pick(it.options).value, at: now(), latencyMs: 1600, revisions: 0 });
     if (it.type === "text")   out.push({ id: it.id, text: pick(["Japan", "United States", "Germany", "Brazil"]), at: now(), latencyMs: 1800, revisions: 0 });
   };
   page.items.forEach(walk);
@@ -83,7 +84,9 @@ async function runOne(i) {
      framing text they actually read, which is the point of the two checks. */
   const disc = plan.pages.find(p => p.kind === "disclosure").disclosure;
   const c1 = { H: 0, HA: 1, A: 2 }[disc.arrangement];
-  const profileLine = disc.personaLines.find(l => l.profile)?.text ?? "";
+  /* The profile statement is its own field on the disclosure; it stopped being
+     one of the persona lines in v6. */
+  const profileLine = disc.profile ?? "";
   const c2 = disc.arrangement === "A" ? 3
     : /does not have/.test(profileLine) ? 0
     : /intellectual/.test(profileLine) ? 1 : 2;

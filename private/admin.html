@@ -120,7 +120,7 @@ function tiles(d) {
     ["Screened out",     n(t.screened_out), "plain", "ineligible or declined"],
     ["Failed attention", n(t.failed_attention), t.failed_attention > 0 ? "warn" : "plain", "AT1"],
     ["Failed check C1",  n(t.failed_c1), t.failed_c1 > 0 ? "warn" : "plain", "control source"],
-    ["Failed check C2",  n(t.failed_c2), t.failed_c2 > 0 ? "warn" : "plain", "pilot profile"],
+    ["Failed check C2",  n(t.failed_c2), t.failed_c2 > 0 ? "warn" : "plain", "operator profile"],
     ["Median duration",  mins, "plain", "first to last answer"]
   ].map(([k, v, cls, note]) =>
     `<div class="tile"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div><div class="n">${note}</div></div>`
@@ -204,6 +204,8 @@ function exportLinks() {
     ["page_times.csv",          j("/api/export/page_times.csv")],
     ["video_events.csv",        j("/api/export/video_events.csv")],
     ["codebook.csv",            j("/api/export/codebook.csv")],
+    ["instrument_overrides.csv", j("/api/export/instrument_overrides.csv")],
+    ["instrument_publications.csv", j("/api/export/instrument_publications.csv")],
     ["all.json",                j("/api/export/all.json")]
   ].map(([label, href]) => `<a class="dl" href="${href}">${label}</a>`).join("");
 }

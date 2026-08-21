@@ -35,7 +35,7 @@ page, recent participants, and the export panel. `Recount assigned` re-derives
 every counter from the participants table — run it after piloting and before
 recruitment opens.
 
-### Questionnaire preview
+### Questionnaire preview — and where the wording is edited
 
 ```
 https://study1-survey.fly.dev/preview?token=<TOKEN>
@@ -43,7 +43,7 @@ https://study1-survey.fly.dev/preview?token=<TOKEN>
 
 Runs the participant application against a cell you choose. Same renderer, same
 plan, same wording as the live study — it reads the instrument rather than
-carrying a copy of it, so it cannot drift. Nothing is written: no participant
+carrying a copy of it, so it cannot drift. Nothing is recorded: no participant
 row, no allocation slot, no answers. Every page is reachable, answers are not
 compulsory, and the clips never gate a page.
 
@@ -58,26 +58,50 @@ https://study1-survey.fly.dev/preview?token=<TOKEN>&condition=HA2&order=O3&optio
 | `condition` | `H1` `H2` `H3` `HA1` `HA2` `HA3` `A` | control source × operator profile |
 | `order` | `O1`…`O6` | the six permutations: REL·ADV·COL, ADV·COL·REL, COL·REL·ADV, REL·COL·ADV, ADV·REL·COL, COL·ADV·REL |
 | `optional` | `1` `0` | the NARS + SCM attitude block |
+| `stage` | `draft` `live` | the wording being worked on, or the wording participants are being served |
 
-### Wording editor
+#### Changing the wording
 
-```
-https://study1-survey.fly.dev/editor?token=<TOKEN>
-```
+This needs no code, no deploy and no terminal. **Open the link above, press
+*Edit the text*, click the sentence you want to change, change it, press
+*Save*.** Saving puts it in the draft, which only this page can see. When the
+draft reads the way you want, press **Publish to participants**. That is the
+whole procedure.
 
-Edits the *text* of the questionnaire without touching its shape. Item ids,
-types, option counts and the design stay in `shared/instrument.js`; a path that
-does not already exist cannot be written, so no edit can add an item, remove
-one, or change what a column means. Every change is logged with the old value,
-the new one and how many people had already answered.
+| | |
+|---|---|
+| **Save** | writes the draft. Participants are unaffected, so edit as freely and as often as you like |
+| **Publish to participants** | replaces the live questionnaire with the draft. Every machine is serving it within five seconds |
+| **Discard the draft** | throws away everything unpublished and goes back to what participants are seeing |
+| **Restore the wording in code** | the per-field undo: back to the sentence in `shared/instrument.js` |
+| **All text…** | every string in every cell, searchable — for the text that is not on the page in front of you |
+| **History…** | every publication and every draft edit, with the old value and the new one |
+| **What participants see** | renders the live wording instead of the draft, for comparing before you publish |
 
-While no real participant exists, wording changes freely. Once one does, saving
-asks for a new instrument version and stamps it on everyone from that point —
-without it the data would carry two questionnaires with nothing to separate
-them. Changing wording mid-collection is a decision, not a typo fix.
+A strip under the control bar always says which of the two states you are in —
+*"3 unpublished changes"* or *"Everything is published"* — and the band across
+the top says whether you are editing the live study or a local copy. **A local
+server has its own database: nothing edited or published there reaches the
+people taking the study.** Use the fly.dev link for that.
 
-`/api/export/instrument_overrides.csv` lists everything currently overridden,
-so a paper can report the wording that was on the screen.
+Only *text* can be changed. Item ids, types, option counts, the answer keys and
+the design stay in `shared/instrument.js`; a path that does not already exist
+cannot be written, so no edit can add an item, remove one, or change what a
+column means. The information page — the consent document — is editable too.
+
+While no real participant exists, publishing is free. Once one exists, it asks
+for a new instrument version, offers the next one (`v6` → `v6b`) and stamps it
+on everyone from that point. Without it the data would carry two questionnaires
+with nothing to separate them. Changing wording mid-collection is a decision,
+not a typo fix.
+
+Two things worth knowing:
+
+- **Someone already part-way through keeps the wording they started with** until
+  they reload. New participants get the new text immediately.
+- `/api/export/instrument_overrides.csv` lists the wording currently being
+  served and `/api/export/instrument_publications.csv` lists when each version
+  started being served, so a paper can report what was on the screen and when.
 
 ### Design mockup
 
@@ -108,6 +132,8 @@ https://study1-survey.fly.dev/api/export/wide.csv?token=<TOKEN>
 | `/api/export/page_times.csv` | page visit |
 | `/api/export/video_events.csv` | player event — play, pause, ended, gate_open, error, fallback |
 | `/api/export/codebook.csv` | item — type, coding, stem |
+| `/api/export/instrument_overrides.csv` | overridden string — the wording being served, not the wording in the repository |
+| `/api/export/instrument_publications.csv` | publication — when each instrument version started being served |
 | `/api/export/all.json` | everything, nested |
 
 By default the exports exclude test rows and anyone still `in_progress`.
@@ -234,7 +260,7 @@ has been pasted anywhere shared.
 ## Before recruitment opens
 
 - [ ] **Check AV1 against the finished clips.** The options are written per segment from the v1.4 shooting script, which flags segments R and A as not yet diffed against the v1.2 master. One option per segment must be true of the audio as cut, and the other three must not be.
-- [ ] **The study information page is generic.** Replace it with the IRB-approved text. `grep -n 'renderInfo' public/survey.js`
+- [ ] **The study information page is generic.** Replace it with the IRB-approved text. It no longer lives in code: open `/preview`, press *Edit the text*, click the paragraphs on page 1, then publish. Blank line for a new paragraph, `**double asterisks**` for bold, `{funding}` and `{contact}` for the configured values.
 - [ ] **Confirm the three clips are Unlisted and embeddable.**
 - [x] ~~Clear the pre-recruitment rows.~~ Done: the nine `v5-r2` rows were deleted and the counters are back to zero. Only test rows remain, and they neither export nor hold a slot.
 - [ ] **Leave the per-cell targets at 0.** The sample is 300, which is 7 per cell across the 42 cells and ~43 per condition. Balance does not come from the targets — the randomiser always takes the least-filled cell — and a target counts *starts*, not completes, so a cap of 7 (294 slots) would close the study before 300 completes land. Let the CloudResearch quota be the stop. Expect 36 cells at 7 and 6 at 8 when it closes.

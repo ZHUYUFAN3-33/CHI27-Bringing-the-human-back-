@@ -145,7 +145,11 @@ export default async function saveRoutes(app) {
            VALUES ($1,$2,$3,$4,$5,$6,$7)
            ON CONFLICT (participant_id, page_key, visit) DO UPDATE SET
              left_at  = EXCLUDED.left_at,
-             dwell_ms = COALESCE(page_times.dwell_ms, 0) + COALESCE(EXCLUDED.dwell_ms, 0)`,
+             /* GREATEST, not +: the client sends the visit's total dwell in one
+                save, and delivery is at-least-once (timeout retries, and
+                beaconFlush re-sends without dequeuing). Adding would double the
+                dwell for exactly the participants on flaky connections. */
+             dwell_ms = GREATEST(COALESCE(page_times.dwell_ms, 0), COALESCE(EXCLUDED.dwell_ms, 0))`,
           [p.id, String(page.key).slice(0, 64), Math.max(1, intOrNull(page.visit) ?? 1),
            intOrNull(page.index), tsOrNull(page.enteredAt), tsOrNull(page.leftAt), intOrNull(page.dwellMs)]
         );

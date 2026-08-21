@@ -3,6 +3,12 @@
    names so the list is not hand-typed and not tied to one editor's spelling.
    Stored as [code, name]: the code is what goes in the database, so renaming a
    country later does not orphan the rows that already chose it.
+
+   ICU also carries the *deprecated* aliases DY/HV/UK/NH/VD/YD/RH (old codes for
+   Benin, Burkina Faso, the United Kingdom, Vanuatu, Vietnam, Yemen, Zimbabwe).
+   Those are excluded here — with them in, each of those countries appeared
+   twice in the dropdown and the data would split one country across two codes.
+   If this list is ever regenerated, exclude them again.
    ========================================================================== */
 
 export const COUNTRIES = [
@@ -29,7 +35,6 @@ export const COUNTRIES = [
   ["BE", "Belgium"],
   ["BZ", "Belize"],
   ["BJ", "Benin"],
-  ["DY", "Benin"],
   ["BM", "Bermuda"],
   ["BT", "Bhutan"],
   ["BO", "Bolivia"],
@@ -41,7 +46,6 @@ export const COUNTRIES = [
   ["BN", "Brunei"],
   ["BG", "Bulgaria"],
   ["BF", "Burkina Faso"],
-  ["HV", "Burkina Faso"],
   ["BI", "Burundi"],
   ["KH", "Cambodia"],
   ["CM", "Cameroon"],
@@ -244,22 +248,17 @@ export const COUNTRIES = [
   ["UA", "Ukraine"],
   ["AE", "United Arab Emirates"],
   ["GB", "United Kingdom"],
-  ["UK", "United Kingdom"],
   ["US", "United States"],
   ["UY", "Uruguay"],
   ["UZ", "Uzbekistan"],
-  ["NH", "Vanuatu"],
   ["VU", "Vanuatu"],
   ["VA", "Vatican City"],
   ["VE", "Venezuela"],
-  ["VD", "Vietnam"],
   ["VN", "Vietnam"],
   ["WF", "Wallis & Futuna"],
   ["EH", "Western Sahara"],
-  ["YD", "Yemen"],
   ["YE", "Yemen"],
   ["ZM", "Zambia"],
-  ["RH", "Zimbabwe"],
   ["ZW", "Zimbabwe"]
 ];
 

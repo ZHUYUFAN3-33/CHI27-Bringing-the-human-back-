@@ -4,12 +4,24 @@ import {
   allocationSnapshot, reconcileAllocation, setCellTarget, setAllTargets, setCellEnabled
 } from "../allocation.js";
 import {
-  CONDITION_KEYS, ORDER_KEYS, CONDITIONS, ORDERS, publicPlan, planItems
+  CONDITION_KEYS, ORDER_KEYS, CONDITIONS, ORDERS, buildPlan, publicPlan, planItems
 } from "../../shared/instrument.js";
 import {
-  runtimePlan, currentVersion, editableFields, isEditable, setOverride, setVersion,
-  loadOverrides, overrideHistory, nonTestParticipants, overrideCount
+  runtimePlan, draftPlan, draftMap, draftDiff, currentVersion, editableFields,
+  editableFieldsForPlan, isEditable, setOverride, loadOverrides, overrideHistory,
+  publicationHistory, nonTestParticipants, overrideCount, publishDraft, discardDraft,
+  syncState
 } from "../instrument-runtime.js";
+
+/* The next version label to offer when publishing mid-collection. Typing one
+   from scratch is the step where someone reuses the current version by mistake
+   and loses the ability to tell the two wordings apart, so the suffix is
+   proposed and the researcher only has to agree with it: v6 · v6b · v6c. */
+function suggestVersion(current) {
+  const m = /^(.*)([b-y])$/.exec(current);
+  if (m) return m[1] + String.fromCharCode(m[2].charCodeAt(0) + 1);
+  return current + "b";
+}
 
 export default async function adminRoutes(app) {
 
@@ -17,11 +29,19 @@ export default async function adminRoutes(app) {
      or a token. /preview renders this with the participant runtime, so the team
      reviews the questionnaire itself rather than a second copy of the wording.
      Answer keys ride along because this endpoint is behind the admin token —
-     they are what publicPlan strips before a participant ever sees a page. */
+     they are what publicPlan strips before a participant ever sees a page.
+
+     `stage=draft` (the default) renders the wording being worked on;
+     `stage=live` renders what participants are being served right now, so the
+     two can be compared before anything is published. The editable fields of
+     this one cell come back with it, because the page that renders a
+     questionnaire is also the page that edits it and a second round trip to
+     find out which sentence is which would be a waste. */
   app.get("/api/admin/preview-plan", async (req, reply) => {
     const condition = String(req.query.condition ?? CONDITION_KEYS[0]);
     const order     = String(req.query.order ?? ORDER_KEYS[0]);
     const optional  = !/^(0|false|no)$/i.test(String(req.query.optional ?? "1"));
+    const stage     = String(req.query.stage ?? "draft") === "live" ? "live" : "draft";
 
     if (!CONDITION_KEYS.includes(condition)) {
       return reply.code(400).send({ error: "unknown_condition", allowed: CONDITION_KEYS });
@@ -30,13 +50,29 @@ export default async function adminRoutes(app) {
       return reply.code(400).send({ error: "unknown_order", allowed: ORDER_KEYS });
     }
 
-    const plan = runtimePlan(condition, order, optional);
+    const plan = stage === "live"
+      ? runtimePlan(condition, order, optional)
+      : await draftPlan(condition, order, optional);
+
+    const [values, pending, participants] = await Promise.all([
+      draftMap(), draftDiff(), nonTestParticipants()
+    ]);
+
     return {
       design: {
-        condition, order, optional,
+        condition, order, optional, stage,
         ctrl: plan.ctrl, profile: plan.profile, segOrder: plan.segOrder,
         instrumentVersion: currentVersion(),
         itemCount: planItems(plan).length
+      },
+      /* Draft values regardless of stage: the editor always edits the draft,
+         even while the live wording is the thing on screen. */
+      fields: editableFieldsForPlan(buildPlan(condition, order, optional), values),
+      publish: {
+        participants,
+        pending: pending.length,
+        instrumentVersion: currentVersion(),
+        suggestedVersion: suggestVersion(currentVersion())
       },
       /* Every id, with the answer keys the participant build never receives. */
       keys: planItems(plan)
@@ -148,22 +184,53 @@ export default async function adminRoutes(app) {
 
   /* -- the wording editor -------------------------------------------------
      Every field the instrument defines as text, with what the code says and
-     what is currently served. The list is derived from real plans, so a path
-     that does not exist cannot be offered and cannot be written. */
-  app.get("/api/admin/instrument", async () => ({
-    instrumentVersion: currentVersion(),
-    overrides: overrideCount(),
-    participants: await nonTestParticipants(),
-    fields: editableFields()
-  }));
+     what the draft currently holds. The list is derived from real plans, so a
+     path that does not exist cannot be offered and cannot be written.
 
-  app.get("/api/admin/instrument/history", async (req) =>
-    ({ log: await overrideHistory(Math.min(500, Number(req.query.limit) || 200)) }));
+     This is the cross-cell list, for searching. /preview gets the fields of the
+     cell on screen from preview-plan instead. */
+  app.get("/api/admin/instrument", async () => {
+    const [values, pending, participants] = await Promise.all([
+      draftMap(), draftDiff(), nonTestParticipants()
+    ]);
+    return {
+      instrumentVersion: currentVersion(),
+      published: overrideCount(),
+      draft: values.size,
+      pending: pending.length,
+      participants,
+      suggestedVersion: suggestVersion(currentVersion()),
+      fields: editableFields(values)
+    };
+  });
 
-  /* Saving is refused once real participants exist, unless the caller both
-     acknowledges it and supplies a new instrument version. Wording that changes
-     underneath a running study is not a small thing: without a version bump the
-     data carries two questionnaires with nothing to tell them apart. */
+  /* What is waiting to go out, path by path, so a publish is never blind. */
+  app.get("/api/admin/instrument/pending", async () => {
+    const [changes, participants] = await Promise.all([draftDiff(), nonTestParticipants()]);
+    return {
+      changes,
+      participants,
+      instrumentVersion: currentVersion(),
+      suggestedVersion: suggestVersion(currentVersion())
+    };
+  });
+
+  app.get("/api/admin/instrument/history", async (req) => {
+    const limit = Math.min(500, Number(req.query.limit) || 200);
+    const [log, publications] = await Promise.all([overrideHistory(limit), publicationHistory(limit)]);
+    return { log, publications };
+  });
+
+  /* Is the machine answering this request serving the newest publication?
+     `pollMs` is the ceiling on how long any other machine can still be behind,
+     which is the honest answer to "is my change live yet". */
+  app.get("/api/admin/instrument/status", async () => syncState());
+
+  /* Saving writes the draft and nothing else. No version prompt, no warning,
+     no consequence: the researcher is still deciding, and a half-finished
+     sentence must not be on a participant's screen while they decide. The act
+     that changes the questionnaire is publish, below, and that is where the
+     guard belongs. */
   app.post("/api/admin/instrument", async (req, reply) => {
     const path  = String(req.body?.path ?? "");
     const raw   = req.body?.value;
@@ -185,33 +252,74 @@ export default async function adminRoutes(app) {
     }
 
     const participants = await nonTestParticipants();
+    const before = await setOverride(path, value, { version: currentVersion(), participants });
+    const pending = await draftDiff();
+
+    req.log.info({ path, before, after: value }, "instrument draft edited");
+    return { ok: true, path, value, previous: before, pending: pending.length };
+  });
+
+  /* -- publishing ----------------------------------------------------------
+     The draft becomes the questionnaire. Refused once real participants exist
+     unless the caller both acknowledges it and supplies a new instrument
+     version: wording that changes underneath a running study is not a small
+     thing, and without a version bump the data carries two questionnaires with
+     nothing to tell them apart.
+
+     The version is stamped on every participant from here on, so it is
+     recorded against the publication rather than against any one edit. */
+  app.post("/api/admin/instrument/publish", async (req, reply) => {
+    const participants = await nonTestParticipants();
+    const pending = await draftDiff();
+
+    if (!pending.length && req.body?.force !== true) {
+      return reply.code(400).send({
+        error: "nothing_to_publish",
+        message: "The draft and the live questionnaire are already the same."
+      });
+    }
+
+    let version = currentVersion();
     if (participants > 0) {
       const newVersion = String(req.body?.newVersion ?? "").trim();
       if (req.body?.acknowledge !== true || !newVersion) {
         return reply.code(409).send({
           error: "collection_in_progress",
           participants,
-          instrumentVersion: currentVersion(),
+          pending: pending.length,
+          instrumentVersion: version,
+          suggestedVersion: suggestVersion(version),
           message: `${participants} real participants have already answered under ` +
-                   `${currentVersion()}. To edit anyway, send acknowledge:true and a ` +
+                   `${version}. To publish anyway, send acknowledge:true and a ` +
                    `newVersion, which is stamped on every participant from now on so the ` +
                    `two wordings can be separated at analysis.`
         });
       }
-      if (newVersion === currentVersion()) {
+      if (newVersion === version) {
         return reply.code(400).send({ error: "same_version", message: "newVersion must differ from the current one." });
       }
-      await setVersion(newVersion);
+      version = newVersion;
     }
 
-    const before = await setOverride(path, value, {
-      version: participants > 0 ? String(req.body.newVersion).trim() : currentVersion(),
-      participants
+    const publication = await publishDraft({
+      version,
+      participants,
+      note: req.body?.note ? String(req.body.note).slice(0, 500) : null
     });
+    /* This machine now. Every other machine within config.instrumentPollMs,
+       which is what the status endpoint reports. */
     await loadOverrides(req.log);
 
-    req.log.warn({ path, before, after: value, participants }, "instrument wording edited");
-    return { ok: true, path, value, previous: before, instrumentVersion: currentVersion() };
+    req.log.warn({ publication, changed: pending.length, participants }, "instrument published");
+    return { ok: true, publication, changed: pending.length, sync: await syncState() };
+  });
+
+  /* Throw the draft away and start again from what participants are seeing. */
+  app.post("/api/admin/instrument/discard", async (req) => {
+    const pending = await draftDiff();
+    const restored = await discardDraft();
+    req.log.warn({ discarded: pending.length }, "instrument draft discarded");
+    return { ok: true, discarded: pending.length, paths: restored };
   });
 
   /* Mark rows as test data so they drop out of every export and every count.

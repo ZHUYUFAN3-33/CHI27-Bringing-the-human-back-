@@ -143,6 +143,23 @@ done
   && echo "    /healthz  $BODY" \
   || die "the app did not become healthy — check: fly logs -a $APP"
 
+# The wording participants are served lives in the database and is cached per
+# machine. A machine that failed to read it serves the questionnaire as written
+# in the repository instead — a real change to the instrument, and one that is
+# invisible unless something looks. Ask a few times: the proxy spreads the
+# requests, so this covers more than one machine.
+SEEN=""
+for i in 1 2 3 4 5 6; do
+  H="$(curl -fsS --max-time 10 "$URL/healthz" 2>/dev/null || true)"
+  [[ -n "$H" ]] && SEEN="$SEEN$(sed -n 's/.*"overrides":\([0-9]*\).*/\1/p' <<<"$H") "
+done
+UNIQ=$(tr ' ' '\n' <<<"$SEEN" | grep -v '^$' | sort -u | tr '\n' ' ')
+echo "    wording   overridden strings seen across machines: ${UNIQ:-none}"
+if [[ $(wc -w <<<"$UNIQ") -gt 1 ]]; then
+  echo "    WARNING: the machines disagree about how much wording is published."
+  echo "             One of them may have failed to load it. fly logs -a $APP"
+fi
+
 CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$URL/")
 echo "    /          HTTP $CODE  (participant page)"
 CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$URL/admin")

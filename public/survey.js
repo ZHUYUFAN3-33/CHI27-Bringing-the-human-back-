@@ -39,6 +39,29 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "
    containing a literal <b> is still shown as text. */
 const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 
+/* Where a sentence came from, so /preview can offer to edit the one that was
+   clicked. A no-op for participants: they get the same DOM they always did,
+   and the researcher view is the only thing that ever reads these. Marking the
+   node here rather than matching text in the preview is the difference between
+   knowing which sentence this is and guessing — two items can share wording.
+
+   `tag` returns the node so it can wrap an append in place. */
+const tag = (node, path) => {
+  if (S.preview && node?.dataset) node.dataset.path = path;
+  return node;
+};
+
+/* The information page carries the consent document, which is written as plain
+   text so that the person who has to keep it matching the ethics approval can
+   edit it. A blank line starts a paragraph, **double asterisks** set bold, and
+   {funding} / {contact} carry whatever this deployment is configured with.
+   Substitution happens before md(), so md() escapes the substituted value too:
+   a funder name is text, never markup. */
+const fillTokens = s => String(s ?? "").replace(/\{(funding|contact)\}/g, (_m, key) =>
+  (key === "funding" ? window.__STUDY_FUNDING__ : window.__STUDY_CONTACT__) ?? "");
+
+const paragraphs = s => fillTokens(s).split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
+
 const pageEl = $("#page"), navEl = $("#nav"), barEl = $("#bar");
 const backBtn = $("#back"), nextBtn = $("#next"), warnEl = $("#navwarn"), posEl = $("#poslabel");
 const saveBar = $("#savebar");
@@ -129,8 +152,9 @@ async function bootPreview() {
   await previewLoad(window.__PREVIEW__.cell ?? {});
 }
 
-async function previewLoad({ condition = "H1", order = "O1", optional = true } = {}) {
-  const qs = new URLSearchParams({ condition, order, optional: optional ? "1" : "0" });
+async function previewLoad({ condition = "H1", order = "O1", optional = true, stage = "draft" } = {},
+                           { keepPage = false } = {}) {
+  const qs = new URLSearchParams({ condition, order, optional: optional ? "1" : "0", stage });
   let data;
   try {
     const res = await fetch(`/api/admin/preview-plan?${qs}`, {
@@ -143,6 +167,10 @@ async function previewLoad({ condition = "H1", order = "O1", optional = true } =
       `${err.message}. Check that the admin token in the address bar is current.`);
   }
 
+  /* Where the reviewer was, so that saving a sentence does not throw them back
+     to page one of fourteen every time. */
+  const was = keepPage ? S.page : 0;
+
   S.plan = data.plan;
   S.design = data.design;
   S.keys = new Map(data.keys.map(k => [k.id, k]));
@@ -153,8 +181,8 @@ async function previewLoad({ condition = "H1", order = "O1", optional = true } =
   S.plan.pages.filter(p => p.kind === "segment").forEach(p => {
     S.gates[p.segment] = { started: null, watch: 0, done: true, error: null };
   });
-  S.page = 0;
-  window.__PREVIEW__.onLoaded?.(data.design);
+  S.page = Math.min(was, S.plan.pages.length - 1);
+  window.__PREVIEW__.onLoaded?.(data);
   render();
 }
 
@@ -171,15 +199,17 @@ function render() {
 
   pageEl.innerHTML = "";
   pageEl.append(el("p", "eyebrow", esc(p.eyebrow ?? "")));
-  pageEl.append(el("h2", "qtitle", esc(p.title)));
-  if (p.intro) pageEl.append(el("p", "qintro", esc(p.intro)));
+  pageEl.append(tag(el("h2", "qtitle", esc(p.title)), `page.${p.key}.title`));
+  if (p.intro) pageEl.append(tag(el("p", "qintro", esc(p.intro)), `page.${p.key}.intro`));
 
   if (p.kind === "info")       renderInfo(p);
   if (p.kind === "disclosure") renderDisclosure(p);
   if (p.kind === "segment")    renderSegment(p);
-  if (p.kind === "debrief")    { renderDebrief(p); return; }
+  if (p.kind === "debrief")    { renderDebrief(p); painted(p); return; }
 
-  if (p.matrixInstruction) pageEl.append(el("p", "minstr", esc(p.matrixInstruction)));
+  if (p.matrixInstruction) {
+    pageEl.append(tag(el("p", "minstr", esc(p.matrixInstruction)), `page.${p.key}.matrixInstruction`));
+  }
   p.items.forEach(item => pageEl.append(renderItem(item, p)));
 
   barEl.style.width = (S.page / (S.plan.pages.length - 1) * 100) + "%";
@@ -191,65 +221,66 @@ function render() {
   nextBtn.hidden = false;
   scrollTo({ top: 0, behavior: "instant" });
   updateNext();
+  painted(p);
+}
+
+/* The page is on screen and every data-path is in place. /preview repaints its
+   edit affordances from here rather than guessing when a render finished. */
+function painted(page) {
+  if (S.preview) window.__PREVIEW__.onRender?.(S.page, page);
 }
 
 /* The information page is the consent document. It is set as headed sections
    rather than one column of bolded lead-ins, because it is read by someone
    deciding whether to take part and they should be able to find "can I stop"
-   without reading the paragraph above it. Wording follows the approved ethics
-   application: duration, storage, retention and funder all come from there. */
-function renderInfo() {
+   without reading the paragraph above it.
+
+   The text arrives in the plan rather than living here. It is the one page an
+   ethics committee actually approves and the one page most likely to need
+   changing at short notice, and it used to be a wall of template literals in
+   this file — which meant a comma in the retention sentence was a code change
+   and a deploy. It is now editable from /preview like everything else.
+
+   A section that names a `requires` key is dropped when that value is not
+   configured, so an unset STUDY_FUNDING leaves the funding section out rather
+   than printing an empty sentence on a consent form. */
+function renderInfo(p) {
   const box = el("div", "disclosure infosheet");
+  if (!p.info) { pageEl.append(box); return; }
 
-  const section = (heading, body) =>
-    `<section><h3>${esc(heading)}</h3>${body}</section>`;
-
-  let html = `<p class="lede">Thank you for your interest in this study. Please read this page
-    before deciding whether to take part.</p>`;
-
-  html += section("What you will do", `
-    <p>You will read a short description, watch three video clips of a person talking with a robot
-       called OriHime, and answer questions about each one.</p>
-    <p>It takes about <b>20–30 minutes</b>, and you will need <b>sound</b>.</p>`);
-
-  html += section("Who is running this study", `
-    <p>This research is carried out at the <b>Keio University Graduate School of Media Design</b>${
-      window.__STUDY_FUNDING__
-        ? `, funded by ${esc(window.__STUDY_FUNDING__)}`
-        : ""
-    }.</p>`);
-
-  html += section("Your data", `
-    <p>We record your answers, how long each page took, and whether each clip played through.
-       <b>We do not record your name, and we do not store your IP address.</b></p>
-    <p>Responses are held on a secured server during collection and kept on access-controlled
-       Keio University storage afterwards, reachable only by the authorised researchers. They are
-       retained until <b>31 August 2036</b>, then deleted or irreversibly anonymised.</p>
-    <p>Results are reported in aggregate, and the responses may be shared as an anonymous dataset
-       alongside a published paper.</p>`);
-
-  html += section("Taking part is voluntary", `
-    <p>You can close the page at any time, without giving a reason and without penalty.</p>
-    <p>At the end you receive a completion code. If you later want your responses removed, send us
-       that code and we will delete them — it is the only thing that identifies your answers.</p>`);
-
-  html += section("One important note", `
-    <p>Some details of this study are not described in full until the end. There is a complete
-       explanation on the last page, before you finish.</p>`);
-
-  if (window.__STUDY_CONTACT__) {
-    html += section("Questions", `
-      <p>You can contact the researcher at <b>${esc(window.__STUDY_CONTACT__)}</b>.</p>`);
+  if (p.info.lede) {
+    box.append(tag(el("p", "lede", md(fillTokens(p.info.lede))), "info.lede"));
   }
 
-  box.innerHTML = html;
+  const configured = { funding: window.__STUDY_FUNDING__, contact: window.__STUDY_CONTACT__ };
+
+  p.info.sections.forEach(s => {
+    if (s.requires && !configured[s.requires]) return;
+    const sec = el("section");
+    sec.append(tag(el("h3", null, esc(fillTokens(s.heading))), `info.${s.key}.heading`));
+    /* Every paragraph carries the same path: they are one editable block of
+       text, split on blank lines only when it reaches the page. */
+    paragraphs(s.body).forEach(para =>
+      sec.append(tag(el("p", null, md(para)), `info.${s.key}.body`)));
+    box.append(sec);
+  });
+
   pageEl.append(box);
 }
 
 function renderDisclosure(p) {
   const d = p.disclosure;
   const card = el("div", "disclosure");
-  card.append(el("p", null, esc(d.intro)));
+
+  /* Which framing text this is depends on the cell, and publicPlan does not
+     tell the browser which cell it is in — deliberately: a participant who
+     opens devtools sees the study they are actually taking and not the other
+     six. The preview knows, because preview-plan says so, and tag() only ever
+     runs there. `who` follows the same rule the runtime uses. */
+  const ctrl = S.design?.ctrl;
+  const who = ctrl === "A" ? "ai" : "human";
+
+  card.append(tag(el("p", null, esc(d.intro)), "text.intro"));
 
   /* Same photo, same place, in all seven conditions: it shows what OriHime is
      before the control-source text says who operates it. Sized attributes match
@@ -259,19 +290,22 @@ function renderDisclosure(p) {
     '<img src="/orihime.jpg" width="1600" height="899" alt="OriHime, a small white tabletop robot, on a table beside a seated person">';
   card.append(fig);
 
-  card.append(el("p", null, md(d.control)));
+  card.append(tag(el("p", null, md(d.control)), `text.control.${ctrl}`));
 
   /* The profile is the second manipulation and gets its own line here, between
      the control text and the diagram. It used to be the third of four bullets
      inside the persona box, where it read as one more fact about a stranger. */
-  if (d.profile) card.append(el("p", "profileline", md(d.profile)));
+  if (d.profile) {
+    card.append(tag(el("p", "profileline", md(d.profile)), `text.profile.${S.design?.profile}`));
+  }
 
   card.append(diagram(d.arrangement));
 
   const persona = el("div", "persona");
-  persona.append(el("h4", null, esc(d.personaHead)));
+  persona.append(tag(el("h4", null, esc(d.personaHead)), `text.personaHead.${who}`));
   const ul = el("ul");
-  d.personaLines.forEach(line => ul.append(el("li", null, md(line.text))));
+  d.personaLines.forEach((line, n) =>
+    ul.append(tag(el("li", null, md(line.text)), `text.persona.${who}.${n}`)));
   persona.append(ul);
   card.append(persona);
   pageEl.append(card);
@@ -296,7 +330,7 @@ function renderSegment(p) {
   gate.innerHTML = `<span class="pip"></span><span id="gatetxt_${p.key}">Please watch the whole interaction. The questions below open when it has finished.</span>`;
   pageEl.append(gate);
 
-  if (p.desc) pageEl.append(el("p", "qintro", esc(p.desc)));
+  if (p.desc) pageEl.append(tag(el("p", "qintro", esc(p.desc)), `segment.${p.segment}.desc`));
 
   const wrap = el("div", "locked");
   wrap.id = `qs_${p.key}`;
@@ -353,7 +387,12 @@ function buildItem(item, page) {
 
 function matrixBlock(block) {
   const wrap = el("div", "matrix-q");
-  if (block.instruction) wrap.append(el("p", "minstr", esc(block.instruction)));
+  if (block.instruction) {
+    /* A lone likert7 is rendered as a one-row matrix and has no block id, so
+       there is nothing to address in that case — and no instruction either. */
+    const instr = el("p", "minstr", esc(block.instruction));
+    wrap.append(block.id ? tag(instr, `item.${block.id}.instruction`) : instr);
+  }
 
   const table = el("table", "likert");
   const scale = S.plan.scale;
@@ -366,7 +405,8 @@ function matrixBlock(block) {
   block.rows.forEach(row => {
     const tr = el("tr");
     tr.dataset.item = row.id;
-    tr.append(el("td", "stemcell", esc(row.stem) + '<span class="req">*</span>'));
+    tr.append(tag(el("td", "stemcell", esc(row.stem) + '<span class="req">*</span>'),
+      `item.${row.id}.stem`));
     for (let c = 1; c <= 7; c++) {
       const td = el("td");
       td.dataset.n = c;
@@ -399,7 +439,8 @@ function matrixBlock(block) {
 function mcBlock(item) {
   const wrap = el("div", "q");
   wrap.dataset.item = item.id;
-  wrap.append(el("p", "stem", esc(item.stem) + (item.required ? '<span class="req">*</span>' : "")));
+  wrap.append(tag(el("p", "stem", esc(item.stem) + (item.required ? '<span class="req">*</span>' : "")),
+    `item.${item.id}.stem`));
   const opts = el("div", "opts");
   item.options.forEach((label, i) => {
     const l = el("label", "opt");
@@ -409,7 +450,7 @@ function mcBlock(item) {
     input.value = i;
     if (S.answers.get(item.id)?.num === i) input.checked = true;
     input.addEventListener("change", () => setAnswer(item.id, { num: i, text: label }, wrap));
-    l.append(input, el("span", null, esc(label)));
+    l.append(input, tag(el("span", null, esc(label)), `item.${item.id}.option.${i}`));
     opts.append(l);
   });
   wrap.append(opts);
@@ -424,7 +465,8 @@ function mcBlock(item) {
 function selectBlock(item) {
   const wrap = el("div", "q");
   wrap.dataset.item = item.id;
-  wrap.append(el("p", "stem", esc(item.stem) + (item.required ? '<span class="req">*</span>' : "")));
+  wrap.append(tag(el("p", "stem", esc(item.stem) + (item.required ? '<span class="req">*</span>' : "")),
+    `item.${item.id}.stem`));
 
   const sel = document.createElement("select");
   sel.name = item.id;
@@ -457,7 +499,8 @@ function selectBlock(item) {
 function textBlock(item) {
   const wrap = el("div", "q");
   wrap.dataset.item = item.id;
-  wrap.append(el("p", "stem", esc(item.stem) + (item.required ? '<span class="req">*</span>' : "")));
+  wrap.append(tag(el("p", "stem", esc(item.stem) + (item.required ? '<span class="req">*</span>' : "")),
+    `item.${item.id}.stem`));
   const input = document.createElement("input");
   input.type = item.type === "number" ? "number" : "text";
   if (item.min != null) input.min = item.min;
@@ -490,8 +533,11 @@ function textBlock(item) {
 function rankBlock(item) {
   const wrap = el("div", "q");
   wrap.dataset.rank = item.id;
-  if (item.scenario) wrap.append(el("div", "scenario", esc(item.scenario)));
-  wrap.append(el("p", "stem", esc(item.stem) + '<span class="req">*</span>'));
+  if (item.scenario) {
+    wrap.append(tag(el("div", "scenario", esc(item.scenario)), `item.${item.id}.scenario`));
+  }
+  wrap.append(tag(el("p", "stem", esc(item.stem) + '<span class="req">*</span>'),
+    `item.${item.id}.stem`));
 
   const n = item.actors.length;
   const table = el("table", "rank");
@@ -628,6 +674,10 @@ function mountPlayer(page) {
           const passed = elapsed >= dur * S.plan.gateFraction;
           if (passed && !g.done) { g.done = true; logVideo(page, "gate_open", { watchS: elapsed }); }
           logVideo(page, "ended", { positionS: at, watchS: elapsed });
+          /* Ship the evidence now rather than with the next page turn: a
+             refresh here would otherwise lose gate_open, and the server would
+             make the participant watch the whole clip again. */
+          flushVideoQueue();
         }
         paintGate(page);
       }
@@ -905,7 +955,10 @@ async function submit(btn) {
   try {
     const res = await post("/api/complete", { finishedAt: new Date().toISOString() });
     S.done = true;
-    store.clearToken();
+    /* The token is kept on purpose. If the platform redirect fails and the
+       participant reloads, resume shows this same completion page with the
+       same code; clearing the token here made a reload silently start a
+       second session — a new row, a new slot, a new randomised condition. */
     completionPage(res.completionCode, res.redirectUrl, false);
   } catch {
     btn.disabled = false;

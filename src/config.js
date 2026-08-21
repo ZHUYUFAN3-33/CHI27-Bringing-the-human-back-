@@ -68,7 +68,14 @@ export const config = {
 
   /* Abandoned sessions are not counted against a cell's target after this
      many minutes without contact, so a cell cannot be starved by drop-outs. */
-  staleMinutes: int(process.env.STALE_MINUTES, 90)
+  staleMinutes: int(process.env.STALE_MINUTES, 90),
+
+  /* How often each machine checks whether the wording was published somewhere
+     else. Two machines run behind the proxy, so without this a publish reaches
+     only the machine that handled it and the other keeps serving the old
+     questionnaire. One integer per machine per interval; 0 disables it, which
+     is only sensible on a single machine. */
+  instrumentPollMs: int(process.env.INSTRUMENT_POLL_MS, 5_000)
 };
 
 export function assertProductionConfig(log) {

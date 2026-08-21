@@ -9,22 +9,26 @@
 <link rel="stylesheet" href="/survey.css">
 <link rel="icon" href="data:,">
 <style>
-  /* The bar is the only thing this page adds. Everything below it is the
-     participant runtime, rendering the same plan the study serves. */
+  /* The chrome is the only thing this page adds. Everything between the bar and
+     the dock is the participant runtime, rendering the same plan the study
+     serves — which is the point: the page that shows you the questionnaire is
+     the page that edits it, so the wording and the layout cannot drift apart. */
   :root{ --chrome:#141A22; --chrome-2:#1D2530; --chrome-3:#2A3442;
-         --pale:#C9D2DE; --dim:#7C8899; --signal:#E8A33D; --live:#4ECDC4; }
+         --pale:#C9D2DE; --dim:#7C8899; --signal:#E8A33D; --live:#4ECDC4; --bad:#E5786F;
+         --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace; }
+
   .bar{
     background:var(--chrome); color:var(--pale); padding:14px 18px 16px;
-    font:13px/1.5 ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    font:13px/1.5 var(--mono);
   }
   .bar h1{margin:0 0 12px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--signal)}
   .bar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:9px}
   .bar .lab{color:var(--dim);min-width:74px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
-  .bar button{
+  .bar button, .dock button, .drawer button{
     background:var(--chrome-2);color:var(--pale);border:1px solid var(--chrome-3);
     border-radius:3px;padding:6px 11px;font:inherit;cursor:pointer;
   }
-  .bar button:hover{border-color:var(--dim)}
+  .bar button:hover, .dock button:hover, .drawer button:hover{border-color:var(--dim)}
   .bar button[aria-pressed="true"]{background:var(--signal);color:#1A1206;border-color:var(--signal);font-weight:700}
   .bar .read{color:var(--dim);margin-top:4px}
   .bar .read b{color:var(--live);font-weight:600}
@@ -33,9 +37,129 @@
     border-radius:3px;padding:6px 9px;font:inherit;width:auto;max-width:280px;
   }
   .bar .warn{color:var(--signal)}
+
+  /* Which deployment am I looking at. A change made on a laptop against a
+     laptop database is invisible to participants, and someone who does not
+     know that will make it three times before asking why nothing happened. */
+  .env{
+    padding:9px 18px;font:12px/1.5 var(--mono);
+    border-bottom:1px solid rgba(0,0,0,.15);
+  }
+  .env.production{background:#1D2A22;color:#7FD1A8}
+  .env.local{background:#2A2418;color:var(--signal)}
+  .env b{font-weight:700}
+
+  /* The publish strip: what is waiting, and the one button that sends it. */
+  .pub{
+    background:var(--chrome-2);color:var(--pale);border-bottom:1px solid var(--chrome-3);
+    padding:11px 18px;font:13px/1.55 var(--mono);
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  }
+  .pub .state{flex:1;min-width:260px}
+  .pub .state b{color:var(--signal);font-weight:700}
+  .pub.clean .state b{color:var(--live)}
+  .pub button.go{border-color:var(--live);color:var(--live);font-weight:700}
+  .pub button.go:disabled{opacity:.4;cursor:not-allowed}
+  .pub .sync{color:var(--dim);font-size:11px;width:100%}
+  .pub .sync b{color:var(--live);font-weight:600}
+  .pub .confirm{
+    width:100%;border-top:1px solid var(--chrome-3);margin-top:4px;padding-top:11px;
+    display:flex;flex-wrap:wrap;gap:9px;align-items:center;
+  }
+  .pub .confirm p{margin:0 0 6px;width:100%;color:var(--signal);line-height:1.6}
+  .pub input[type=text]{
+    background:var(--chrome);border:1px solid var(--chrome-3);border-radius:3px;
+    color:var(--pale);padding:6px 9px;font:inherit;width:150px;
+  }
+
+  /* Edit mode: every sentence the instrument owns becomes a target. */
+  .editing [data-path]{
+    cursor:text;border-radius:3px;
+    box-shadow:0 0 0 1px rgba(232,163,61,.35);
+    transition:box-shadow .12s;
+  }
+  .editing [data-path]:hover{box-shadow:0 0 0 2px var(--signal);background:rgba(232,163,61,.07)}
+  [data-path].chosen{box-shadow:0 0 0 2px var(--live) !important;background:rgba(78,205,196,.10)}
+
+  /* One editor, docked, rather than one grown inside the page. A questionnaire
+     is tables, list items and label spans; splicing a form into each of those
+     is a different bug every time. */
+  /* Above .savebar, which the participant runtime owns and pins to the same
+     edge; below the drawer, which is the thing you opened most recently. */
+  .dock{
+    position:fixed;left:0;right:0;bottom:0;z-index:45;
+    background:var(--chrome);border-top:2px solid var(--signal);
+    color:var(--pale);font:13px/1.55 var(--mono);
+    padding:13px 18px 15px;max-height:52vh;overflow:auto;
+    box-shadow:0 -10px 30px rgba(0,0,0,.35);
+  }
+  .dock[hidden]{display:none}
+  .dock .head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+  .dock .name{color:var(--signal);font-weight:700}
+  .dock .path{color:var(--dim);font-size:11px;flex:1}
+  .dock textarea{
+    width:100%;min-height:92px;background:var(--chrome-2);border:1px solid var(--chrome-3);
+    border-radius:3px;color:var(--pale);padding:10px 12px;font:inherit;resize:vertical;
+  }
+  .dock textarea:focus{outline:none;border-color:var(--signal)}
+  .dock .row{display:flex;gap:8px;margin-top:9px;align-items:center;flex-wrap:wrap}
+  .dock button.save{border-color:var(--live);color:var(--live);font-weight:700}
+  .dock button:disabled{opacity:.35;cursor:not-allowed}
+  .dock .hint{color:var(--dim);font-size:11px;margin-top:7px;line-height:1.6}
+  .dock .hint code{color:var(--signal)}
+  .dock .note{font-size:12px}
+  .dock .note.err{color:var(--bad)}
+  .dock .note.ok{color:var(--live)}
+  .dock .code{
+    color:var(--dim);font-size:11px;margin-top:8px;white-space:pre-wrap;
+    border-left:2px solid var(--chrome-3);padding-left:9px;
+  }
+
+  /* Everything, searchable — what the old /editor page was for. */
+  /* Said out of the way of both, because the dock owns the bottom edge and the
+     drawer owns the right one. */
+  .toast{
+    position:fixed;top:14px;right:16px;z-index:70;max-width:min(440px,86vw);
+    background:#1D2A22;color:#9BE3C0;border:1px solid #2F5945;border-radius:4px;
+    padding:11px 14px;font:12.5px/1.55 var(--mono);
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  .toast[hidden]{display:none}
+
+  .drawer{
+    position:fixed;top:0;right:0;bottom:0;width:min(560px,94vw);z-index:55;
+    background:var(--chrome);border-left:1px solid var(--chrome-3);
+    color:var(--pale);font:13px/1.55 var(--mono);overflow:auto;padding:16px 18px 60px;
+    box-shadow:-14px 0 34px rgba(0,0,0,.45);
+  }
+  .drawer[hidden]{display:none}
+  .drawer h2{margin:0 0 12px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--signal)}
+  .drawer .close{position:absolute;top:14px;right:16px}
+  .drawer input[type=search]{
+    width:100%;background:var(--chrome-2);border:1px solid var(--chrome-3);border-radius:3px;
+    color:var(--pale);padding:8px 10px;font:inherit;margin-bottom:9px;
+  }
+  .drawer .filters{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .drawer h3{
+    margin:20px 0 8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--dim);border-bottom:1px solid var(--chrome-3);padding-bottom:5px;
+  }
+  .drawer .f{padding:9px 0;border-bottom:1px solid var(--chrome-2);cursor:pointer}
+  .drawer .f:hover{background:var(--chrome-2)}
+  .drawer .f .l{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .drawer .f .p{color:var(--dim);font-size:10px}
+  .drawer .f .v{color:var(--pale);margin-top:3px;white-space:pre-wrap;font-size:12px}
+  .drawer .f.edited .l{color:var(--signal)}
+  .drawer .empty{color:var(--dim)}
+  .drawer .ev{padding:8px 0;border-bottom:1px solid var(--chrome-2);font-size:12px}
+  .drawer .ev .when{color:var(--dim);font-size:10px}
+  .drawer .ev .to{color:var(--live);white-space:pre-wrap}
+  .drawer .ev .from{color:var(--dim);white-space:pre-wrap;text-decoration:line-through}
 </style>
 </head>
 <body>
+
+<div class="env" id="env"></div>
 
 <div class="bar">
   <h1>Study 1 · questionnaire preview</h1>
@@ -46,12 +170,23 @@
     <button type="button" data-opt="1">Included</button>
     <button type="button" data-opt="0">Dropped</button>
   </div>
+  <div class="grp"><span class="lab">Showing</span>
+    <button type="button" data-stage="draft">Draft</button>
+    <button type="button" data-stage="live">What participants see</button>
+  </div>
+  <div class="grp"><span class="lab">Wording</span>
+    <button type="button" id="editmode">Edit the text</button>
+    <button type="button" id="openall">All text…</button>
+    <button type="button" id="openhistory">History…</button>
+  </div>
   <div class="grp"><span class="lab">Page</span><select id="pagesel"></select></div>
 
   <div class="read" id="readout">loading…</div>
   <div class="read warn">Preview only — no participant row, no allocation slot, nothing saved.
     Every page is reachable, answers are not compulsory, and the clips never gate the page.</div>
 </div>
+
+<div class="pub" id="pub"></div>
 
 <div class="stage">
   <div class="sheet">
@@ -69,6 +204,10 @@
 
 <div class="savebar" id="savebar" role="status" aria-live="polite"></div>
 
+<div class="toast" id="toast" hidden></div>
+<div class="dock" id="dock" hidden></div>
+<div class="drawer" id="drawer" hidden></div>
+
 <script>
   /* The design is fetched, never listed here. A hardcoded copy is why this bar
      still offered three segment orders after the study moved to six. */
@@ -76,37 +215,82 @@
   let ORDERS = [];
 
   const url = new URL(location.href);
+  const TOKEN = url.searchParams.get("token") || "";
+
+  /* `stage` rides in the cell object because the runtime passes the whole thing
+     to preview-plan: draft is the wording being worked on, live is what is
+     being served to participants right now. */
   const cell = {
     condition: url.searchParams.get("condition") || "H1",
     order:     url.searchParams.get("order")     || "O1",
-    optional:  url.searchParams.get("optional")  !== "0"
+    optional:  url.searchParams.get("optional")  !== "0",
+    stage:     url.searchParams.get("stage") === "live" ? "live" : "draft"
   };
+
+  const state = {
+    editing: false,
+    fields: new Map(),          // path -> field, for the cell on screen
+    allFields: [],              // every cell, for the drawer
+    publish: { participants: 0, pending: 0, instrumentVersion: "", suggestedVersion: "" },
+    status: null,
+    open: null,                 // the path the dock is editing
+    note: null,                 // survives the reload a save triggers
+    confirming: false,
+    drawerMode: null,           // "all" | "history"
+    query: "",
+    editedOnly: false
+  };
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const api = (path, opts = {}) => fetch(path, {
+    ...opts,
+    headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}`, ...(opts.headers || {}) }
+  });
+  async function apiJson(path, opts) {
+    const res = await api(path, opts);
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(body.message || body.error || `HTTP ${res.status}`), { body, status: res.status });
+    return body;
+  }
 
   /* The token travels in the address bar because that is how /preview itself is
      opened; it is the same admin token the dashboard uses. */
   window.__PREVIEW__ = {
-    token: url.searchParams.get("token") || "",
+    token: TOKEN,
     cell,
-    onLoaded(design) {
-      document.getElementById("readout").innerHTML =
-        `instrument <b>${design.instrumentVersion}</b> · cell <b>${design.condition}|${design.order}</b>` +
-        ` · control <b>${design.ctrl}</b> · profile <b>${design.profile ?? "none"}</b>` +
-        ` · segments <b>${design.segOrder.join(" ")}</b> · stored items <b>${design.itemCount}</b>`;
+    onLoaded(data) {
+      const d = data.design;
+      $("readout").innerHTML =
+        `instrument <b>${esc(d.instrumentVersion)}</b> · cell <b>${esc(d.condition)}|${esc(d.order)}</b>` +
+        ` · control <b>${esc(d.ctrl)}</b> · profile <b>${d.profile ?? "none"}</b>` +
+        ` · segments <b>${d.segOrder.join(" ")}</b> · stored items <b>${d.itemCount}</b>` +
+        ` · showing <b>${d.stage === "live" ? "what participants see" : "the draft"}</b>`;
+      state.fields = new Map((data.fields ?? []).map(f => [f.path, f]));
+      state.publish = data.publish ?? state.publish;
       paintButtons();
       buildPageList();
+      paintPublish();
+      /* The dock may be showing a field that was just saved; refresh its idea
+         of the current value rather than leaving stale text in the box. */
+      if (state.open) openEditor(state.open, { keepText: true });
     },
     onPage(i) {
-      const sel = document.getElementById("pagesel");
+      const sel = $("pagesel");
       if (sel.selectedIndex !== i) sel.selectedIndex = i;
+    },
+    onRender() {
+      $("page").classList.toggle("editing", state.editing);
+      markChosen();
     }
   };
 
-  function reload() {
+  function reload({ keepPage = true } = {}) {
     for (const [k, v] of Object.entries(cell)) {
       url.searchParams.set(k, k === "optional" ? (v ? "1" : "0") : v);
     }
     history.replaceState(null, "", url);        // a preview is worth linking to
-    window.__previewLoad(cell);
+    window.__previewLoad(cell, { keepPage });
   }
 
   function paintButtons() {
@@ -116,10 +300,13 @@
       b.setAttribute("aria-pressed", String(b.dataset.order === cell.order)));
     document.querySelectorAll("[data-opt]").forEach(b =>
       b.setAttribute("aria-pressed", String((b.dataset.opt === "1") === cell.optional)));
+    document.querySelectorAll("[data-stage]").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.stage === cell.stage)));
+    $("editmode").setAttribute("aria-pressed", String(state.editing));
   }
 
   function buildPageList() {
-    const sel = document.getElementById("pagesel");
+    const sel = $("pagesel");
     sel.innerHTML = "";
     /* Read from the runtime's own plan, so the list cannot disagree with it. */
     window.__t.S.plan.pages.forEach((p, i) => {
@@ -132,11 +319,9 @@
   }
 
   async function buildDesignButtons() {
-    const res = await fetch("/api/admin/design", {
-      headers: { authorization: `Bearer ${window.__PREVIEW__.token}` }
-    });
+    const res = await api("/api/admin/design");
     if (!res.ok) {
-      document.getElementById("readout").textContent =
+      $("readout").textContent =
         `could not read the design (HTTP ${res.status}) — check the token in the address bar`;
       return;
     }
@@ -144,18 +329,18 @@
     CONDITIONS = design.conditions;
     ORDERS = design.orders;
 
-    const conds = document.getElementById("conds");
+    const conds = $("conds");
     conds.innerHTML = "";
     CONDITIONS.forEach(c => {
       const b = document.createElement("button");
       b.type = "button";
       b.dataset.cond = c.key;
       b.textContent = c.profile == null ? `${c.key} · no human` : c.key;
-      b.addEventListener("click", () => { cell.condition = c.key; reload(); });
+      b.addEventListener("click", () => { cell.condition = c.key; reload({ keepPage: false }); });
       conds.append(b);
     });
 
-    const orders = document.getElementById("orders");
+    const orders = $("orders");
     orders.innerHTML = "";
     ORDERS.forEach(o => {
       const b = document.createElement("button");
@@ -163,20 +348,481 @@
       b.dataset.order = o.key;
       b.textContent = o.segments.join("·");
       b.title = o.key;
-      b.addEventListener("click", () => { cell.order = o.key; reload(); });
+      b.addEventListener("click", () => { cell.order = o.key; reload({ keepPage: false }); });
       orders.append(b);
     });
 
     paintButtons();
   }
 
-  document.querySelectorAll("[data-opt]").forEach(b =>
-    b.addEventListener("click", () => { cell.optional = b.dataset.opt === "1"; reload(); }));
+  /* ------------------------------------------------------- where am I editing
 
-  document.getElementById("pagesel")
-    .addEventListener("change", e => window.__previewGoto(Number(e.target.value)));
+     Fly sets FLY_REGION; a laptop does not. The distinction matters more than
+     it looks: a local server talks to a local database, so an edit made there
+     is invisible to every participant and will stay invisible however many
+     times it is saved. */
+  async function paintEnv() {
+    const bar = $("env");
+    try {
+      state.status = await apiJson("/api/admin/instrument/status");
+    } catch {
+      bar.className = "env local";
+      bar.textContent = "Could not reach the server to ask which deployment this is.";
+      return;
+    }
+    const s = state.status;
+    if (s.region) {
+      bar.className = "env production";
+      bar.innerHTML = `<b>This is the live study</b> — ${esc(location.origin)} · ${esc(s.region)} · machine ${esc(s.machine)}. ` +
+        `Anything you publish here is what participants get.`;
+    } else {
+      bar.className = "env local";
+      bar.innerHTML = `<b>This is a local copy</b> — ${esc(location.origin)}. It has its own database, so nothing you ` +
+        `change or publish here reaches the participants on the live study.`;
+    }
+  }
+
+  /* ------------------------------------------------------------- publishing */
+
+  function paintPublish() {
+    const p = state.publish;
+    const pub = $("pub");
+    const clean = p.pending === 0;
+    pub.className = "pub" + (clean ? " clean" : "");
+
+    const sync = state.status
+      ? `served by <b>${esc(state.status.machine)}</b>${state.status.region ? " · " + esc(state.status.region) : ""}` +
+        ` · publication <b>${state.status.generation}</b>` +
+        (state.status.inSync ? "" : " · <b style='color:var(--bad)'>this machine is behind</b>") +
+        (state.status.pollMs
+          ? ` · every machine follows within ${Math.round(state.status.pollMs / 1000)}s of a publish`
+          : " · automatic reload is switched off")
+      : "";
+
+    pub.innerHTML = `
+      <span class="state">${
+        clean
+          ? `<b>Everything is published.</b> The draft and the questionnaire participants are taking are the same.`
+          : `<b>${p.pending} unpublished ${p.pending === 1 ? "change" : "changes"}.</b> Participants are still getting the old wording.`
+      }</span>
+      <button type="button" class="go" id="dopublish" ${clean ? "disabled" : ""}>Publish to participants</button>
+      <button type="button" id="dodiscard" ${clean ? "disabled" : ""}>Discard the draft</button>
+      <span class="sync">${sync}</span>
+      ${state.confirming ? confirmMarkup() : ""}`;
+
+    $("dopublish").addEventListener("click", () => {
+      state.confirming = true;
+      paintPublish();
+      $("newver")?.focus();
+    });
+    $("dodiscard").addEventListener("click", discard);
+    if (state.confirming) {
+      $("confirmgo").addEventListener("click", publish);
+      $("confirmno").addEventListener("click", () => { state.confirming = false; paintPublish(); });
+    }
+  }
+
+  function confirmMarkup() {
+    const p = state.publish;
+    if (p.participants > 0) {
+      return `<div class="confirm">
+        <p><b>${p.participants} real participants have already answered under ${esc(p.instrumentVersion)}.</b>
+           Publishing now changes the questionnaire underneath a running study. Give it a new version label:
+           it is stamped on everyone from this point on, and without it the data would carry two
+           questionnaires with nothing to tell them apart.</p>
+        <label for="newver">New version</label>
+        <input type="text" id="newver" value="${esc(p.suggestedVersion)}" autocomplete="off">
+        <button type="button" class="go" id="confirmgo">Publish ${p.pending} ${p.pending === 1 ? "change" : "changes"}</button>
+        <button type="button" id="confirmno">Cancel</button>
+        <span class="note" id="pubnote"></span>
+      </div>`;
+    }
+    return `<div class="confirm">
+      <p>No real participants yet, so this is free: publishing replaces the wording every new
+         participant will be given. Anyone already part-way through keeps the wording they
+         started with until they reload.</p>
+      <button type="button" class="go" id="confirmgo">Publish ${p.pending} ${p.pending === 1 ? "change" : "changes"}</button>
+      <button type="button" id="confirmno">Cancel</button>
+      <span class="note" id="pubnote"></span>
+    </div>`;
+  }
+
+  async function publish() {
+    const note = $("pubnote");
+    const btn = $("confirmgo");
+    btn.disabled = true;
+    note.className = "note";
+    note.textContent = "publishing…";
+
+    const body = {};
+    if (state.publish.participants > 0) {
+      const v = $("newver").value.trim();
+      if (!v) { note.className = "note err"; note.textContent = "a new version is required"; btn.disabled = false; return; }
+      body.acknowledge = true;
+      body.newVersion = v;
+    }
+
+    try {
+      const out = await apiJson("/api/admin/instrument/publish", { method: "POST", body: JSON.stringify(body) });
+      state.confirming = false;
+      state.status = out.sync;
+      note.className = "note ok";
+      await refreshPublish();
+      reload();
+      /* Say it landed, and say how far it has landed. The machine that answered
+         is up to date by construction; the others follow on their own poll, and
+         claiming otherwise would be a promise this page cannot keep. */
+      const secs = Math.round((out.sync?.pollMs ?? 0) / 1000);
+      flash(`Published ${out.changed} ${out.changed === 1 ? "change" : "changes"} as ${esc(out.publication.instrument_ver)}` +
+            (secs ? ` — live on every machine within ${secs}s.` : " — live now."));
+    } catch (err) {
+      note.className = "note err";
+      note.textContent = err.message;
+      btn.disabled = false;
+      /* The server is the authority on the guard; if it asked for a version we
+         did not know was needed, adopt what it told us and re-render. */
+      if (err.body?.participants != null) {
+        state.publish.participants = err.body.participants;
+        state.publish.suggestedVersion = err.body.suggestedVersion ?? state.publish.suggestedVersion;
+        paintPublish();
+      }
+    }
+  }
+
+  async function discard() {
+    if (!confirm(`Throw away ${state.publish.pending} unpublished ` +
+                 `${state.publish.pending === 1 ? "change" : "changes"} and go back to the wording ` +
+                 `participants are seeing? This cannot be undone.`)) return;
+    await apiJson("/api/admin/instrument/discard", { method: "POST", body: "{}" });
+    closeEditor();
+    await refreshPublish();
+    reload();
+    flash("Draft discarded.");
+  }
+
+  async function refreshPublish() {
+    try {
+      const [pending, status] = await Promise.all([
+        apiJson("/api/admin/instrument/pending"),
+        apiJson("/api/admin/instrument/status")
+      ]);
+      state.publish = {
+        participants: pending.participants,
+        pending: pending.changes.length,
+        instrumentVersion: pending.instrumentVersion,
+        suggestedVersion: pending.suggestedVersion
+      };
+      state.status = status;
+    } catch { /* the strip keeps what it had */ }
+    paintPublish();
+  }
+
+  let toastTimer = null;
+  function flash(html) {
+    const t = $("toast");
+    t.hidden = false;
+    t.innerHTML = html;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.hidden = true; }, 7000);
+  }
+
+  /* ------------------------------------------------------------- the editor */
+
+  /* Which fields the renderer runs through the **bold** pass, and which ones
+     take blank lines and configured values. Getting this wrong either way is a
+     small betrayal: telling someone they can use bold where it will show as
+     literal asterisks on a consent form, or not telling them where they can. */
+  const BOLD = /^(text\.(control|profile|persona)\.|info\.)/;
+  const PROSE = /^info\.[^.]+\.body$/;
+
+  function hintFor(path) {
+    const bits = [];
+    if (PROSE.test(path)) bits.push("Leave a blank line between paragraphs.");
+    if (BOLD.test(path)) bits.push("Wrap words in <code>**double asterisks**</code> to set them bold.");
+    if (PROSE.test(path) || path === "info.lede") {
+      bits.push("<code>{funding}</code> and <code>{contact}</code> are replaced with the values this deployment is configured with.");
+    }
+    bits.push("Text only. Item ids, answer options and the design are fixed in code and cannot be changed here.");
+    return bits.join(" ");
+  }
+
+  function fieldFor(path) {
+    return state.fields.get(path) ?? state.allFields.find(f => f.path === path) ?? null;
+  }
+
+  function markChosen() {
+    document.querySelectorAll("[data-path].chosen").forEach(n => n.classList.remove("chosen"));
+    if (!state.open) return;
+    document.querySelectorAll(`[data-path="${CSS.escape(state.open)}"]`)
+      .forEach(n => n.classList.add("chosen"));
+  }
+
+  function openEditor(path, { keepText = false, scroll = false } = {}) {
+    const field = fieldFor(path);
+    const dock = $("dock");
+    if (!field) {
+      dock.hidden = false;
+      dock.innerHTML = `<div class="head"><span class="name">Not editable here</span>
+        <span class="path">${esc(path)}</span>
+        <button type="button" id="edclose">Close</button></div>
+        <p class="hint">This text does not appear in the cell on screen. Open “All text…” to find it.</p>`;
+      $("edclose").addEventListener("click", closeEditor);
+      return;
+    }
+
+    const previous = keepText && state.open === path ? dock.querySelector("textarea")?.value : null;
+    const served = field.value ?? field.default;
+    state.open = path;
+
+    dock.hidden = false;
+    dock.innerHTML = `
+      <div class="head">
+        <span class="name">${esc(field.label)}</span>
+        <span class="path">${esc(field.group)} · ${esc(field.path)}</span>
+        <button type="button" id="edclose">Close</button>
+      </div>
+      <textarea id="edtext" spellcheck="true"></textarea>
+      <div class="row">
+        <button type="button" class="save" id="edsave" disabled>Save to the draft</button>
+        ${field.value != null ? '<button type="button" id="edrevert">Restore the wording in code</button>' : ""}
+        <span class="note" id="ednote"></span>
+      </div>
+      <p class="hint">${hintFor(path)}</p>
+      ${field.value != null ? `<div class="code">In code: ${esc(field.default)}</div>` : ""}`;
+
+    const ta = $("edtext");
+    ta.value = previous ?? served;
+    const save = $("edsave");
+    const note = $("ednote");
+
+    const dirty = () => ta.value !== served;
+    save.disabled = !dirty();
+    ta.addEventListener("input", () => {
+      save.disabled = !dirty();
+      note.textContent = "";
+      note.className = "note";
+    });
+    /* A questionnaire sentence is a sentence, not a paragraph of code: Enter
+       should not submit, but the shortcut people expect still should. */
+    ta.addEventListener("keydown", e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !save.disabled) write(path, ta.value);
+      if (e.key === "Escape") closeEditor();
+    });
+
+    save.addEventListener("click", () => write(path, ta.value));
+    $("edrevert")?.addEventListener("click", () => {
+      if (!confirm(`Restore the wording written in the code for ${path}?`)) return;
+      write(path, null);
+    });
+    $("edclose").addEventListener("click", closeEditor);
+
+    /* A save reloads the plan, which rebuilds this dock. Carrying the note
+       across is what keeps "saved to the draft" on screen instead of the box
+       silently blinking and looking like nothing happened. */
+    if (keepText && state.note) {
+      note.className = `note ${state.note.kind}`;
+      note.textContent = state.note.text;
+    } else {
+      state.note = null;
+    }
+
+    markChosen();
+    if (scroll) {
+      document.querySelector(`[data-path="${CSS.escape(path)}"]`)
+        ?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+    if (!keepText) ta.focus();
+  }
+
+  function closeEditor() {
+    state.open = null;
+    $("dock").hidden = true;
+    markChosen();
+  }
+
+  async function write(path, value) {
+    const note = $("ednote");
+    const save = $("edsave");
+    save.disabled = true;
+    note.className = "note";
+    note.textContent = "saving…";
+
+    try {
+      await apiJson("/api/admin/instrument", { method: "POST", body: JSON.stringify({ path, value }) });
+    } catch (err) {
+      note.className = "note err";
+      note.textContent = err.message;
+      save.disabled = false;
+      return;
+    }
+
+    state.note = {
+      kind: "ok",
+      text: value === null ? "restored the wording in code — not published yet"
+                           : "saved to the draft — not published yet"
+    };
+    note.className = `note ${state.note.kind}`;
+    note.textContent = state.note.text;
+    /* Editing always edits the draft, so show the draft: saving a sentence
+       while looking at the live wording and seeing nothing change would read
+       as a failure. */
+    if (cell.stage === "live") { cell.stage = "draft"; }
+    await refreshPublish();
+    if (state.drawerMode === "all") await loadAllFields();
+    reload();
+  }
+
+  /* Clicks are taken in the capture phase so that clicking the words next to a
+     radio button edits them instead of answering the question. */
+  $("page").addEventListener("click", ev => {
+    if (!state.editing) return;
+    const node = ev.target.closest?.("[data-path]");
+    if (!node) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    openEditor(node.dataset.path);
+  }, true);
+
+  /* ------------------------------------------------------------- the drawer */
+
+  async function loadAllFields() {
+    const d = await apiJson("/api/admin/instrument");
+    state.allFields = d.fields;
+    state.publish = {
+      participants: d.participants,
+      pending: d.pending,
+      instrumentVersion: d.instrumentVersion,
+      suggestedVersion: d.suggestedVersion
+    };
+  }
+
+  async function openAll() {
+    state.drawerMode = "all";
+    const drawer = $("drawer");
+    drawer.hidden = false;
+    drawer.innerHTML = `<button type="button" class="close" id="drclose">Close</button>
+      <h2>All the text in the questionnaire</h2>
+      <p class="empty">loading…</p>`;
+    $("drclose").addEventListener("click", closeDrawer);
+    try { await loadAllFields(); } catch (err) {
+      drawer.querySelector(".empty").textContent = err.message;
+      return;
+    }
+    paintAll();
+  }
+
+  function paintAll() {
+    const drawer = $("drawer");
+    const q = state.query.toLowerCase();
+    const shown = state.allFields.filter(f => {
+      if (state.editedOnly && f.value == null) return false;
+      if (!q) return true;
+      return f.path.toLowerCase().includes(q)
+          || f.label.toLowerCase().includes(q)
+          || String(f.value ?? f.default).toLowerCase().includes(q);
+    });
+
+    const groups = {};
+    for (const f of shown) (groups[f.group] ??= []).push(f);
+
+    drawer.innerHTML = `<button type="button" class="close" id="drclose">Close</button>
+      <h2>All the text in the questionnaire · ${state.allFields.length} fields</h2>
+      <input type="search" id="drq" placeholder="filter — e.g. consent, operator, CR1" value="${esc(state.query)}" autocomplete="off">
+      <div class="filters">
+        <button type="button" id="drall" aria-pressed="${String(!state.editedOnly)}">All</button>
+        <button type="button" id="dredited" aria-pressed="${String(state.editedOnly)}">Changed only</button>
+      </div>
+      ${Object.keys(groups).length
+        ? Object.entries(groups).map(([g, fs]) =>
+            `<h3>${esc(g)} · ${fs.length}</h3>` +
+            fs.map(f => `
+              <div class="f${f.value != null ? " edited" : ""}" data-path="${esc(f.path)}">
+                <div class="l"><span>${esc(f.label)}</span><span class="p">${esc(f.path)}</span></div>
+                <div class="v">${esc(f.value ?? f.default)}</div>
+              </div>`).join("")
+          ).join("")
+        : '<p class="empty">nothing matches that filter</p>'}`;
+
+    $("drclose").addEventListener("click", closeDrawer);
+    const search = $("drq");
+    search.addEventListener("input", e => { state.query = e.target.value; paintAll(); $("drq").focus(); });
+    $("drall").addEventListener("click", () => { state.editedOnly = false; paintAll(); });
+    $("dredited").addEventListener("click", () => { state.editedOnly = true; paintAll(); });
+    drawer.querySelectorAll(".f").forEach(row =>
+      row.addEventListener("click", () => openEditor(row.dataset.path, { scroll: true })));
+  }
+
+  async function openHistory() {
+    state.drawerMode = "history";
+    const drawer = $("drawer");
+    drawer.hidden = false;
+    drawer.innerHTML = `<button type="button" class="close" id="drclose">Close</button>
+      <h2>What has changed</h2><p class="empty">loading…</p>`;
+    $("drclose").addEventListener("click", closeDrawer);
+
+    let h;
+    try { h = await apiJson("/api/admin/instrument/history?limit=100"); }
+    catch (err) { drawer.querySelector(".empty").textContent = err.message; return; }
+
+    const when = t => new Date(t).toLocaleString();
+    drawer.innerHTML = `<button type="button" class="close" id="drclose">Close</button>
+      <h2>What has changed</h2>
+      <h3>Published · ${h.publications.length}</h3>
+      ${h.publications.length ? h.publications.map(p => `
+        <div class="ev">
+          <div class="when">${esc(when(p.at))} · publication ${p.id}</div>
+          <div>instrument <b>${esc(p.instrument_ver)}</b> · ${p.paths} overridden ${p.paths === 1 ? "field" : "fields"}
+               · ${p.participants} real participants at the time</div>
+          ${p.note ? `<div class="when">${esc(p.note)}</div>` : ""}
+        </div>`).join("") : '<p class="empty">nothing published yet</p>'}
+      <h3>Draft edits · ${h.log.length}</h3>
+      ${h.log.length ? h.log.map(e => `
+        <div class="ev">
+          <div class="when">${esc(when(e.at))} · ${esc(e.path)}</div>
+          ${e.old_value != null ? `<div class="from">${esc(e.old_value)}</div>` : ""}
+          <div class="to">${e.new_value == null ? "— restored the wording in code —" : esc(e.new_value)}</div>
+        </div>`).join("") : '<p class="empty">nothing edited yet</p>'}`;
+    $("drclose").addEventListener("click", closeDrawer);
+  }
+
+  function closeDrawer() {
+    state.drawerMode = null;
+    $("drawer").hidden = true;
+  }
+
+  /* ------------------------------------------------------------------ wiring */
+
+  document.querySelectorAll("[data-opt]").forEach(b =>
+    b.addEventListener("click", () => { cell.optional = b.dataset.opt === "1"; reload({ keepPage: false }); }));
+
+  document.querySelectorAll("[data-stage]").forEach(b =>
+    b.addEventListener("click", () => {
+      cell.stage = b.dataset.stage;
+      /* Editing the live wording is not a thing that exists: edits go to the
+         draft. Looking at what participants see is a read-only act. */
+      if (cell.stage === "live" && state.editing) { state.editing = false; closeEditor(); }
+      reload();
+    }));
+
+  $("editmode").addEventListener("click", () => {
+    state.editing = !state.editing;
+    if (state.editing && cell.stage === "live") { cell.stage = "draft"; reload(); }
+    if (!state.editing) closeEditor();
+    $("page").classList.toggle("editing", state.editing);
+    paintButtons();
+  });
+
+  $("openall").addEventListener("click", () => state.drawerMode === "all" ? closeDrawer() : openAll());
+  $("openhistory").addEventListener("click", () => state.drawerMode === "history" ? closeDrawer() : openHistory());
+
+  $("pagesel").addEventListener("change", e => window.__previewGoto(Number(e.target.value)));
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && state.drawerMode) closeDrawer();
+  });
 
   buildDesignButtons();
+  paintEnv().then(refreshPublish);
 </script>
 <script type="module" src="/survey.js"></script>
 </body>

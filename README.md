@@ -15,7 +15,7 @@ server-side randomisation, storage, resume, quality flags, and export.
 | | |
 |---|---|
 | **Participant app** | `/` — the questionnaire, no researcher chrome |
-| **Questionnaire preview** | `/preview?token=…` — the participant app against any cell you pick; `/mockup` is the original design document |
+| **Questionnaire preview and wording editor** | `/preview?token=…` — the participant app against any cell you pick, and the place its text is edited: click a sentence, change it, publish when you mean it. `/mockup` is the original design document |
 | **Dashboard** | `/admin?token=…` — live cell balance, drop-off, quality flags |
 | **Exports** | `/api/export/*.csv`, `/api/export/all.json` — behind the same token |
 | **Health** | `/healthz` — used by Fly's checks |
