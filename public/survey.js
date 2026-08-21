@@ -941,7 +941,7 @@ function completionPage(code, redirectUrl, alreadyDone) {
   wrap.append(el("p", "qintro", redirectUrl ? "Your completion code, in case you need it" : "Your completion code is"));
   wrap.append(el("div", "bigcode", esc(code)));
   wrap.append(el("p", "hint", redirectUrl
-    ? "You should not have to enter this — you are being returned to the study platform automatically."
+    ? "You should not normally need to type this in — the return below records your participation for you."
     : "Copy this code into the study platform to confirm your participation."));
   pageEl.append(wrap);
 
@@ -954,8 +954,14 @@ function completionPage(code, redirectUrl, alreadyDone) {
     a.style.textDecoration = "none";
     a.textContent = "Return to the study platform";
     pageEl.append(a);
+    /* Two fallbacks, in the order a stuck participant would try them: the
+       button if the timed redirect did not fire, then the code if the return
+       itself fails. Naming the second one here is what keeps that person from
+       leaving without being paid. */
     pageEl.append(el("p", "hint",
-      "You will be returned automatically in a few seconds. If nothing happens, use the button above."));
+      "You will be returned automatically in a few seconds. If nothing happens, use the button above. " +
+      "If the return still does not work, enter the completion code above on the study platform instead — " +
+      "your answers are already saved either way."));
     setTimeout(() => { location.href = redirectUrl; }, 6000);
   }
   barEl.style.width = "100%";
