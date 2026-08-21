@@ -182,3 +182,36 @@ FROM allocation a
 LEFT JOIN participants p ON p.cell = a.cell
 GROUP BY a.cell, a.condition, a.seg_order, a.enabled, a.target, a.assigned
 ORDER BY a.condition, a.seg_order;
+
+-- -----------------------------------------------------------------------------
+-- instrument_overrides — wording edited from /editor, layered over the code
+--
+-- The instrument in shared/instrument.js stays the source of truth for
+-- structure: item ids, types, how many options an item has, and the design.
+-- Only text can be overridden, and only for a path that already exists, so an
+-- edit can never change the shape of the data.
+--
+-- `path` is addressed rather than free-form, e.g.
+--   item.REL_OH1.stem          item.BG_income.option.3
+--   text.control.HA            text.profile.2
+--   page.background.intro      segment.COL.desc
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS instrument_overrides (
+  path        TEXT PRIMARY KEY,
+  value       TEXT NOT NULL,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Every edit, kept forever. Wording is what a questionnaire *is*: if it changed
+-- during collection, the analysis has to be able to say when and to what.
+CREATE TABLE IF NOT EXISTS instrument_override_log (
+  id             BIGSERIAL PRIMARY KEY,
+  path           TEXT NOT NULL,
+  old_value      TEXT,
+  new_value      TEXT,
+  instrument_ver TEXT NOT NULL,
+  participants   INTEGER NOT NULL DEFAULT 0,   -- non-test rows at the time of the edit
+  at             TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS instrument_override_log_at_idx ON instrument_override_log (at DESC);

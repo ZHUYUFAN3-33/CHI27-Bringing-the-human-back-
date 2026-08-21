@@ -4,9 +4,12 @@ import {
   allocationSnapshot, reconcileAllocation, setCellTarget, setAllTargets, setCellEnabled
 } from "../allocation.js";
 import {
-  CONDITION_KEYS, ORDER_KEYS, CONDITIONS, ORDERS, INSTRUMENT_VERSION,
-  buildPlan, publicPlan, planItems
+  CONDITION_KEYS, ORDER_KEYS, CONDITIONS, ORDERS, publicPlan, planItems
 } from "../../shared/instrument.js";
+import {
+  runtimePlan, currentVersion, editableFields, isEditable, setOverride, setVersion,
+  loadOverrides, overrideHistory, nonTestParticipants, overrideCount
+} from "../instrument-runtime.js";
 
 export default async function adminRoutes(app) {
 
@@ -27,12 +30,12 @@ export default async function adminRoutes(app) {
       return reply.code(400).send({ error: "unknown_order", allowed: ORDER_KEYS });
     }
 
-    const plan = buildPlan(condition, order, optional);
+    const plan = runtimePlan(condition, order, optional);
     return {
       design: {
         condition, order, optional,
         ctrl: plan.ctrl, profile: plan.profile, segOrder: plan.segOrder,
-        instrumentVersion: INSTRUMENT_VERSION,
+        instrumentVersion: currentVersion(),
         itemCount: planItems(plan).length
       },
       /* Every id, with the answer keys the participant build never receives. */
@@ -76,7 +79,7 @@ export default async function adminRoutes(app) {
     ]);
 
     return {
-      instrumentVersion: INSTRUMENT_VERSION,
+      instrumentVersion: currentVersion(),
       studyOpen: config.studyOpen,
       optionalBlock: config.optionalBlock,
       recruitment: config.recruitment,
@@ -143,6 +146,74 @@ export default async function adminRoutes(app) {
     return out ?? reply.code(404).send({ error: "unknown cell" });
   });
 
+  /* -- the wording editor -------------------------------------------------
+     Every field the instrument defines as text, with what the code says and
+     what is currently served. The list is derived from real plans, so a path
+     that does not exist cannot be offered and cannot be written. */
+  app.get("/api/admin/instrument", async () => ({
+    instrumentVersion: currentVersion(),
+    overrides: overrideCount(),
+    participants: await nonTestParticipants(),
+    fields: editableFields()
+  }));
+
+  app.get("/api/admin/instrument/history", async (req) =>
+    ({ log: await overrideHistory(Math.min(500, Number(req.query.limit) || 200)) }));
+
+  /* Saving is refused once real participants exist, unless the caller both
+     acknowledges it and supplies a new instrument version. Wording that changes
+     underneath a running study is not a small thing: without a version bump the
+     data carries two questionnaires with nothing to tell them apart. */
+  app.post("/api/admin/instrument", async (req, reply) => {
+    const path  = String(req.body?.path ?? "");
+    const raw   = req.body?.value;
+    const value = raw == null ? null : String(raw);
+
+    if (!path) return reply.code(400).send({ error: "path is required" });
+    if (!isEditable(path)) {
+      return reply.code(400).send({
+        error: "not_editable",
+        message: "Only text that already exists in the instrument can be edited. " +
+                 "Item ids, types, option counts and the design are fixed in code."
+      });
+    }
+    if (value != null && value.trim() === "") {
+      return reply.code(400).send({ error: "empty", message: "Use revert to restore the wording in code." });
+    }
+    if (value != null && value.length > 4000) {
+      return reply.code(400).send({ error: "too_long", message: "4000 characters is the ceiling." });
+    }
+
+    const participants = await nonTestParticipants();
+    if (participants > 0) {
+      const newVersion = String(req.body?.newVersion ?? "").trim();
+      if (req.body?.acknowledge !== true || !newVersion) {
+        return reply.code(409).send({
+          error: "collection_in_progress",
+          participants,
+          instrumentVersion: currentVersion(),
+          message: `${participants} real participants have already answered under ` +
+                   `${currentVersion()}. To edit anyway, send acknowledge:true and a ` +
+                   `newVersion, which is stamped on every participant from now on so the ` +
+                   `two wordings can be separated at analysis.`
+        });
+      }
+      if (newVersion === currentVersion()) {
+        return reply.code(400).send({ error: "same_version", message: "newVersion must differ from the current one." });
+      }
+      await setVersion(newVersion);
+    }
+
+    const before = await setOverride(path, value, {
+      version: participants > 0 ? String(req.body.newVersion).trim() : currentVersion(),
+      participants
+    });
+    await loadOverrides(req.log);
+
+    req.log.warn({ path, before, after: value, participants }, "instrument wording edited");
+    return { ok: true, path, value, previous: before, instrumentVersion: currentVersion() };
+  });
+
   /* Mark rows as test data so they drop out of every export and every count.
      Nothing is ever deleted from here: destructive changes belong in psql,
      over the tunnel, where they leave a trace in your own shell history. */
@@ -167,6 +238,6 @@ export default async function adminRoutes(app) {
     })),
     orders: ORDER_KEYS.map(key => ({ key, segments: ORDERS[key] })),
     cells: CONDITION_KEYS.length * ORDER_KEYS.length,
-    instrumentVersion: INSTRUMENT_VERSION
+    instrumentVersion: currentVersion()
   }));
 }

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Study 1 — wording editor</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --chrome:#141A22; --chrome-2:#1D2530; --chrome-3:#2A3442;
+    --ink:#C9D2DE; --dim:#7C8899; --signal:#E8A33D; --live:#4ECDC4; --bad:#E5786F;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--chrome);color:var(--ink);font:13px/1.55 var(--mono)}
+  header{padding:16px 20px;border-bottom:1px solid var(--chrome-3);position:sticky;top:0;background:var(--chrome);z-index:5}
+  h1{margin:0 0 8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--signal)}
+  .meta{color:var(--dim)}
+  .meta b{color:var(--live);font-weight:600}
+  .warn{margin-top:10px;padding:10px 12px;border:1px solid var(--signal);border-radius:3px;color:var(--signal)}
+  .warn.hot{border-color:var(--bad);color:var(--bad)}
+  main{padding:18px 20px 60px;max-width:1000px}
+  .filter{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap}
+  .filter input{
+    flex:1;min-width:240px;background:var(--chrome-2);border:1px solid var(--chrome-3);
+    border-radius:3px;color:var(--ink);padding:8px 10px;font:inherit;
+  }
+  .filter button{
+    background:var(--chrome-2);border:1px solid var(--chrome-3);border-radius:3px;
+    color:var(--ink);padding:8px 12px;font:inherit;cursor:pointer;
+  }
+  .filter button[aria-pressed="true"]{background:var(--signal);color:#1A1206;border-color:var(--signal);font-weight:700}
+  h2{
+    margin:26px 0 10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--dim);border-bottom:1px solid var(--chrome-3);padding-bottom:6px;
+  }
+  .field{padding:12px 0;border-bottom:1px solid var(--chrome-2)}
+  .label{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:6px}
+  .path{color:var(--dim);font-size:11px}
+  .tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--signal)}
+  textarea{
+    width:100%;min-height:56px;background:var(--chrome-2);border:1px solid var(--chrome-3);
+    border-radius:3px;color:var(--ink);padding:9px 11px;font:inherit;resize:vertical;
+  }
+  textarea:focus{outline:none;border-color:var(--dim)}
+  .field.edited textarea{border-color:var(--signal)}
+  .field.dirty textarea{border-color:var(--live)}
+  .row{display:flex;gap:8px;margin-top:7px;align-items:center}
+  .row button{
+    background:var(--chrome-2);border:1px solid var(--chrome-3);border-radius:3px;
+    color:var(--ink);padding:5px 11px;font:inherit;cursor:pointer;
+  }
+  .row button.save{border-color:var(--live);color:var(--live)}
+  .row button:disabled{opacity:.35;cursor:not-allowed}
+  .note{color:var(--dim);font-size:11px}
+  .note.err{color:var(--bad)}
+  .note.ok{color:var(--live)}
+  .default{color:var(--dim);font-size:11px;margin-top:5px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Study 1 · wording editor</h1>
+  <div class="meta" id="meta">loading…</div>
+  <div class="warn" id="guard" hidden></div>
+</header>
+
+<main>
+  <div class="filter">
+    <input id="q" type="text" placeholder="filter by id, path or text — e.g. CR1, consent, operator" autocomplete="off">
+    <button type="button" data-only="all" aria-pressed="true">All</button>
+    <button type="button" data-only="edited" aria-pressed="false">Edited only</button>
+  </div>
+  <div id="list">loading…</div>
+</main>
+
+<script>
+const token = new URL(location.href).searchParams.get("token") || "";
+const api = (path, opts = {}) => fetch(path, {
+  ...opts,
+  headers: { "content-type": "application/json", authorization: `Bearer ${token}`, ...(opts.headers || {}) }
+});
+
+let state = { fields: [], participants: 0, version: "", only: "all", q: "" };
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const served = f => f.value ?? f.default;
+
+async function load() {
+  const res = await api("/api/admin/instrument");
+  if (!res.ok) {
+    document.getElementById("list").textContent =
+      `could not load (HTTP ${res.status}) — check the token in the address bar`;
+    return;
+  }
+  const d = await res.json();
+  state.fields = d.fields;
+  state.participants = d.participants;
+  state.version = d.instrumentVersion;
+
+  document.getElementById("meta").innerHTML =
+    `instrument <b>${esc(d.instrumentVersion)}</b> · editable fields <b>${d.fields.length}</b>` +
+    ` · edited <b>${d.overrides}</b> · real participants <b>${d.participants}</b>`;
+
+  const guard = document.getElementById("guard");
+  guard.hidden = false;
+  if (d.participants > 0) {
+    guard.className = "warn hot";
+    guard.textContent =
+      `${d.participants} people have already answered under ${d.instrumentVersion}. ` +
+      `Saving now asks you for a new instrument version, which is stamped on everyone from ` +
+      `that point on — otherwise the data would carry two questionnaires with no way to tell ` +
+      `them apart. Prefer to change wording before recruiting.`;
+  } else {
+    guard.className = "warn";
+    guard.textContent =
+      "No real participants yet, so wording can be changed freely. " +
+      "Only text is editable here: item ids, types, option counts and the design are fixed in code.";
+  }
+  render();
+}
+
+function render() {
+  const q = state.q.toLowerCase();
+  const shown = state.fields.filter(f => {
+    if (state.only === "edited" && f.value == null) return false;
+    if (!q) return true;
+    return f.path.toLowerCase().includes(q)
+        || f.label.toLowerCase().includes(q)
+        || String(served(f)).toLowerCase().includes(q);
+  });
+
+  const groups = {};
+  for (const f of shown) (groups[f.group] ??= []).push(f);
+
+  const list = document.getElementById("list");
+  list.innerHTML = Object.keys(groups).length
+    ? Object.entries(groups).map(([g, fs]) => `
+        <h2>${esc(g)} · ${fs.length}</h2>
+        ${fs.map(f => `
+          <div class="field${f.value != null ? " edited" : ""}" data-path="${esc(f.path)}">
+            <div class="label">
+              <span>${esc(f.label)}${f.value != null ? ' <span class="tag">edited</span>' : ""}</span>
+              <span class="path">${esc(f.path)}</span>
+            </div>
+            <textarea rows="2">${esc(served(f))}</textarea>
+            <div class="row">
+              <button type="button" class="save" disabled>Save</button>
+              ${f.value != null ? '<button type="button" class="revert">Revert to code</button>' : ""}
+              <span class="note"></span>
+            </div>
+            ${f.value != null ? `<div class="default">code: ${esc(f.default)}</div>` : ""}
+          </div>`).join("")}
+      `).join("")
+    : '<p class="note">nothing matches that filter</p>';
+
+  for (const el of list.querySelectorAll(".field")) wire(el);
+}
+
+function wire(el) {
+  const path = el.dataset.path;
+  const field = state.fields.find(f => f.path === path);
+  const ta = el.querySelector("textarea");
+  const save = el.querySelector(".save");
+  const revert = el.querySelector(".revert");
+  const note = el.querySelector(".note");
+
+  const dirty = () => ta.value !== served(field);
+  ta.addEventListener("input", () => {
+    save.disabled = !dirty();
+    el.classList.toggle("dirty", dirty());
+    note.textContent = "";
+    note.className = "note";
+  });
+
+  save.addEventListener("click", () => write(path, ta.value, note, save));
+  revert?.addEventListener("click", () => {
+    if (!confirm(`Restore the wording in code for ${path}?`)) return;
+    write(path, null, note, save);
+  });
+}
+
+async function write(path, value, note, btn) {
+  btn.disabled = true;
+  note.className = "note";
+  note.textContent = "saving…";
+
+  let body = { path, value };
+  if (state.participants > 0) {
+    const v = prompt(
+      `${state.participants} people have already answered under ${state.version}.\n\n` +
+      `Enter a new instrument version to stamp on everyone from now on (e.g. ${state.version}b), ` +
+      `or cancel to leave the wording alone.`);
+    if (!v) { note.className = "note err"; note.textContent = "cancelled"; btn.disabled = false; return; }
+    body = { ...body, acknowledge: true, newVersion: v.trim() };
+  }
+
+  const res = await api("/api/admin/instrument", { method: "POST", body: JSON.stringify(body) });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    note.className = "note err";
+    note.textContent = out.message || out.error || `HTTP ${res.status}`;
+    btn.disabled = false;
+    return;
+  }
+  note.className = "note ok";
+  note.textContent = "saved";
+  await load();
+}
+
+document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; render(); });
+document.querySelectorAll("[data-only]").forEach(b =>
+  b.addEventListener("click", () => {
+    state.only = b.dataset.only;
+    document.querySelectorAll("[data-only]").forEach(x =>
+      x.setAttribute("aria-pressed", String(x.dataset.only === state.only)));
+    render();
+  }));
+
+load();
+</script>
+</body>
+</html>

@@ -1,8 +1,7 @@
 import { q, withTx } from "../db.js";
 import { config } from "../config.js";
-import {
-  buildPlan, planIndex, planItems, SCALE, ATTENTION_CHECK_VALUE
-} from "../../shared/instrument.js";
+import { SCALE, ATTENTION_CHECK_VALUE } from "../../shared/instrument.js";
+import { runtimePlan, runtimeIndex, runtimeItems } from "../instrument-runtime.js";
 
 /* ---------------------------------------------------------------------------
    Answer validation.
@@ -81,8 +80,7 @@ export default async function saveRoutes(app) {
     if (p.status === "completed") return { ok: true, ignored: "already_completed" };
 
     const body = req.body ?? {};
-    const plan = buildPlan(p.condition, p.seg_order, p.optional_block);
-    const index = planIndex(plan);
+    const index = runtimeIndex(p.condition, p.seg_order, p.optional_block);
 
     const rows = [];
     const rejected = [];
@@ -216,8 +214,7 @@ export default async function saveRoutes(app) {
     const p = req.participant;
     if (!p) return reply.code(401).send({ error: "unknown_token" });
 
-    const plan = buildPlan(p.condition, p.seg_order, p.optional_block);
-    const items = planItems(plan);
+    const items = runtimeItems(p.condition, p.seg_order, p.optional_block);
 
     const { rows: stored } = await q(
       `SELECT item_id, value_num FROM responses WHERE participant_id = $1`, [p.id]

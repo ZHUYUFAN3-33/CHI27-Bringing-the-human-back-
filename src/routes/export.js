@@ -1,6 +1,7 @@
 import { pool } from "../db.js";
 import { row, BOM } from "../csv.js";
-import { allItemIds, buildPlan, planItems } from "../../shared/instrument.js";
+import { allItemIds } from "../../shared/instrument.js";
+import { runtimeItems, overrideEntries, currentVersion } from "../instrument-runtime.js";
 
 /* ---------------------------------------------------------------------------
    Export endpoints. All are behind requireAdmin (see server.js).
@@ -216,7 +217,7 @@ export default async function exportRoutes(app) {
     const seen = new Map();
     for (const cond of ["H1", "H2", "H3", "HA1", "HA2", "HA3", "A"]) {
       for (const ord of ["O1", "O2", "O3"]) {
-        for (const it of planItems(buildPlan(cond, ord, true))) {
+        for (const it of runtimeItems(cond, ord, true)) {
           const prev = seen.get(it.id);
           if (prev) {
             if (prev.seg_position !== it.segPosition) prev.seg_position = "varies with order";
@@ -258,6 +259,19 @@ export default async function exportRoutes(app) {
                   it.required, it.group ?? "", coding, it.stem]);
     }
     asCsv(reply, "codebook");
+    reply.send(out);
+    return reply;
+  });
+
+  /* -- the wording actually served ---------------------------------------
+     If anything was edited from /editor, the paper needs to be able to say
+     what was on the screen, not what the repository says today. */
+  app.get("/api/export/instrument_overrides.csv", async (_req, reply) => {
+    const cols = ["path", "value", "instrument_version"];
+    const v = currentVersion();
+    let out = BOM + row(cols);
+    for (const [path, value] of overrideEntries()) out += row([path, value, v]);
+    asCsv(reply, "instrument_overrides");
     reply.send(out);
     return reply;
   });

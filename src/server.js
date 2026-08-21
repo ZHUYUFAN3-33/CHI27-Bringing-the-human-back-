@@ -14,7 +14,7 @@ import sessionRoutes, { clientIp } from "./routes/session.js";
 import saveRoutes from "./routes/save.js";
 import adminRoutes from "./routes/admin.js";
 import exportRoutes from "./routes/export.js";
-import { INSTRUMENT_VERSION } from "../shared/instrument.js";
+import { loadOverrides, currentVersion } from "./instrument-runtime.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(here, "..");
@@ -134,7 +134,7 @@ function requireAdmin(req, reply, done) {
 app.get("/healthz", async (_req, reply) => {
   try {
     await healthy();
-    return { ok: true, instrument: INSTRUMENT_VERSION, open: config.studyOpen };
+    return { ok: true, instrument: currentVersion(), open: config.studyOpen };
   } catch (err) {
     reply.code(503);
     return { ok: false, error: err.message };
@@ -144,7 +144,7 @@ app.get("/healthz", async (_req, reply) => {
 /* Public configuration the participant page needs before it has a session. */
 app.get("/api/config", async () => ({
   studyOpen: config.studyOpen,
-  instrumentVersion: INSTRUMENT_VERSION,
+  instrumentVersion: currentVersion(),
   recruitment: config.recruitment,
   studyInfoUrl: config.studyInfoUrl || null,
   contact: config.contact || null,
@@ -211,6 +211,10 @@ app.get("/admin", { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("
 app.get("/preview", { onRequest: requireAdmin }, (_req, reply) => sendHtml(reply, "private", "preview.html"));
 app.get("/mockup",  { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("mockup.html", path.join(rootDir, "private")));
 
+/* Wording editor. Text only, and the guardrails live in the API rather than
+   in this page, so they hold whatever the browser does. */
+app.get("/editor",  { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("editor.html", path.join(rootDir, "private")));
+
 /* The entry page is served from memory so the asset URLs carry the version. */
 app.get("/", (_req, reply) => sendHtml(reply, "public", "index.html"));
 
@@ -250,13 +254,16 @@ app.setErrorHandler((err, req, reply) => {
 
 try {
   await migrate(app.log);
+  /* Wording edited from /editor lives in the database; load it before the
+     first participant can be served a plan. */
+  await loadOverrides(app.log);
 } catch (err) {
   app.log.error({ err }, "migration failed");
   if (config.nodeEnv === "production") process.exit(1);
 }
 
 await app.listen({ port: config.port, host: config.host });
-app.log.info(`study1 survey listening on ${config.host}:${config.port} · instrument ${INSTRUMENT_VERSION}`);
+app.log.info(`study1 survey listening on ${config.host}:${config.port} · instrument ${currentVersion()}`);
 
 /* Fly sends SIGINT/SIGTERM before replacing a machine. Stop taking new work,
    let in-flight saves finish, then close the pool: a participant's page turn

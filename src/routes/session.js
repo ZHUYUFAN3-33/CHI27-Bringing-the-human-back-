@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { q } from "../db.js";
 import { config } from "../config.js";
 import { assignCell, releaseCell, StudyFullError, hasCapacity } from "../allocation.js";
-import { buildPlan, publicPlan, INSTRUMENT_VERSION } from "../../shared/instrument.js";
+import { runtimePlan, runtimePublic, currentVersion } from "../instrument-runtime.js";
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -53,14 +53,14 @@ const firstOf = (obj, keys) => {
     The plan is built here and shipped whole: the client is a renderer, so it
     never receives the other six cells' framing text or the answer keys. */
 function sessionView(p) {
-  const plan = buildPlan(p.condition, p.seg_order, p.optional_block);
+  const plan = runtimePlan(p.condition, p.seg_order, p.optional_block);
   return {
     participantId: p.id,
     shortCode: p.short_code,
     status: p.status,
     pageKey: p.page_key,
     pageIndex: p.page_index,
-    plan: publicPlan(plan),
+    plan: runtimePublic(p.condition, p.seg_order, p.optional_block),
     completion: {
       code: config.completionCode || p.short_code,
       redirectUrl: config.completionRedirectUrl || null,
@@ -126,7 +126,7 @@ export default async function sessionRoutes(app) {
       [
         token, newShortCode(),
         cell.condition, cell.ctrl, cell.profile, cell.segOrder, cell.optional, cell.cell,
-        INSTRUMENT_VERSION,
+        currentVersion(),
         config.recruitment,
         firstOf(params, PID_KEYS),
         firstOf(params, STUDY_KEYS),
