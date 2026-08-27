@@ -71,8 +71,8 @@
   <h2>Allocation — 7 conditions × 6 segment orders</h2>
   <div class="row">
     <button id="reconcile">Recount assigned</button>
-    <span style="color:var(--dim);font-size:11.5px">target per cell</span>
-    <input id="targetval" type="number" min="0" value="17" inputmode="numeric">
+    <span id="targetstate" style="color:var(--dim);font-size:11.5px">current target: loading…</span>
+    <input id="targetval" type="number" min="0" placeholder="loading…" inputmode="numeric" aria-label="Target per cell">
     <button id="settarget">Apply to all cells</button>
     <button id="cleartarget">Remove all caps</button>
   </div>
@@ -133,6 +133,7 @@ function tiles(d) {
 }
 
 function cellTable(cells) {
+  syncTargetControl(cells);
   const head = `<tr><th>cell</th><th>condition</th><th>order</th><th class="num">assigned</th>
     <th class="num">completed</th><th class="num">usable</th><th class="num">in prog</th>
     <th class="num">screened</th><th class="num">target</th><th style="width:110px">fill</th><th></th></tr>`;
@@ -160,6 +161,31 @@ function cellTable(cells) {
     });
     load();
   }));
+}
+
+/* The target input is also the bulk-edit control, so it must show what is
+   actually stored rather than a convenient example value. */
+function syncTargetControl(cells) {
+  const input = $("#targetval");
+  const state = $("#targetstate");
+  const targets = [...new Set(cells.map(c => Number(c.target)))];
+
+  input.disabled = targets.length === 0;
+  if (targets.length === 1) {
+    const target = targets[0];
+    input.value = String(target);
+    input.placeholder = "";
+    input.title = target === 0 ? "All cells are uncapped" : `All cells have a target of ${target}`;
+    state.textContent = target === 0
+      ? "current target: 0 (all cells uncapped)"
+      : `current target: ${target} per cell`;
+    return;
+  }
+
+  input.value = "";
+  input.placeholder = "mixed";
+  input.title = "Cells have different targets; entering a value will replace all of them";
+  state.textContent = "current target: mixed — applying a value will replace all cells";
 }
 
 function recentTable(rows) {
