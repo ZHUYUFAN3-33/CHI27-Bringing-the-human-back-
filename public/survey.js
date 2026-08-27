@@ -363,7 +363,7 @@ function renderSegment(p) {
   queueMicrotask(() => mountPlayer(p));
 }
 
-function renderDebrief() {
+function renderDebrief(p) {
   const box = el("div", "disclosure");
   box.innerHTML = `
     <p>In this study, the description of who or what controlled OriHime, and the description of the operator, were
@@ -372,15 +372,23 @@ function renderDebrief() {
        It does not test whether any disability group is more or less capable.</p>`;
   pageEl.append(box);
 
+  /* render() returns early for this page, so anything the debrief page carries
+     is rendered here or not at all. */
+  p.items.forEach(item => pageEl.append(renderItem(item, p)));
+
   const btn = el("button", "btn wide", "Submit and finish");
+  btn.id = "submitbtn";
   btn.type = "button";
   btn.addEventListener("click", () => submit(btn), { once: false });
   pageEl.append(btn);
-  pageEl.append(el("p", "hint",
-    "Your answers are saved as you go. Pressing this button records your completion and gives you your code."));
+  const note = el("p", "hint",
+    "Your answers are saved as you go. Pressing this button records your completion and gives you your code.");
+  note.id = "submitnote";
+  pageEl.append(note);
 
   navEl.hidden = true;
   barEl.style.width = "100%";
+  updateNext();
 }
 
 /* Where a page's items go: the segment pages nest them under the video gate. */
@@ -860,8 +868,22 @@ function gateClosed(page) {
 
 function updateNext() {
   const page = S.plan.pages[S.page];
-  if (page.kind === "debrief") return;
   const miss = missingOn(page);
+
+  /* The debrief page hides the nav strip and carries its own button, so that
+     button is what has to hold the page until the question above it is
+     answered — nothing else on this page can. */
+  if (page.kind === "debrief") {
+    const btn = document.getElementById("submitbtn");
+    const note = document.getElementById("submitnote");
+    const held = !S.preview && miss.length > 0;
+    if (btn) btn.disabled = held;
+    if (note && held) note.textContent = "Please answer the question above to finish.";
+    else if (note) note.textContent =
+      "Your answers are saved as you go. Pressing this button records your completion and gives you your code.";
+    return;
+  }
+
   const shut = gateClosed(page);
   nextBtn.disabled = !S.preview && (shut || miss.length > 0);
   warnEl.textContent = S.preview

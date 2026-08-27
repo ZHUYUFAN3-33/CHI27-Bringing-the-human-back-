@@ -113,7 +113,7 @@ export const INFO_PAGE = {
       key: "data",
       heading: "Your data",
       body:
-        "We record your answers, how long each page took, and whether each clip played through. **We do not record your name, and we do not store your IP address.**\n\n" +
+        "We record your answers, how long each page took, and whether each clip played through, together with the participant number your recruitment platform gives us. **We do not record your name, and we do not store your IP address.**\n\n" +
         "Responses are held on a secured server during collection and kept on access-controlled Keio University storage afterwards, reachable only by the authorised researchers. They are retained until **31 August 2036**, then deleted or irreversibly anonymised.\n\n" +
         "Results are reported in aggregate, and the responses may be shared as an anonymous dataset alongside a published paper."
     },
@@ -122,7 +122,14 @@ export const INFO_PAGE = {
       heading: "Taking part is voluntary",
       body:
         "You can close the page at any time, without giving a reason and without penalty.\n\n" +
-        "At the end you receive a completion code. If you later want your responses removed, send us that code and we will delete them — it is the only thing that identifies your answers."
+        "At the end you receive a completion code. If you later want your responses removed, send us that code and we will delete them. Your answers carry no name: that code and your participant number are the only things that connect them to you."
+    },
+    {
+      key: "followup",
+      heading: "A follow-up study",
+      body:
+        "On the last page we ask whether you would be willing to be contacted about a **paid follow-up interview**. Saying no has no effect on your payment for this study, and saying yes does not commit you to taking part in anything.\n\n" +
+        "Your participant number is recorded either way, because the recruitment platform needs it to pay you. If you say yes, we may also use it to invite you to the follow-up."
     },
     {
       key: "note",
@@ -674,7 +681,17 @@ export function buildPlan(cond, order, optional) {
     kind: "debrief",
     eyebrow: "Section 8",
     title: "Thank you for taking part",
-    items: []
+    /* Asked here rather than earlier, because agreeing to be contacted should
+       follow knowing what the study was actually about.
+
+       No identifier is collected with it. The recruitment platform's
+       participant number is already stored for every participant, so a yes is
+       matched to the number that is there rather than retyped: one fewer place
+       to mistype, and one fewer copy of the same identifier. */
+    items: [
+      mc("FU1", "Would you be willing to be contacted about a paid follow-up interview?",
+        ["Yes", "No"], { group: "followup" })
+    ]
   });
 
   return { cond, ctrl: c.ctrl, profile: c.profile, order, optional, segOrder, isHuman, pages };
