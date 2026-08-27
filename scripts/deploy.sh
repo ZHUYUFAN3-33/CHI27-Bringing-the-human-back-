@@ -110,8 +110,7 @@ else
 fi
 
 for kv in "STUDY_OPEN=${STUDY_OPEN:-true}" \
-          "RECRUITMENT=${RECRUITMENT:-cloudresearch}" \
-          "OPTIONAL_BLOCK=${OPTIONAL_BLOCK:-on}"; do
+          "RECRUITMENT=${RECRUITMENT:-cloudresearch}"; do
   key="${kv%%=*}"
   have "$key" && echo "    $key already set" || PENDING+=("$kv")
 done

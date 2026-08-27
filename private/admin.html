@@ -127,7 +127,7 @@ function tiles(d) {
   ).join("");
 
   $("#sub").textContent =
-    `instrument ${d.instrumentVersion} · optional block ${d.optionalBlock} · recruitment ${d.recruitment} · refreshed ${new Date().toLocaleTimeString()}`;
+    `instrument ${d.instrumentVersion} · recruitment ${d.recruitment} · refreshed ${new Date().toLocaleTimeString()}`;
   $("#closedbanner").innerHTML = d.studyOpen ? ""
     : `<div class="closed">STUDY_OPEN is false — new participants are being turned away. Anyone already in progress can still finish. Re-open with: fly secrets set STUDY_OPEN=true</div>`;
 }

@@ -28,10 +28,6 @@ export const config = {
 
   /* Design switches -------------------------------------------------------- */
 
-  /* on | off | random — whether the optional attitude block (NARS + SCM) runs.
-     "random" randomises it per participant and stores the assignment. */
-  optionalBlock: (process.env.OPTIONAL_BLOCK || "on").toLowerCase(),
-
   /* Close the study without redeploying: new sessions get a "closed" page,
      participants already in progress can still finish. */
   studyOpen: bool(process.env.STUDY_OPEN, true),
@@ -84,9 +80,6 @@ export function assertProductionConfig(log) {
   if (!config.adminToken) problems.push("ADMIN_TOKEN is not set");
   else if (config.adminToken.length < 24) problems.push("ADMIN_TOKEN is shorter than 24 characters");
   if (!config.ipSalt) problems.push("IP_SALT is not set");
-  if (!["on", "off", "random"].includes(config.optionalBlock)) {
-    problems.push(`OPTIONAL_BLOCK must be on|off|random, got "${config.optionalBlock}"`);
-  }
   if (problems.length && config.nodeEnv === "production") {
     problems.forEach(p => log.error(`config: ${p}`));
     throw new Error("refusing to start in production with an incomplete configuration");

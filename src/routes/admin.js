@@ -137,7 +137,6 @@ export default async function adminRoutes(app) {
     return {
       instrumentVersion: currentVersion(),
       studyOpen: config.studyOpen,
-      optionalBlock: config.optionalBlock,
       recruitment: config.recruitment,
       totals: totals.rows[0],
       activeNow: live.rows[0].n,

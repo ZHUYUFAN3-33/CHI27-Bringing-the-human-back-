@@ -68,18 +68,17 @@ function decorate(row) {
     ctrl: cond.ctrl,
     profile: cond.profile,
     segOrder: row.seg_order,
-    optional: pickOptionalBlock()
-  };
-}
+    /* Everyone answers the attitude blocks. This used to be read from
+       OPTIONAL_BLOCK — on, off, or a per-participant coin flip — which left
+       three core measures, NARS, GAAIS and SCM, hanging off an environment
+       variable that one `fly secrets set` could switch off mid-collection.
 
-/* The optional attitude block is a design decision for the whole run, not a
-   per-participant manipulation, so it is normally fixed by OPTIONAL_BLOCK.
-   "random" exists for a pilot that wants to measure how much the block costs
-   in drop-out; the assignment is stored per participant either way. */
-function pickOptionalBlock() {
-  if (config.optionalBlock === "off") return false;
-  if (config.optionalBlock === "random") return Math.random() < 0.5;
-  return true;
+       Still written per participant rather than dropped from the schema: the
+       column says what that person was actually served, and the pilot rows
+       that predate this decision do not all say true. buildPlan keeps the
+       flag, because /preview uses it to show the short version. */
+    optional: true
+  };
 }
 
 /** Current fill of every cell, for the dashboard. */
