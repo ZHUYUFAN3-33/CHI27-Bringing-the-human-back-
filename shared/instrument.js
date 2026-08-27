@@ -303,6 +303,47 @@ export const SCM = [
   "tolerant", "warm", "good natured", "sincere"
 ];
 
+/* Source scale is the General Attitudes towards Artificial Intelligence Scale
+   (Schepman & Rodway, Computers in Human Behavior Reports, 2020). Scale name
+   never displayed, same as NARS and SCM.
+
+   Numbered as published, so GAAIS_nn maps straight onto item n of the paper —
+   do not reorder. `sub` is the subscale the item loads on: twelve positive,
+   eight negative. The two are interleaved rather than blocked, again as
+   published: grouping them would put the valence on the screen.
+
+   Capitalisation of "Artificial Intelligence" varies item to item in the
+   published scale; that is reproduced rather than tidied. Items 17 and 20 are
+   printed without a closing full stop in the source table and are given one
+   here, which is typography, not wording.
+
+   Published on a five-point agreement scale. Served here on the same seven
+   points as everything else in this questionnaire, which is the choice already
+   made for NARS and SCM — one response format throughout beats per-scale
+   fidelity when the blocks sit next to each other. Report the deviation. */
+export const GAAIS = [
+  { sub: "pos", text: "For routine transactions, I would rather interact with an artificial intelligence system than with a human." },
+  { sub: "pos", text: "Artificial Intelligence can provide new economic opportunities for this country." },
+  { sub: "neg", text: "Organisations use artificial intelligence unethically." },
+  { sub: "pos", text: "Artificially intelligent systems can help people feel happier." },
+  { sub: "pos", text: "I am impressed by what artificial intelligence can do." },
+  { sub: "neg", text: "I think artificially intelligent systems make many errors." },
+  { sub: "pos", text: "I am interested in using artificial intelligence systems in my daily life." },
+  { sub: "neg", text: "I find artificial intelligence sinister." },
+  { sub: "neg", text: "Artificial Intelligence might take control of people." },
+  { sub: "neg", text: "I think artificial intelligence is dangerous." },
+  { sub: "pos", text: "Artificial Intelligence can have positive impacts on people’s well-being." },
+  { sub: "pos", text: "Artificial Intelligence is exciting." },
+  { sub: "pos", text: "An artificially intelligent agent would be better than an employee in many routine jobs." },
+  { sub: "pos", text: "There are many beneficial applications of artificial intelligence." },
+  { sub: "neg", text: "I shiver with discomfort when I think about future uses of artificial intelligence." },
+  { sub: "pos", text: "Artificially intelligent systems can perform better than humans." },
+  { sub: "pos", text: "Much of society will benefit from a future full of Artificial Intelligence." },
+  { sub: "pos", text: "I would like to use artificial intelligence in my own job." },
+  { sub: "neg", text: "People like me will suffer if artificial intelligence is used more and more." },
+  { sub: "neg", text: "Artificial intelligence is used to spy on people." }
+];
+
 /* Attention check. The mockup asks for "Disagree", which is SCALE index 1. */
 export const ATTENTION_CHECK_VALUE = 2; // 1-based Likert point for "Disagree"
 
@@ -418,38 +459,29 @@ export function buildPlan(cond, order, optional) {
     ]
   });
 
-  /* -- 2 · background --------------------------------------------------- */
-  pages.push({
-    key: "background",
-    eyebrow: "Section 2",
-    title: "Background",
-    intro: "These brief questions ask about your previous experience.",
-    items: [
-      number("BG_age", "What is your age in years?", { min: 18, max: 120 }),
-      select("BG_country", "In which country do you currently live?", COUNTRY_OPTIONS,
-        { placeholder: "Select a country" }),
-      mc("BG_gender", "What gender do you identify with?", GENDER),
-      mc("BG_education", "What is the highest level of education you have completed?", EDUCATION),
-      mc("BG_income", "What was your total household income last year, before tax, in US dollars?", INCOME),
-      mc("BG_freq_disability", "How often do you see or interact with people with disabilities in your personal or professional life?", FREQ),
-      mc("BG_freq_ai", "How often do you use AI tools in your personal or professional life?", FREQ),
-      mc("BG_freq_robot", "How often do you see or interact with a robot in your personal or professional life?", FREQ)
-    ]
-  });
-
-  /* -- 3 · optional attitude block -------------------------------------- */
+  /* -- 2 · attitude blocks -------------------------------------- */
   if (optional) {
     pages.push({
       key: "attitudes_robots",
-      eyebrow: "Section 3",
+      eyebrow: "Section 2",
       title: "About robots",
       intro: "These statements are about robots in general, not about the study you are taking part in. People differ widely in how they feel about robots, and there are no right or wrong answers. Please answer based on your own view.",
       matrix: true,
       items: NARS.map((t, i) => likert(`NARS_${pad2(i + 1)}`, t))
     });
     pages.push({
+      key: "attitudes_ai",
+      eyebrow: "Section 2",
+      title: "About artificial intelligence",
+      intro: "These statements are about artificial intelligence in general, not about the study you are taking part in. As before, there are no right or wrong answers. Please answer based on your own view.",
+      matrix: true,
+      /* The subscale rides on the item so codebook.csv can say which half each
+         one scores into. It is never shown to the participant. */
+      items: GAAIS.map((g, i) => likert(`GAAIS_${pad2(i + 1)}`, g.text, { group: `gaais_${g.sub}` }))
+    });
+    pages.push({
       key: "attitudes_disability",
-      eyebrow: "Section 3",
+      eyebrow: "Section 2",
       title: "About people with disabilities",
       intro: "These statements ask for your general impressions. We recognise that disabled people differ from one another as much as anyone else, and that no single answer can describe a whole group; please answer with your overall impression rather than thinking of one particular person.",
       matrix: true,
@@ -457,7 +489,7 @@ export function buildPlan(cond, order, optional) {
     });
   }
 
-  /* -- 4 · condition disclosure — the only disclosure point --------------
+  /* -- 3 · condition disclosure — the only disclosure point --------------
      Control source and operator profile are given here together, before any video
      plays and before any item is answered. Nothing later reveals or hints at
      condition information: that is what makes the study a test of prior
@@ -467,7 +499,7 @@ export function buildPlan(cond, order, optional) {
   pages.push({
     key: "disclosure",
     kind: "disclosure",
-    eyebrow: "Section 4",
+    eyebrow: "Section 3",
     title: "About the OriHime you will see",
     disclosure: {
       intro: INTRO_TEXT,
@@ -484,7 +516,7 @@ export function buildPlan(cond, order, optional) {
     items: [mc("D1", "Please confirm that you have read the description above.", ["I have read it"])]
   });
 
-  /* -- 5 · segments ------------------------------------------------------ */
+  /* -- 4 · segments ------------------------------------------------------ */
   segOrder.forEach((seg, i) => {
     const S = SEGMENTS[seg];
     const pos = i + 1;
@@ -555,7 +587,7 @@ export function buildPlan(cond, order, optional) {
     pages.push({
       key: `segment_${pos}`,
       kind: "segment",
-      eyebrow: `Section 5 · segment ${pos} of 3`,
+      eyebrow: `Section 4 · segment ${pos} of 3`,
       title: `Interaction ${pos}`,
       segment: seg,
       segPosition: pos,
@@ -565,10 +597,10 @@ export function buildPlan(cond, order, optional) {
     });
   });
 
-  /* -- 6 · general questions -------------------------------------------- */
+  /* -- 5 · general questions -------------------------------------------- */
   pages.push({
     key: "general",
-    eyebrow: "Section 6",
+    eyebrow: "Section 5",
     title: "General questions",
     matrix: true,
     matrixInstruction: "The following questions are about OriHime in general, not about any single interaction.",
@@ -583,7 +615,7 @@ export function buildPlan(cond, order, optional) {
     ]
   });
 
-  /* -- 7 · manipulation checks ------------------------------------------
+  /* -- 6 · manipulation checks ------------------------------------------
      Control source and operator profile are separate manipulations, so they are
      checked separately: folding both into a single eight-option question makes
      it impossible to say which manipulation failed. */
@@ -591,8 +623,8 @@ export function buildPlan(cond, order, optional) {
   const C2_CORRECT = isHuman ? c.profile - 1 : 3;
   pages.push({
     key: "checks",
-    eyebrow: "Section 7",
-    title: "Two last questions",
+    eyebrow: "Section 6",
+    title: "Two more questions",
     intro: "These are about the description you read at the beginning of the study. Please answer from memory; do not go back.",
     noBack: true,
     items: [
@@ -609,6 +641,30 @@ export function buildPlan(cond, order, optional) {
         "There was no human operator in the description I read",
         "I do not remember"
       ], { group: "manipulation_check", expected: C2_CORRECT })
+    ]
+  });
+
+  /* -- 7 · background — demographics, asked last -------------------------
+     Moved behind the manipulation checks: nothing here is used to screen or to
+     route, so it costs nothing to ask late, and asking age, income and gender
+     before the study puts the least engaging page where attrition is cheapest
+     to cause. The checks stay ahead of it so that no page sits between the
+     outcome items and the memory they test. */
+  pages.push({
+    key: "background",
+    eyebrow: "Section 7",
+    title: "Background",
+    intro: "These brief questions ask about your previous experience.",
+    items: [
+      number("BG_age", "What is your age in years?", { min: 18, max: 120 }),
+      select("BG_country", "In which country do you currently live?", COUNTRY_OPTIONS,
+        { placeholder: "Select a country" }),
+      mc("BG_gender", "What gender do you identify with?", GENDER),
+      mc("BG_education", "What is the highest level of education you have completed?", EDUCATION),
+      mc("BG_income", "What was your total household income last year, before tax, in US dollars?", INCOME),
+      mc("BG_freq_disability", "How often do you see or interact with people with disabilities in your personal or professional life?", FREQ),
+      mc("BG_freq_ai", "How often do you use AI tools in your personal or professional life?", FREQ),
+      mc("BG_freq_robot", "How often do you see or interact with a robot in your personal or professional life?", FREQ)
     ]
   });
 

@@ -228,7 +228,7 @@ await mp.goto(`${BASE}/?test=1`, { waitUntil: "networkidle" });
 await mp.waitForSelector("h2.qtitle");
 await mp.click("#next");                                   // info -> consent
 await mp.waitForTimeout(120);
-for (let i = 0; i < 4; i++) {                              // through consent to background
+for (let i = 0; i < 4; i++) {                              // consent, then on to the first matrix
   await mp.evaluate(() => {
     const mod = window.__t, p = mod.S.plan.pages[mod.S.page];
     p.items.forEach(it => {
