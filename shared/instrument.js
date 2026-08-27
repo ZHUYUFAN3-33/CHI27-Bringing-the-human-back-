@@ -15,7 +15,7 @@
 
 import { COUNTRIES } from "./countries.js";
 
-export const INSTRUMENT_VERSION = "v6b";
+export const INSTRUMENT_VERSION = "v6c";
 
 /* ---------------------------------------------------------------- referents */
 
