@@ -311,6 +311,28 @@ function renderDisclosure(p) {
   pageEl.append(card);
 }
 
+/* The two manipulations, restated between each clip and its questions.
+
+   Built from the disclosure page's own strings rather than from a second copy,
+   so a wording override published from /preview reaches the reminder too and
+   the two can never drift. Only the control text and the profile line come
+   across: the photo, the diagram and the persona box would push the player off
+   a phone's first screen, and they are not the manipulation.
+
+   The disclosure page is still where the condition is introduced. This is a
+   reminder of what was already said, which is why it carries no heading, and
+   it sits last so that it is the final thing read before the first answer. */
+function conditionRecap() {
+  const d = S.plan.pages.find(pg => pg.kind === "disclosure")?.disclosure;
+  if (!d) return null;
+  const box = el("div", "recap");
+  box.append(tag(el("p", null, md(d.control)), `text.control.${S.design?.ctrl}`));
+  if (d.profile) {
+    box.append(tag(el("p", "recap-profile", md(d.profile)), `text.profile.${S.design?.profile}`));
+  }
+  return box;
+}
+
 function renderSegment(p) {
   /* The IFrame API replaces the element it is handed, and the replacement
      carries width/height attributes that beat aspect-ratio — which pinned the
@@ -331,6 +353,9 @@ function renderSegment(p) {
   pageEl.append(gate);
 
   if (p.desc) pageEl.append(tag(el("p", "qintro", esc(p.desc)), `segment.${p.segment}.desc`));
+
+  const recap = conditionRecap();
+  if (recap) pageEl.append(recap);
 
   const wrap = el("div", "locked");
   wrap.id = `qs_${p.key}`;
