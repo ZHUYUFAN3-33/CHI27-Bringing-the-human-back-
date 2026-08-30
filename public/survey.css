@@ -194,6 +194,10 @@ tr.missing td{background:#FDF0EF}
   display:flex;justify-content:space-between;align-items:center;gap:12px;
   padding:18px 44px 26px;border-top:1px solid var(--rule);background:var(--sheet);
 }
+/* An author `display` beats the browser's own [hidden] rule, so the three
+   places that set navEl.hidden — the completion page above all — were leaving
+   Back and Next on screen for a participant who is finished. */
+.nav[hidden]{display:none}
 .nav .pos{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
 .btn{
   font-family:var(--sans);font-size:15px;font-weight:500;padding:11px 24px;
