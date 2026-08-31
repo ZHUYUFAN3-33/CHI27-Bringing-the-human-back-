@@ -29,8 +29,6 @@ function filters(query) {
   if (/^(1|true|yes)$/i.test(String(query.usable_only ?? ""))) {
     where.push("p.status = 'completed'");
     where.push("COALESCE(p.attention_pass, TRUE)");
-    where.push("COALESCE(p.check_c1_pass, FALSE)");
-    where.push("COALESCE(p.check_c2_pass, FALSE)");
   }
   if (query.since) { params.push(String(query.since)); where.push(`p.started_at >= $${params.length}::timestamptz`); }
   return { where: where.join(" AND "), params };

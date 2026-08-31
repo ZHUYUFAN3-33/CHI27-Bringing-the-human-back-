@@ -53,6 +53,9 @@ CREATE TABLE IF NOT EXISTS participants (
 
   -- derived quality flags, written on completion
   attention_pass   BOOLEAN,
+  -- The two manipulation checks were dropped from the instrument. The columns
+  -- stay because the pilot rows recorded real values in them; nothing writes
+  -- them any more, and "usable" no longer reads them.
   check_c1_pass    BOOLEAN,
   check_c2_pass    BOOLEAN
 );
@@ -177,7 +180,7 @@ SELECT a.cell,
        COUNT(p.id) FILTER (WHERE p.status = 'in_progress' AND NOT p.is_test) AS in_progress,
        COUNT(p.id) FILTER (WHERE p.status = 'screened_out' AND NOT p.is_test) AS screened_out,
        COUNT(p.id) FILTER (WHERE p.status = 'completed' AND NOT p.is_test
-                             AND p.attention_pass AND p.check_c1_pass AND p.check_c2_pass) AS usable
+                             AND p.attention_pass) AS usable
 FROM allocation a
 LEFT JOIN participants p ON p.cell = a.cell
 GROUP BY a.cell, a.condition, a.seg_order, a.enabled, a.target, a.assigned

@@ -119,8 +119,6 @@ function tiles(d) {
     ["In progress",      n(t.in_progress), "plain", `${n(d.activeNow)} active in last 5 min`],
     ["Screened out",     n(t.screened_out), "plain", "ineligible or declined"],
     ["Failed attention", n(t.failed_attention), t.failed_attention > 0 ? "warn" : "plain", "AT1"],
-    ["Failed check C1",  n(t.failed_c1), t.failed_c1 > 0 ? "warn" : "plain", "control source"],
-    ["Failed check C2",  n(t.failed_c2), t.failed_c2 > 0 ? "warn" : "plain", "operator profile"],
     ["Median duration",  mins, "plain", "first to last answer"]
   ].map(([k, v, cls, note]) =>
     `<div class="tile"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div><div class="n">${note}</div></div>`
@@ -200,7 +198,7 @@ function recentTable(rows) {
       <td>${esc(r.short_code)}</td><td>${esc(r.condition)}</td><td>${esc(r.seg_order)}</td>
       <td><span class="pill ${st}">${esc(r.status)}</span></td>
       <td class="num">${n(r.answered_count)}</td>
-      <td>${flag(r.attention_pass,"AT")}${flag(r.check_c1_pass,"C1")}${flag(r.check_c2_pass,"C2")}</td>
+      <td>${flag(r.attention_pass,"AT")}</td>
       <td>${esc(r.external_pid ?? "")}</td>
     </tr>`;
   }).join("");

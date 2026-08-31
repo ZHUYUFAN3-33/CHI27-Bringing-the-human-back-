@@ -230,11 +230,6 @@ export default async function saveRoutes(app) {
       ? got.get(attentionItem.id) === ATTENTION_CHECK_VALUE
       : null;
 
-    const c1 = items.find(i => i.id === "C1");
-    const c2 = items.find(i => i.id === "C2");
-    const c1Pass = c1 ? got.get("C1") === c1.expected : null;
-    const c2Pass = c2 ? got.get("C2") === c2.expected : null;
-
     const required = items.filter(i => i.required);
     const missing = required.filter(i => !got.has(i.id)).map(i => i.id);
 
@@ -245,18 +240,18 @@ export default async function saveRoutes(app) {
          ON CONFLICT (participant_id) DO UPDATE SET payload = EXCLUDED.payload, received_at = now()`,
         [p.id, JSON.stringify({
           client: req.body ?? {},
-          derived: { attentionPass, c1Pass, c2Pass, missing, itemsExpected: required.length, itemsStored: got.size }
+          derived: { attentionPass, missing, itemsExpected: required.length, itemsStored: got.size }
         })]
       );
       const upd = await client.query(
         `UPDATE participants
             SET status = 'completed', completed_at = now(), last_seen_at = now(),
                 page_key = 'debrief',
-                attention_pass = $2, check_c1_pass = $3, check_c2_pass = $4,
+                attention_pass = $2,
                 answered_count = (SELECT COUNT(*) FROM responses WHERE participant_id = $1)
           WHERE id = $1
           RETURNING short_code, condition, cell`,
-        [p.id, attentionPass, c1Pass, c2Pass]
+        [p.id, attentionPass]
       );
       /* Test runs are randomised like everyone else so the team sees a real
          participant's experience, but they gave their slot back at start and
@@ -268,7 +263,7 @@ export default async function saveRoutes(app) {
     });
 
     req.log.info(
-      { pid: p.id, cell: p.cell, missing: missing.length, attentionPass, c1Pass, c2Pass },
+      { pid: p.id, cell: p.cell, missing: missing.length, attentionPass },
       "completed"
     );
 

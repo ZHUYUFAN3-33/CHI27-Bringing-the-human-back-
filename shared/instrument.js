@@ -64,7 +64,11 @@ export const PERSONA_AI = {
    manipulation, and as the third bullet of four it was read past: it now leads
    the disclosure, above the diagram, in its own sentence. */
 export const PROFILE_STATEMENT = {
-  1: "The operator of this OriHime **does not have a disability**.",
+  /* 1 is deliberately absent. Saying "does not have a disability" turns an
+     absence into an announcement: it makes disability the subject for the one
+     group that is supposed to be unmarked, and a participant told that has
+     been given a fact about the operator that the other reference cell, the
+     AI, is never given. Saying nothing is the control. */
   2: "The operator of this OriHime **has an intellectual disability**.",
   3: "The operator of this OriHime **has a mobility-related disability**."
 };
@@ -102,12 +106,6 @@ export const INFO_PAGE = {
       key: "who",
       heading: "Who is running this study",
       body: "This research is carried out at the **Keio University Graduate School of Media Design**."
-    },
-    {
-      key: "funding",
-      heading: "Funding",
-      requires: "funding",
-      body: "This work is funded by **{funding}**."
     },
     {
       key: "data",
@@ -285,8 +283,13 @@ export const FREQ = [
   "Once a month or more", "Once a week or more", "Daily or almost daily"
 ];
 
-/* Source scale is the Negative Attitudes towards Robots Scale.
-   The scale name is never displayed to participants. */
+/* Source scale is the Negative Attitudes towards Robots Scale (Nomura, Suzuki,
+   Kanda & Kato, 2006). The scale name is never displayed to participants.
+
+   Fourteen items in three subscales: six on situations of interaction with
+   robots, five on their social influence, and three on emotions in interaction.
+   That third subscale — items 3, 5 and 6 below — is worded the other way round
+   and is REVERSE-SCORED. See NARS_REVERSE underneath. */
 export const NARS = [
   "I would feel uneasy if robots really had emotions.",
   "Something bad might happen if robots developed into living beings.",
@@ -304,51 +307,58 @@ export const NARS = [
   "I feel that in the future society will be dominated by robots."
 ];
 
-/* Source scale is the Stereotype Content Model. Name never displayed. */
+/* 1-based positions of the NARS items that must be reverse-scored: subscale S3,
+   "negative attitude toward emotions in interaction with robots", which is the
+   one worded positively. Scoring these forward inverts three items in fourteen
+   and flattens the total without failing anything, so the export names them.
+
+   Nothing here reverses a stored value. Responses are stored raw, exactly as
+   the participant gave them; this only travels into the codebook so that
+   whoever scores the data knows. */
+export const NARS_REVERSE = new Set([3, 5, 6]);
+
+/* Source scale is the Stereotype Content Model. Name never displayed.
+   All nine adjectives are positively valenced — competence and warmth are told
+   apart by score, not by wording — so no SCM item is reverse-scored. */
 export const SCM = [
   "competent", "confident", "independent", "competitive", "intelligent",
   "tolerant", "warm", "good natured", "sincere"
 ];
 
-/* Source scale is the General Attitudes towards Artificial Intelligence Scale
-   (Schepman & Rodway, Computers in Human Behavior Reports, 2020). Scale name
-   never displayed, same as NARS and SCM.
+/* Source scale is the Short GAAIS-10 (Schepman & Rodway, International Journal
+   of Human-Computer Interaction, 2026) — the ten-item form of their own General
+   Attitudes towards Artificial Intelligence Scale, selected from the original
+   twenty by CFA and Polytomous Rasch Analysis across three samples and then
+   revalidated on a fresh representative UK sample. Scale name never displayed,
+   same as NARS and SCM.
 
-   Numbered as published, so GAAIS_nn maps straight onto item n of the paper —
-   do not reorder. `sub` is the subscale the item loads on: twelve positive,
-   eight negative. The two are interleaved rather than blocked, again as
-   published: grouping them would put the valence on the screen.
+   `n` is the item's number in the original twenty-item GAAIS, which is also the
+   numbering the short-form paper uses for its own item codes (Pos7, Neg8, ...).
+   Ids are built from it rather than from position, so GAAIS_07 means item 7 in
+   both papers and a reader of the CSV can find it in either.
 
-   Capitalisation of "Artificial Intelligence" varies item to item in the
-   published scale; that is reproduced rather than tidied. Items 17 and 20 are
-   printed without a closing full stop in the source table and are given one
-   here, which is typography, not wording.
+   Five positive and five negative, left interleaved rather than blocked so the
+   valence is not laid out on the screen.
 
-   Published on a five-point agreement scale. Served here on the same seven
+   SCORING: the negative items are REVERSE-SCORED, so that both subscales run
+   the same way and a high score is a more positive attitude. The scale has no
+   valid single total — the authors tried a one-factor CFA and it failed every
+   fit criterion despite a high alpha, so report the two subscales separately.
+
+   Published on a five-point agreement scale; served here on the same seven
    points as everything else in this questionnaire, which is the choice already
-   made for NARS and SCM — one response format throughout beats per-scale
-   fidelity when the blocks sit next to each other. Report the deviation. */
+   made for NARS and SCM. Report the deviation. */
 export const GAAIS = [
-  { sub: "pos", text: "For routine transactions, I would rather interact with an artificial intelligence system than with a human." },
-  { sub: "pos", text: "Artificial Intelligence can provide new economic opportunities for this country." },
-  { sub: "neg", text: "Organisations use artificial intelligence unethically." },
-  { sub: "pos", text: "Artificially intelligent systems can help people feel happier." },
-  { sub: "pos", text: "I am impressed by what artificial intelligence can do." },
-  { sub: "neg", text: "I think artificially intelligent systems make many errors." },
-  { sub: "pos", text: "I am interested in using artificial intelligence systems in my daily life." },
-  { sub: "neg", text: "I find artificial intelligence sinister." },
-  { sub: "neg", text: "Artificial Intelligence might take control of people." },
-  { sub: "neg", text: "I think artificial intelligence is dangerous." },
-  { sub: "pos", text: "Artificial Intelligence can have positive impacts on people’s well-being." },
-  { sub: "pos", text: "Artificial Intelligence is exciting." },
-  { sub: "pos", text: "An artificially intelligent agent would be better than an employee in many routine jobs." },
-  { sub: "pos", text: "There are many beneficial applications of artificial intelligence." },
-  { sub: "neg", text: "I shiver with discomfort when I think about future uses of artificial intelligence." },
-  { sub: "pos", text: "Artificially intelligent systems can perform better than humans." },
-  { sub: "pos", text: "Much of society will benefit from a future full of Artificial Intelligence." },
-  { sub: "pos", text: "I would like to use artificial intelligence in my own job." },
-  { sub: "neg", text: "People like me will suffer if artificial intelligence is used more and more." },
-  { sub: "neg", text: "Artificial intelligence is used to spy on people." }
+  { n: 7,  sub: "pos", text: "I am interested in using artificially intelligent systems in my daily life." },
+  { n: 8,  sub: "neg", text: "I find artificial intelligence sinister." },
+  { n: 9,  sub: "neg", text: "Artificial intelligence might take control of people." },
+  { n: 10, sub: "neg", text: "I think artificial intelligence is dangerous." },
+  { n: 11, sub: "pos", text: "Artificial intelligence can have positive impacts on people’s wellbeing." },
+  { n: 12, sub: "pos", text: "Artificial intelligence is exciting." },
+  { n: 15, sub: "neg", text: "I shiver with discomfort when I think about future uses of artificial intelligence." },
+  { n: 17, sub: "pos", text: "Much of society will benefit from a future full of artificial intelligence." },
+  { n: 18, sub: "pos", text: "I would like to use artificial intelligence in my own job." },
+  { n: 19, sub: "neg", text: "People like me will suffer if artificial intelligence is used more and more." }
 ];
 
 /* Attention check. The mockup asks for "Disagree", which is SCALE index 1. */
@@ -474,7 +484,8 @@ export function buildPlan(cond, order, optional) {
       title: "About robots",
       intro: "These statements are about robots in general, not about the study you are taking part in. People differ widely in how they feel about robots, and there are no right or wrong answers. Please answer based on your own view.",
       matrix: true,
-      items: NARS.map((t, i) => likert(`NARS_${pad2(i + 1)}`, t))
+      items: NARS.map((t, i) => likert(`NARS_${pad2(i + 1)}`, t,
+        { group: NARS_REVERSE.has(i + 1) ? "nars_s3_rev" : "nars" }))
     });
     pages.push({
       key: "attitudes_ai",
@@ -483,8 +494,11 @@ export function buildPlan(cond, order, optional) {
       intro: "These statements are about artificial intelligence in general, not about the study you are taking part in. As before, there are no right or wrong answers. Please answer based on your own view.",
       matrix: true,
       /* The subscale rides on the item so codebook.csv can say which half each
-         one scores into. It is never shown to the participant. */
-      items: GAAIS.map((g, i) => likert(`GAAIS_${pad2(i + 1)}`, g.text, { group: `gaais_${g.sub}` }))
+         one scores into, and the negative half is named _rev because it has to
+         be reverse-scored before either subscale means anything. Never shown to
+         the participant. */
+      items: GAAIS.map(g => likert(`GAAIS_${pad2(g.n)}`, g.text,
+        { group: g.sub === "neg" ? "gaais_neg_rev" : "gaais_pos" }))
     });
     pages.push({
       key: "attitudes_disability",
@@ -492,7 +506,8 @@ export function buildPlan(cond, order, optional) {
       title: "About people with disabilities",
       intro: "These statements ask for your general impressions. We recognise that disabled people differ from one another as much as anyone else, and that no single answer can describe a whole group; please answer with your overall impression rather than thinking of one particular person.",
       matrix: true,
-      items: SCM.map((w, i) => likert(`SCM_${pad2(i + 1)}`, `I think people with disabilities are ${w}.`))
+      items: SCM.map((w, i) => likert(`SCM_${pad2(i + 1)}`,
+        `I think people with disabilities are ${w}.`, { group: "scm" }))
     });
   }
 
@@ -515,7 +530,7 @@ export function buildPlan(cond, order, optional) {
          established who is operating. Null under AI-only: there is no operator
          to have a profile, which is what makes A a reference cell and not a
          fourth level of the profile factor. */
-      profile: isHuman ? PROFILE_STATEMENT[c.profile] : null,
+      profile: isHuman ? (PROFILE_STATEMENT[c.profile] ?? null) : null,
       arrangement: c.ctrl,                       // drives the diagram: H | HA | A
       personaHead: persona.head,
       personaLines: persona.lines.map(text => ({ text }))
@@ -622,36 +637,7 @@ export function buildPlan(cond, order, optional) {
     ]
   });
 
-  /* -- 6 · manipulation checks ------------------------------------------
-     Control source and operator profile are separate manipulations, so they are
-     checked separately: folding both into a single eight-option question makes
-     it impossible to say which manipulation failed. */
-  const C1_CORRECT = { H: 0, HA: 1, A: 2 }[c.ctrl];
-  const C2_CORRECT = isHuman ? c.profile - 1 : 3;
-  pages.push({
-    key: "checks",
-    eyebrow: "Section 6",
-    title: "Two more questions",
-    intro: "These are about the description you read at the beginning of the study. Please answer from memory; do not go back.",
-    noBack: true,
-    items: [
-      mc("C1", "Based on the description you read at the beginning, who or what controlled OriHime?", [
-        "A trained human operator, with no AI involvement",
-        "A trained human operator, assisted by an AI system",
-        "An AI system only, with no human operator",
-        "I do not remember"
-      ], { group: "manipulation_check", expected: C1_CORRECT }),
-      mc("C2", "Based on that same description, what were you told about the operator?", [
-        "The operator does not have a disability",
-        "The operator has an intellectual disability",
-        "The operator has a mobility-related disability",
-        "There was no human operator in the description I read",
-        "I do not remember"
-      ], { group: "manipulation_check", expected: C2_CORRECT })
-    ]
-  });
-
-  /* -- 7 · background — demographics, asked last -------------------------
+  /* -- 6 · background — demographics, asked last -------------------------
      Moved behind the manipulation checks: nothing here is used to screen or to
      route, so it costs nothing to ask late, and asking age, income and gender
      before the study puts the least engaging page where attrition is cheapest
@@ -659,7 +645,7 @@ export function buildPlan(cond, order, optional) {
      outcome items and the memory they test. */
   pages.push({
     key: "background",
-    eyebrow: "Section 7",
+    eyebrow: "Section 6",
     title: "Background",
     intro: "These brief questions ask about your previous experience.",
     items: [
@@ -675,11 +661,11 @@ export function buildPlan(cond, order, optional) {
     ]
   });
 
-  /* -- 8 · debrief ------------------------------------------------------- */
+  /* -- 7 · debrief ------------------------------------------------------- */
   pages.push({
     key: "debrief",
     kind: "debrief",
-    eyebrow: "Section 8",
+    eyebrow: "Section 7",
     title: "Thank you for taking part",
     /* Asked here rather than earlier, because agreeing to be contacted should
        follow knowing what the study was actually about.
@@ -689,6 +675,8 @@ export function buildPlan(cond, order, optional) {
        matched to the number that is there rather than retyped: one fewer place
        to mistype, and one fewer copy of the same identifier. */
     items: [
+      likert("BEL1", "How much ***DID YOU BELIEVE*** the description of the OriHime operator you were given at the beginning of the questionnaire?",
+        { group: "belief" }),
       mc("FU1", "Would you be willing to be contacted about a paid follow-up interview?",
         ["Yes", "No"], { group: "followup" })
     ]

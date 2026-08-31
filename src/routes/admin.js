@@ -111,12 +111,8 @@ export default async function adminRoutes(app) {
            COUNT(*) FILTER (WHERE status = 'in_progress')                  AS in_progress,
            COUNT(*) FILTER (WHERE status = 'screened_out')                 AS screened_out,
            COUNT(*) FILTER (WHERE status = 'completed'
-                              AND COALESCE(attention_pass, TRUE)
-                              AND COALESCE(check_c1_pass, FALSE)
-                              AND COALESCE(check_c2_pass, FALSE))          AS usable,
+                              AND COALESCE(attention_pass, TRUE))          AS usable,
            COUNT(*) FILTER (WHERE status = 'completed' AND attention_pass IS FALSE)  AS failed_attention,
-           COUNT(*) FILTER (WHERE status = 'completed' AND check_c1_pass IS FALSE)   AS failed_c1,
-           COUNT(*) FILTER (WHERE status = 'completed' AND check_c2_pass IS FALSE)   AS failed_c2,
            ROUND(percentile_cont(0.5) WITHIN GROUP (
              ORDER BY EXTRACT(EPOCH FROM (last_answer_at - first_answer_at))
            ) FILTER (WHERE status = 'completed'))                          AS median_seconds
@@ -124,7 +120,7 @@ export default async function adminRoutes(app) {
       allocationSnapshot(),
       q(`SELECT id, short_code, condition, seg_order, status, source, external_pid,
                 answered_count, started_at, completed_at, last_seen_at,
-                attention_pass, check_c1_pass, check_c2_pass
+                attention_pass
            FROM participants WHERE NOT is_test
           ORDER BY started_at DESC LIMIT 40`),
       q(`SELECT page_key, COUNT(*) AS reached
