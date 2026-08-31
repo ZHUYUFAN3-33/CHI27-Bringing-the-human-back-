@@ -34,10 +34,13 @@ const el = (tag, cls, html) => {
 };
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-/* **bold** for the framing text. Escaping runs first, so the only markup that
+/* **bold** and ***bold italic*** for the framing text and for the few
+   stems that lean on a word. Escaping runs first, so the only markup that
    can ever reach the page is the <strong> put there on the next line — a stem
    containing a literal <b> is still shown as text. */
-const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+const md = s => esc(s)
+  .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
+  .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 
 /* Where a sentence came from, so /preview can offer to edit the one that was
    clicked. A no-op for participants: they get the same DOM they always did,
@@ -438,7 +441,10 @@ function matrixBlock(block) {
   block.rows.forEach(row => {
     const tr = el("tr");
     tr.dataset.item = row.id;
-    tr.append(tag(el("td", "stemcell", esc(row.stem) + '<span class="req">*</span>'),
+    /* md(), not esc(): escaping still runs first, so the only markup that can
+       reach the cell is the emphasis md() puts there. No stem carried ** until
+       the believability item, which needs it. */
+    tr.append(tag(el("td", "stemcell", md(row.stem) + '<span class="req">*</span>'),
       `item.${row.id}.stem`));
     for (let c = 1; c <= 7; c++) {
       const td = el("td");
