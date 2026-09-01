@@ -408,6 +408,7 @@ function renderItem(item, page) {
 
 function buildItem(item, page) {
   switch (item.type) {
+    case "heading": return headingBlock(item);
     case "matrix": return matrixBlock(item);
     case "rank":   return rankBlock(item);
     case "likert7":return matrixBlock({ instruction: null, rows: [item] });
@@ -420,6 +421,18 @@ function buildItem(item, page) {
 }
 
 /* -- Likert matrix ------------------------------------------------------- */
+
+/* The seam where a second section starts inside one page. Same three elements
+   a page header uses, so Background opens the way every other section does.
+   Untagged on purpose: this is structure, not instrument wording, and /preview
+   only knows how to publish paths the instrument actually carries. */
+function headingBlock(item) {
+  const wrap = el("div", "sectionbreak");
+  if (item.eyebrow) wrap.append(el("p", "eyebrow", esc(item.eyebrow)));
+  wrap.append(el("h2", "qtitle", esc(item.title)));
+  if (item.intro) wrap.append(el("p", "qintro", esc(item.intro)));
+  return wrap;
+}
 
 function matrixBlock(block) {
   const wrap = el("div", "matrix-q");
@@ -853,6 +866,7 @@ function renderFallback(page) {
 function requiredIds(page) {
   const ids = [];
   const walk = it => {
+    if (it.type === "heading") return;
     if (it.type === "matrix") return it.rows.forEach(walk);
     if (it.type === "rank")   return ids.push(...it.subIds);
     if (it.required !== false) ids.push(it.id);
@@ -954,7 +968,10 @@ function markMissing(ids) {
 function savePage(page, nextPage) {
   if (S.preview) return;                 // a reviewer writes nothing to the study
   const ids = new Set(requiredIds(page));
-  page.items.forEach(it => { if (it.type !== "matrix" && it.type !== "rank") ids.add(it.id); });
+  page.items.forEach(it => {
+    if (it.type === "matrix" || it.type === "rank" || it.type === "heading") return;
+    ids.add(it.id);
+  });
 
   const answers = [];
   for (const id of ids) {

@@ -15,7 +15,7 @@
 
 import { COUNTRIES } from "./countries.js";
 
-export const INSTRUMENT_VERSION = "v6c";
+export const INSTRUMENT_VERSION = "v6d";
 
 /* ---------------------------------------------------------------- referents */
 
@@ -406,6 +406,13 @@ const mc = (id, stem, options, extra = {}) =>
 const shortText = (id, stem, extra = {}) =>
   ({ id, type: "text", stem, required: true, ...extra });
 
+/* A second section opening inside one page. It stores nothing and answers
+   nothing: planItems, requiredIds and savePage all skip it. It exists because
+   the belief question and the background block are two different sections that
+   share a page, and a participant should be able to see where one ends. */
+const heading = (eyebrow, title, intro = null) =>
+  ({ type: "heading", eyebrow, title, intro });
+
 /* Dropdown. `options` are {value,label}: the value is stored, the label shown. */
 const select = (id, stem, options, extra = {}) =>
   ({ id, type: "select", stem, options, required: true, ...extra });
@@ -637,18 +644,38 @@ export function buildPlan(cond, order, optional) {
     ]
   });
 
-  /* -- 6 · background — demographics, asked last -------------------------
-     Moved behind the manipulation checks: nothing here is used to screen or to
-     route, so it costs nothing to ask late, and asking age, income and gender
-     before the study puts the least engaging page where attrition is cheapest
-     to cause. The checks stay ahead of it so that no page sits between the
-     outcome items and the memory they test. */
+  /* -- 6 · belief, then background ---------------------------------------
+     BEL1 used to sit on the debrief page, underneath the paragraph that reveals
+     the manipulation. Asking how much someone believed a description directly
+     below the sentence "this description was experimentally varied" invites
+     hindsight: admitting belief reads as naivety, so some participants
+     retro-report suspicion. Worse, it would not be noise — a participant in the
+     AI cell who has just read "the videos were identical for everyone" can work
+     out that the film was made with a human actor, so belief would fall in one
+     condition for a reason that has nothing to do with the study. It now comes
+     before the reveal.
+
+     It cannot move earlier than this either. It is a suspicion probe: seeing it
+     signals that the description was worth doubting, so everything it could
+     colour — the segment items and the general questions — has to be answered
+     first. Between Section 5 and the demographics is the only position that
+     satisfies both, and it is answered while the study is still fresh rather
+     than after eight background items.
+
+     Demographics share the page rather than taking their own. Nothing here is
+     used to screen or to route, so it costs nothing to ask late, and asking
+     age, income and gender last puts the least engaging block where attrition
+     is cheapest to cause. One page turn saves BEL1 before BG_income — the item
+     people balk at — but the sample is paid to completion, so the two ride
+     together and the second heading marks the seam. */
   pages.push({
     key: "background",
     eyebrow: "Section 6",
-    title: "Background",
-    intro: "These brief questions ask about your previous experience.",
+    title: "About the description you were given",
     items: [
+      likert("BEL1", "How much ***DID YOU BELIEVE*** the description of the OriHime operator you were given at the beginning of the questionnaire?",
+        { group: "belief" }),
+      heading("Section 7", "Background", "These brief questions ask about your previous experience."),
       number("BG_age", "What is your age in years?", { min: 18, max: 120 }),
       select("BG_country", "In which country do you currently live?", COUNTRY_OPTIONS,
         { placeholder: "Select a country" }),
@@ -661,22 +688,22 @@ export function buildPlan(cond, order, optional) {
     ]
   });
 
-  /* -- 7 · debrief ------------------------------------------------------- */
+  /* -- 8 · debrief ------------------------------------------------------- */
   pages.push({
     key: "debrief",
     kind: "debrief",
-    eyebrow: "Section 7",
+    eyebrow: "Section 8",
     title: "Thank you for taking part",
-    /* Asked here rather than earlier, because agreeing to be contacted should
-       follow knowing what the study was actually about.
+    /* FU1 is asked here rather than earlier, because agreeing to be contacted
+       should follow knowing what the study was actually about. It is the only
+       item left on this page: BEL1 moved ahead of the reveal, which is the one
+       thing this page must not be able to influence.
 
        No identifier is collected with it. The recruitment platform's
        participant number is already stored for every participant, so a yes is
        matched to the number that is there rather than retyped: one fewer place
        to mistype, and one fewer copy of the same identifier. */
     items: [
-      likert("BEL1", "How much ***DID YOU BELIEVE*** the description of the OriHime operator you were given at the beginning of the questionnaire?",
-        { group: "belief" }),
       mc("FU1", "Would you be willing to be contacted about a paid follow-up interview?",
         ["Yes", "No"], { group: "followup" })
     ]
@@ -691,6 +718,7 @@ export function buildPlan(cond, order, optional) {
 export function planItems(plan) {
   const out = [];
   const push = (it, page) => {
+    if (it.type === "heading") return;         // renders, stores nothing
     if (it.type === "matrix") {
       it.rows.forEach(r => push(r, page));
       return;
@@ -810,6 +838,9 @@ export function allCells() {
 --------------------------------------------------------------------------- */
 export function publicPlan(plan) {
   const stripItem = it => {
+    if (it.type === "heading") {
+      return { type: "heading", eyebrow: it.eyebrow, title: it.title, intro: it.intro ?? null };
+    }
     if (it.type === "matrix") {
       /* The id travels: it is a block name, not an answer key, and /preview
          needs it to know which instruction it is looking at. */
