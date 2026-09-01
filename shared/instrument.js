@@ -15,7 +15,7 @@
 
 import { COUNTRIES } from "./countries.js";
 
-export const INSTRUMENT_VERSION = "v6d";
+export const INSTRUMENT_VERSION = "v6e";
 
 /* ---------------------------------------------------------------- referents */
 
@@ -286,31 +286,46 @@ export const FREQ = [
 /* Source scale is the Negative Attitudes towards Robots Scale (Nomura, Suzuki,
    Kanda & Kato, 2006). The scale name is never displayed to participants.
 
-   Fourteen items in three subscales: six on situations of interaction with
-   robots, five on their social influence, and three on emotions in interaction.
-   That third subscale — items 3, 5 and 6 below — is worded the other way round
-   and is REVERSE-SCORED. See NARS_REVERSE underneath. */
+   The published scale is fourteen items in three subscales: six on situations
+   of interaction with robots (S1), five on their social influence (S2), and
+   three on emotions in interaction (S3). That third subscale — items 3, 5 and 6
+   — is worded the other way round and is REVERSE-SCORED. See NARS_REVERSE
+   underneath.
+
+   ADMINISTERED HERE: ten of the fourteen. Items 9, 12, 13 and 14 are not asked.
+   They are the four whose wording is strong enough to manufacture the attitude
+   it claims to measure — robots "making judgements", feeling "paranoid", a "bad
+   influence on children", society "dominated by robots" — and they ask about
+   mass social consequence rather than about the operator-level attribution this
+   study is testing. A pre-measure that installs a fear is not a covariate.
+   What remains is S1 items 4/7/8/10, S2 items 1/2/11, S3 items 3/5/6.
+
+   `n` is the item's number in the published scale, and ids are built from it
+   rather than from position — the same convention GAAIS uses below. NARS_10 is
+   Nomura et al.'s item 10 whatever else is or is not administered here, so a
+   reader of the CSV can find it in the paper, and dropping an item cannot
+   renumber the ones after it.
+
+   SCORING: no subscale here is comparable to a published fourteen-item norm,
+   and S1 and S2 are now four and three items. Report the reduction. */
 export const NARS = [
-  "I would feel uneasy if robots really had emotions.",
-  "Something bad might happen if robots developed into living beings.",
-  "I would feel relaxed talking with robots.",
-  "I would feel uneasy if I was given a job where I had to use robots.",
-  "If robots had emotions I would be able to make friends with them.",
-  "I feel comforted being with robots that have emotions.",
-  "The word “robot” means nothing to me.",
-  "I would feel nervous operating a robot in front of other people.",
-  "I would hate the idea that robots or artificial intelligences were making judgements about things.",
-  "I would feel very nervous just standing in front of a robot.",
-  "I feel that if I depend on robots too much, something bad might happen.",
-  "I would feel paranoid talking with a robot.",
-  "I am concerned that robots would be a bad influence on children.",
-  "I feel that in the future society will be dominated by robots."
+  { n: 1,  text: "I would feel uneasy if robots really had emotions." },
+  { n: 2,  text: "Something bad might happen if robots developed into living beings." },
+  { n: 3,  text: "I would feel relaxed talking with robots." },
+  { n: 4,  text: "I would feel uneasy if I was given a job where I had to use robots." },
+  { n: 5,  text: "If robots had emotions I would be able to make friends with them." },
+  { n: 6,  text: "I feel comforted being with robots that have emotions." },
+  { n: 7,  text: "The word “robot” means nothing to me." },
+  { n: 8,  text: "I would feel nervous operating a robot in front of other people." },
+  { n: 10, text: "I would feel very nervous just standing in front of a robot." },
+  { n: 11, text: "I feel that if I depend on robots too much, something bad might happen." }
 ];
 
-/* 1-based positions of the NARS items that must be reverse-scored: subscale S3,
-   "negative attitude toward emotions in interaction with robots", which is the
-   one worded positively. Scoring these forward inverts three items in fourteen
-   and flattens the total without failing anything, so the export names them.
+/* Published item numbers — the `n` above, not positions in the array — of the
+   NARS items that must be reverse-scored: subscale S3, "negative attitude
+   toward emotions in interaction with robots", which is the one worded
+   positively. Scoring these forward inverts three items in ten and flattens the
+   total without failing anything, so the export names them.
 
    Nothing here reverses a stored value. Responses are stored raw, exactly as
    the participant gave them; this only travels into the codebook so that
@@ -337,7 +352,14 @@ export const SCM = [
    Ids are built from it rather than from position, so GAAIS_07 means item 7 in
    both papers and a reader of the CSV can find it in either.
 
-   Five positive and five negative, left interleaved rather than blocked so the
+   ADMINISTERED HERE: nine of the ten. Neg9, "Artificial intelligence might take
+   control of people.", is not asked, on the same ground as the four dropped
+   NARS items above: it is a takeover scenario, and asking it is close enough to
+   suggesting it that the answer is as likely to be formed on the page as
+   retrieved. It is also the item furthest from anything this study manipulates,
+   which is who controls one robot in one conversation, not who controls people.
+
+   Five positive and four negative, left interleaved rather than blocked so the
    valence is not laid out on the screen.
 
    SCORING: the negative items are REVERSE-SCORED, so that both subscales run
@@ -351,7 +373,6 @@ export const SCM = [
 export const GAAIS = [
   { n: 7,  sub: "pos", text: "I am interested in using artificially intelligent systems in my daily life." },
   { n: 8,  sub: "neg", text: "I find artificial intelligence sinister." },
-  { n: 9,  sub: "neg", text: "Artificial intelligence might take control of people." },
   { n: 10, sub: "neg", text: "I think artificial intelligence is dangerous." },
   { n: 11, sub: "pos", text: "Artificial intelligence can have positive impacts on people’s wellbeing." },
   { n: 12, sub: "pos", text: "Artificial intelligence is exciting." },
@@ -491,8 +512,8 @@ export function buildPlan(cond, order, optional) {
       title: "About robots",
       intro: "These statements are about robots in general, not about the study you are taking part in. People differ widely in how they feel about robots, and there are no right or wrong answers. Please answer based on your own view.",
       matrix: true,
-      items: NARS.map((t, i) => likert(`NARS_${pad2(i + 1)}`, t,
-        { group: NARS_REVERSE.has(i + 1) ? "nars_s3_rev" : "nars" }))
+      items: NARS.map(it => likert(`NARS_${pad2(it.n)}`, it.text,
+        { group: NARS_REVERSE.has(it.n) ? "nars_s3_rev" : "nars" }))
     });
     pages.push({
       key: "attitudes_ai",
