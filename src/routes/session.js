@@ -118,6 +118,35 @@ export default async function sessionRoutes(app) {
          and allocate a fresh session rather than failing the participant. */
     }
 
+    const params  = body.params ?? {};
+    const isTest  = /^(1|true|yes)$/i.test(String(params.test ?? params.preview ?? ""));
+    const ext     = externalIds(params);
+
+    /* One row per platform participant. The platform shows a person the study
+       once, but a person can open the link on a second device, or clear the
+       browser between two visits, and every arrival without our token used to
+       be a new session: a second row, a second slot, and a second randomised
+       condition for someone who has already read one framing. Their own row
+       is handed back instead. The platform id is what the platform itself
+       authenticated, and the answers are theirs. Checked before the closed and
+       full gates, because a returning participant must always be able to
+       finish. Test runs are exempt, so the team can walk the study repeatedly
+       under one id. */
+    if (!isTest && ext.pid) {
+      const { rows: prior } = await q(
+        `UPDATE participants SET last_seen_at = now()
+          WHERE id = (SELECT id FROM participants
+                       WHERE external_pid = $1 AND NOT is_test
+                       ORDER BY started_at DESC LIMIT 1)
+          RETURNING *`,
+        [ext.pid]
+      );
+      if (prior.length) {
+        req.log.info({ pid: prior[0].id, external_pid: ext.pid, status: prior[0].status }, "session rejoined by platform id");
+        return { resumed: true, rejoined: true, token: prior[0].token, ...sessionView(prior[0]) };
+      }
+    }
+
     if (!config.studyOpen) {
       return reply.code(503).send({ error: "study_closed", message: "This study is not currently accepting responses." });
     }
@@ -125,9 +154,6 @@ export default async function sessionRoutes(app) {
       return reply.code(503).send({ error: "study_full", message: "This study has reached the number of responses it needs." });
     }
 
-    const params  = body.params ?? {};
-    const isTest  = /^(1|true|yes)$/i.test(String(params.test ?? params.preview ?? ""));
-    const ext     = externalIds(params);
     const token   = newToken();
 
     let cell;

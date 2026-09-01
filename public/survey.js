@@ -113,6 +113,11 @@ async function boot() {
          holding every later page behind it. */
       if (!session.resumed) clearQueue();
       store.token = session.token;
+      /* A start that handed back an existing row — our token was still valid
+         on the server, or the platform id matched a row from another device —
+         carries the design but not the answers. Fetch them, so a rejoin puts
+         the participant back exactly where a refresh would. */
+      if (session.resumed) session = await post("/api/session/resume", { params }).catch(() => session);
     }
   } catch (err) {
     if (err.payload?.error === "study_closed" || err.payload?.error === "study_full") {

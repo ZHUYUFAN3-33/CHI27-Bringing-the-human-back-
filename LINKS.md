@@ -20,7 +20,10 @@ CloudResearch Connect appends its own identifiers; `participantId`,
 `external_pid`, `external_session` and `external_study`. Prolific's
 `PROLIFIC_PID` / `STUDY_ID` / `SESSION_ID` and MTurk's `workerId` /
 `assignmentId` / `hitId` are recognised too, so a pilot on another panel needs
-no code change.
+no code change. One row per platform participant: a person who opens the link
+again on another device, or after clearing the browser, is handed their own
+existing session back rather than a new row and a new condition. Test links
+(`?test=1`) are exempt, so the team can walk the study repeatedly under one id.
 
 ## Researcher
 
