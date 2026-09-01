@@ -1,5 +1,6 @@
 import { q, withTx } from "../db.js";
 import { config } from "../config.js";
+import { releaseCell } from "../allocation.js";
 import { SCALE, ATTENTION_CHECK_VALUE } from "../../shared/instrument.js";
 import { runtimePlan, runtimeIndex, runtimeItems } from "../instrument-runtime.js";
 
@@ -201,14 +202,22 @@ export default async function saveRoutes(app) {
     const p = req.participant;
     if (!p) return reply.code(401).send({ error: "unknown_token" });
     const reason = String(req.body?.reason ?? "unspecified").slice(0, 40);
-    await q(
+    const { rowCount } = await q(
       `UPDATE participants
           SET status = 'screened_out', screen_out_reason = $2,
               completed_at = now(), last_seen_at = now()
         WHERE id = $1 AND status = 'in_progress'`,
       [p.id, reason]
     );
-    req.log.info({ pid: p.id, reason }, "screened out");
+    /* The slot goes back. Eligibility is asked before the condition is
+       disclosed, so a screen-out is blind to the cell it was given and says
+       nothing about it — but left on the counter it made that cell look fuller
+       than it was, and the randomiser sent the next people elsewhere. Once
+       only (rowCount), and never for a test row, which gave its slot back at
+       the start. reconcileAllocation counts the same way. */
+    const released = rowCount === 1 && !p.is_test;
+    if (released) await releaseCell(p.cell);
+    req.log.info({ pid: p.id, reason, released }, "screened out");
     return { ok: true, reason };
   });
 

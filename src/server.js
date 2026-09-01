@@ -10,6 +10,7 @@ import fastifyCookie from "@fastify/cookie";
 
 import { config, assertProductionConfig } from "./config.js";
 import { pool, q, migrate, healthy } from "./db.js";
+import { watchAllocation } from "./allocation.js";
 import sessionRoutes, { clientIp } from "./routes/session.js";
 import saveRoutes from "./routes/save.js";
 import adminRoutes from "./routes/admin.js";
@@ -275,6 +276,7 @@ app.setErrorHandler((err, req, reply) => {
 /* ---------------------------------------------------------------- boot */
 
 let stopWatching = () => {};
+let stopRecount  = () => {};
 
 try {
   await migrate(app.log);
@@ -288,6 +290,10 @@ try {
   /* And keep watching, because the machine that publishes is not necessarily
      this one. */
   stopWatching = watchOverrides(app.log);
+  /* And give back the slots of sessions that opened the link and left, so a
+     cell is not starved for the rest of a launch by a handful of clicks that
+     never became participants. */
+  stopRecount = watchAllocation(app.log);
 } catch (err) {
   app.log.error({ err }, "migration failed");
   if (config.nodeEnv === "production") process.exit(1);
@@ -306,6 +312,7 @@ for (const sig of ["SIGINT", "SIGTERM"]) {
     closing = true;
     app.log.info(`${sig} received, draining`);
     stopWatching();
+    stopRecount();
     try { await app.close(); } catch (err) { app.log.error({ err }, "close failed"); }
     try { await pool.end(); } catch { /* already gone */ }
     process.exit(0);

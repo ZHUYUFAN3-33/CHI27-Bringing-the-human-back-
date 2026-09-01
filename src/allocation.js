@@ -90,7 +90,10 @@ export async function allocationSnapshot() {
 /** Re-derive `assigned` from the participants table.
     Run after deleting test rows, or if a crash left a counter ahead of reality.
     Sessions that never answered anything and have gone quiet are not counted,
-    so a cell cannot be starved by people who opened the link and left. */
+    so a cell cannot be starved by people who opened the link and left. Nor are
+    screen-outs, whose slot /api/screen-out already gave back: eligibility is
+    asked before the condition is disclosed, so they carry no information about
+    the cell and must not weigh on it. */
 export async function reconcileAllocation() {
   const { rows } = await q(
     `UPDATE allocation a
@@ -98,6 +101,7 @@ export async function reconcileAllocation() {
               SELECT COUNT(*) FROM participants p
                WHERE p.cell = a.cell
                  AND NOT p.is_test
+                 AND p.status <> 'screened_out'
                  AND NOT (p.status = 'in_progress'
                           AND p.answered_count = 0
                           AND p.last_seen_at < now() - make_interval(mins => $1))
@@ -106,6 +110,46 @@ export async function reconcileAllocation() {
     [config.staleMinutes]
   );
   return rows.sort((x, y) => x.cell.localeCompare(y.cell));
+}
+
+/** Run the recount on a timer, so the slots of people who opened the link and
+    left come back without anyone pressing the dashboard button. The button was
+    the only way, and during a launch nobody is watching a dashboard every few
+    minutes.
+
+    Safe to run while participants are starting. A pick is one atomic UPDATE on
+    one row; this statement holds each row for the microseconds it takes to
+    rewrite one integer, and the pick's SKIP LOCKED steps past it. The one race
+    is a pick whose participant row is not yet inserted when the count runs:
+    that cell reads one low until the next pass, which is the same order of
+    slop the picker already has under simultaneous starts, and it corrects
+    itself. Two machines running this is harmless — same table, same answer. */
+export function watchAllocation(log, intervalMs = config.allocationReconcileMs) {
+  if (!intervalMs) {
+    log?.info?.("allocation recount disabled");
+    return () => {};
+  }
+  let running = false;
+  const timer = setInterval(async () => {
+    if (running) return;
+    running = true;
+    try {
+      const before = new Map((await allocationSnapshot()).map(c => [c.cell, Number(c.assigned)]));
+      const after = await reconcileAllocation();
+      const changed = after.filter(c => before.get(c.cell) !== Number(c.assigned));
+      if (changed.length) {
+        log?.info?.({ changed: changed.map(c => `${c.cell} ${before.get(c.cell)}->${c.assigned}`) },
+          "allocation recounted");
+      }
+    } catch (err) {
+      log?.warn?.({ err: err.message }, "allocation recount failed");
+    } finally {
+      running = false;
+    }
+  }, intervalMs);
+  timer.unref?.();                       // never hold the process open
+  log?.info?.({ intervalMs }, "recounting allocation on a timer");
+  return () => clearInterval(timer);
 }
 
 /** Set or clear a per-cell recruitment target. target = 0 means uncapped. */

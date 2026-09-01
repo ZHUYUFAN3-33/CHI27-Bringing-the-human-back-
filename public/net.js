@@ -14,18 +14,30 @@
 const QUEUE_KEY = "study1.queue.v1";
 const TOKEN_KEY = "study1.token.v1";
 
+/* The token this tab is working under. Read from storage once and then held
+   here: storage is shared by every tab on the origin, and a participant who
+   opens the link twice gets two sessions racing to write it. Reading storage
+   on every request let the second tab's token silently take over the first
+   tab's saves, so answers given under one condition's framing landed on the
+   other row. A tab now keeps the session it started with. */
+let heldToken = null;
+
 export const store = {
   get token() {
-    try { return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || null; }
-    catch { return null; }
+    if (heldToken) return heldToken;
+    try { heldToken = localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || null; }
+    catch { heldToken = null; }
+    return heldToken;
   },
   set token(v) {
+    heldToken = v;
     /* Written to both: localStorage survives a tab close, sessionStorage keeps
        working when a privacy setting blocks persistent storage. */
     try { localStorage.setItem(TOKEN_KEY, v); } catch { /* private mode */ }
     try { sessionStorage.setItem(TOKEN_KEY, v); } catch { /* ignore */ }
   },
   clearToken() {
+    heldToken = null;
     try { localStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ }
     try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ }
   }
@@ -50,14 +62,26 @@ function emit(state, detail) { listeners.forEach(fn => fn(state, detail)); }
 
 export function pendingCount() { return queue.length; }
 
-/** Queue a page save. Returns immediately; delivery is the flusher's problem. */
+/** Queue a page save. Returns immediately; delivery is the flusher's problem.
+    The job remembers the session it was produced under, so a save still queued
+    when the page reloads into a different session is delivered to the row it
+    belongs to, not to whichever token is current by then. */
 export function enqueue(path, body) {
-  queue.push({ id: crypto.randomUUID(), path, body, tries: 0 });
+  queue.push({ id: crypto.randomUUID(), path, body, tries: 0, token: store.token });
   writeQueue(queue);
   flush();
 }
 
-async function post(path, body, { timeoutMs = 15000 } = {}) {
+/** Drop whatever is queued. Called when a brand-new session starts: anything
+    left over belongs to a token this browser no longer holds. It cannot be
+    delivered, and left in place it would sit at the head of the queue
+    returning 401 forever, holding every later page behind it. */
+export function clearQueue() {
+  queue = [];
+  writeQueue(queue);
+}
+
+async function post(path, body, { timeoutMs = 15000, token = store.token } = {}) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), timeoutMs);
   try {
@@ -65,7 +89,7 @@ async function post(path, body, { timeoutMs = 15000 } = {}) {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        ...(store.token ? { authorization: `Bearer ${store.token}` } : {})
+        ...(token ? { authorization: `Bearer ${token}` } : {})
       },
       body: JSON.stringify(body ?? {}),
       signal: ctl.signal,
@@ -95,7 +119,7 @@ export async function flush() {
     while (queue.length) {
       const job = queue[0];
       try {
-        await post(job.path, job.body);
+        await post(job.path, job.body, { token: job.token || store.token });
         queue.shift();
         writeQueue(queue);
         backoff = 0;
@@ -131,7 +155,7 @@ export function beaconFlush() {
   if (!queue.length || !navigator.sendBeacon || !store.token) return;
   for (const job of queue.slice(0, 6)) {
     try {
-      const blob = new Blob([JSON.stringify({ ...job.body, token: store.token })], { type: "application/json" });
+      const blob = new Blob([JSON.stringify({ ...job.body, token: job.token || store.token })], { type: "application/json" });
       navigator.sendBeacon(job.path, blob);
     } catch { /* nothing more we can do at unload */ }
   }

@@ -41,13 +41,33 @@ const PID_KEYS     = ["participantId", "PROLIFIC_PID", "prolific_pid", "workerId
 const STUDY_KEYS   = ["projectId", "project_id", "STUDY_ID", "study_id", "hitId", "hit_id"];
 const SESSION_KEYS = ["assignmentId", "assignment_id", "SESSION_ID", "session_id"];
 
+/* Matched without regard to case: the platform documents `participantId`, and
+   a link that reaches us as `participantid` — retyped, or lower-cased by
+   something on the way — must still identify the person it names. */
 const firstOf = (obj, keys) => {
+  const lower = new Map(Object.entries(obj ?? {}).map(([k, v]) => [k.toLowerCase(), v]));
   for (const k of keys) {
-    const v = obj?.[k];
+    const v = lower.get(k.toLowerCase());
     if (typeof v === "string" && v.trim()) return v.trim().slice(0, 128);
   }
   return null;
 };
+
+/* The three platform identifiers, null for each the query string did not carry. */
+const externalIds = params => ({
+  pid:     firstOf(params, PID_KEYS),
+  study:   firstOf(params, STUDY_KEYS),
+  session: firstOf(params, SESSION_KEYS)
+});
+
+/* Fill in an identifier the row is still missing. Blanks only: the identifier
+   a row was opened with is the one the platform pays against, and a later
+   visit carrying a different value must not overwrite it. $2..$4 are the
+   values from externalIds(); $1 is whatever the statement selects the row by. */
+const BACKFILL_SQL = `
+  external_pid     = COALESCE(external_pid,     $2),
+  external_study   = COALESCE(external_study,   $3),
+  external_session = COALESCE(external_session, $4)`;
 
 /** Everything the browser needs to render, and nothing it should not know.
     The plan is built here and shipped whole: the client is a renderer, so it
@@ -87,8 +107,11 @@ export default async function sessionRoutes(app) {
     const existing = String(body.token || "").trim();
 
     if (existing) {
+      const ext = externalIds(body.params ?? {});
       const { rows } = await q(
-        `UPDATE participants SET last_seen_at = now() WHERE token = $1 RETURNING *`, [existing]
+        `UPDATE participants SET last_seen_at = now(), ${BACKFILL_SQL}
+          WHERE token = $1 RETURNING *`,
+        [existing, ext.pid, ext.study, ext.session]
       );
       if (rows.length) return { resumed: true, token: existing, ...sessionView(rows[0]) };
       /* Token no longer valid (database reset, or a forged value): fall through
@@ -104,6 +127,7 @@ export default async function sessionRoutes(app) {
 
     const params  = body.params ?? {};
     const isTest  = /^(1|true|yes)$/i.test(String(params.test ?? params.preview ?? ""));
+    const ext     = externalIds(params);
     const token   = newToken();
 
     let cell;
@@ -128,9 +152,9 @@ export default async function sessionRoutes(app) {
         cell.condition, cell.ctrl, cell.profile, cell.segOrder, cell.optional, cell.cell,
         currentVersion(),
         config.recruitment,
-        firstOf(params, PID_KEYS),
-        firstOf(params, STUDY_KEYS),
-        firstOf(params, SESSION_KEYS),
+        ext.pid,
+        ext.study,
+        ext.session,
         isTest,
         String(req.headers["user-agent"] || "").slice(0, 400),
         Number.isFinite(body.screenW) ? Math.trunc(body.screenW) : null,
@@ -166,12 +190,20 @@ export default async function sessionRoutes(app) {
          FROM video_events WHERE participant_id = $1 GROUP BY segment`, [p.id]
     );
 
-    await q(`UPDATE participants SET last_seen_at = now() WHERE id = $1`, [p.id]);
+    /* A row opened without the platform identifiers — the query string
+       stripped by an in-app browser, or the link pasted by hand — takes them
+       from the first visit that carries them. Blanks only; see BACKFILL_SQL. */
+    const ext = externalIds(req.body?.params ?? {});
+    const { rows: upd } = await q(
+      `UPDATE participants SET last_seen_at = now(), ${BACKFILL_SQL}
+        WHERE id = $1 RETURNING *`,
+      [p.id, ext.pid, ext.study, ext.session]
+    );
 
     return {
       resumed: true,
       token: p.token,
-      ...sessionView(p),
+      ...sessionView(upd[0] ?? p),
       answers: Object.fromEntries(answers.map(a => [a.item_id, { num: a.value_num, text: a.value_text }])),
       gates: Object.fromEntries(videos.map(v => [v.segment, { watch_s: Number(v.watch_s ?? 0), done: v.gate_open }]))
     };

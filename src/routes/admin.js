@@ -301,8 +301,8 @@ export default async function adminRoutes(app) {
     }
 
     let version = currentVersion();
+    const newVersion = String(req.body?.newVersion ?? "").trim();
     if (participants > 0) {
-      const newVersion = String(req.body?.newVersion ?? "").trim();
       if (req.body?.acknowledge !== true || !newVersion) {
         return reply.code(409).send({
           error: "collection_in_progress",
@@ -319,8 +319,14 @@ export default async function adminRoutes(app) {
       if (newVersion === version) {
         return reply.code(400).send({ error: "same_version", message: "newVersion must differ from the current one." });
       }
-      version = newVersion;
     }
+    /* A label given without participants is honoured too. The bump is only
+       *demanded* once someone has answered; before that, the label is still the
+       one thing that ties a publication to the instrument in code, and the
+       label a publish inherits is whatever the last one said. With a database
+       cleared for a fresh start that was v6b under code that said v6e, and no
+       way to correct it except answering the questionnaire first. */
+    if (newVersion) version = newVersion;
 
     const publication = await publishDraft({
       version,

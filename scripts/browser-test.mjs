@@ -211,11 +211,39 @@ const after = await page.evaluate(() => ({ answers: window.__t.S.answers.size, p
 check("a refresh restores the answers", after.answers >= beforeCount - 2, `${beforeCount} -> ${after.answers}`);
 check("a refresh restores the position", after.title.includes("Thank you"), after.title);
 
-/* Submit. */
-await page.click(".btn.wide");
+/* The debrief page carries the follow-up item and the submit button is held
+   until it is answered. Filled after the reload rather than before, so that
+   this answer, like every other, has to make the round trip to the server. */
+check("submit is held until the last item is answered", await page.locator("#submitbtn").isDisabled());
+await fillPage(page);
+await page.waitForTimeout(60);
+check("answering it releases submit", !(await page.locator("#submitbtn").isDisabled()));
+
+/* Submit. What the server holds is read from its own reply: `missing` lists
+   every required item it does not have, and the last page's item used to be on
+   that list for everybody, because the page had no Next to save it. */
+const completed = page.waitForResponse(r => r.url().endsWith("/api/complete"), { timeout: 20000 });
+await page.click("#submitbtn");
+const completeBody = await (await completed).json().catch(() => ({}));
+check("the server holds every required item at completion",
+  Array.isArray(completeBody.missing) && completeBody.missing.length === 0,
+  JSON.stringify(completeBody.missing ?? completeBody).slice(0, 120));
 await page.waitForSelector(".bigcode", { timeout: 15000 });
 const code = (await page.textContent(".bigcode")).trim();
-check("completion code is shown", /^[A-Z2-9]{8}$/.test(code), code);
+/* A fixed COMPLETION_CODE is what the deployed study shows; a server without
+   one shows the participant's own short code. Either is a code. */
+check("completion code is shown", /^[A-Z0-9]{6,16}$/.test(code), code);
+
+/* The return to the platform is the participant's own click. The page used to
+   send itself there after six seconds; it must now stay put, code on screen,
+   with the button there to press when a return address is configured. */
+const returnBtn = await page.locator("a.btn.wide").count();
+const withRedirect = !!completeBody.redirectUrl;
+check("a return button is shown exactly when a redirect is configured", returnBtn === (withRedirect ? 1 : 0),
+  `${returnBtn} button(s), redirectUrl ${withRedirect ? "set" : "unset"}`);
+await page.waitForTimeout(6500);
+check("the completion page does not redirect on its own",
+  (await page.locator(".bigcode").count()) === 1 && !/returned=1/.test(page.url()), page.url());
 
 /* No researcher-facing material may reach a participant. */
 const html = await page.content();
@@ -300,6 +328,12 @@ if (!ADMIN) {
   check("the API refuses an anonymous wording change",
     anonymousEdit.status === 400 && anonymousEdit.body.error === "editor_required",
     JSON.stringify(anonymousEdit.body).slice(0, 140));
+  /* That refusal is a 400, and the browser reports every 4xx as a console
+     error. It is the one this script asked for, so exactly one such entry is
+     taken out of the tally — a second 400 from anywhere else still fails the
+     console check below. */
+  const expected400 = pvErrors.findIndex(e => /status of 400/.test(e));
+  if (expected400 >= 0) pvErrors.splice(expected400, 1);
 
   /* Every addressable sentence, on every page of this cell. */
   const rendered = await pv.evaluate(() => {

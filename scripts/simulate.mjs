@@ -99,7 +99,9 @@ async function runOne(i) {
     failC2: Math.random() < 0.05
   };
 
-  for (let p = 0; p < plan.pages.length - 1; p++) {
+  /* Every page, the debrief included: it carries the follow-up item, and the
+     browser saves it from the submit button, so the simulator does the same. */
+  for (let p = 0; p < plan.pages.length; p++) {
     const page = plan.pages[p];
     const answers = answerPage(page, opts);
     const videoEvents = page.kind === "segment" ? [
@@ -108,12 +110,13 @@ async function runOne(i) {
       { segment: page.segment, segPosition: page.segPosition, videoId: page.video.id, event: "gate_open", watchS: page.video.duration, at: new Date().toISOString() }
     ] : [];
 
+    const nextPage = plan.pages[p + 1] ?? page;
     await post("/api/save", {
       answers,
       page: { key: page.key, index: p, visit: 1, enteredAt: new Date(Date.now() - 9000).toISOString(), leftAt: new Date().toISOString(), dwellMs: 9000 },
       videoEvents,
-      nextPageKey: plan.pages[p + 1].key,
-      nextPageIndex: p + 1
+      nextPageKey: nextPage.key,
+      nextPageIndex: plan.pages.indexOf(nextPage)
     }, token);
 
     const trip = page.items.find(it => it.screenOut && answers.find(a => a.id === it.id && it.screenOut.includes(a.num)));

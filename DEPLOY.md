@@ -201,8 +201,10 @@ also recognised, so a pilot on another panel needs no code change.)
 For completion, use either or both:
 
 - **Redirect** — copy the Redirect URL from the end of Connect's *Create a Study*
-  wizard and set it as `COMPLETION_REDIRECT_URL`. Participants are sent back
-  automatically, with a button as a fallback.
+  wizard and set it as `COMPLETION_REDIRECT_URL`. The completion page shows a
+  *Return to the study platform* button that goes there. It does not redirect on
+  its own: the code stays on the screen, so a participant whose return fails can
+  still enter it by hand.
 - **Completion code** — leave `COMPLETION_CODE` unset and each participant gets
   their own unique code, which is also their `short_code` in the database. That
   is more useful than a fixed code: a submitted code identifies exactly one row.
@@ -261,6 +263,10 @@ already collected.
 **After piloting**, press *Recount assigned* in the dashboard. Test rows return
 their slot at the start, but the button re-derives every counter from the
 participants table, which is the safe thing to do before real recruitment opens.
+The same recount runs by itself every five minutes (`ALLOCATION_RECONCILE_MS`),
+so during collection a session that opened the link and never answered stops
+holding its slot after `STALE_MINUTES` (90 by default) without anyone pressing
+anything, and a screen-out gives its slot back the moment it happens.
 
 **Watch during collection:** the dashboard's cell table (balance), drop-off table
 (where people leave), and the three quality tiles. `fly logs -a study1-survey`

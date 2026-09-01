@@ -36,11 +36,32 @@ function filters(query) {
 
 const stamp = () => new Date().toISOString().slice(0, 19).replace(/[:T]/g, "").replace(/-/g, "");
 
+/* For the small exports, which go out through reply.send(). */
 function asCsv(reply, name) {
   reply.header("content-type", "text/csv; charset=utf-8");
   reply.header("content-disposition", `attachment; filename="${name}_${stamp()}.csv"`);
   reply.header("cache-control", "no-store");
 }
+
+/* For the streamed exports, which write the body with reply.raw so a file of
+   several thousand participants never sits in memory. A header set through
+   reply.header() only reaches the wire when reply.send() runs, and these routes
+   never call it — so every streamed file went out with no content-type and no
+   filename, and a click in the dashboard opened it as text in the tab instead
+   of downloading it. The response is taken over here and the headers written
+   straight to the socket before the first byte of the body. Nothing may be
+   returned from a handler after this: Fastify would try to send it. */
+function beginStream(reply, contentType, filename) {
+  reply.hijack();
+  reply.raw.writeHead(200, {
+    "content-type": contentType,
+    "content-disposition": `attachment; filename="${filename}"`,
+    "cache-control": "no-store"
+  });
+  return reply.raw;
+}
+const beginCsv  = (reply, name) => beginStream(reply, "text/csv; charset=utf-8", `${name}_${stamp()}.csv`);
+const beginJson = (reply, name) => beginStream(reply, "application/json; charset=utf-8", `${name}_${stamp()}.json`);
 
 /* A pg Cursor would need an extra dependency; a keyset scan over started_at+id
    gives the same streaming behaviour with the driver we already have. */
@@ -77,15 +98,14 @@ export default async function exportRoutes(app) {
   /* -- one row per participant ------------------------------------------- */
   app.get("/api/export/participants.csv", async (req, reply) => {
     const { where, params } = filters(req.query);
-    asCsv(reply, "participants");
-    reply.raw.write(BOM + row(PARTICIPANT_COLUMNS));
+    const out = beginCsv(reply, "participants");
+    out.write(BOM + row(PARTICIPANT_COLUMNS));
     for await (const batch of scanParticipants(where, params)) {
       let chunk = "";
       for (const p of batch) chunk += row(PARTICIPANT_COLUMNS.map(c => p[c]));
-      reply.raw.write(chunk);
+      out.write(chunk);
     }
-    reply.raw.end();
-    return reply;
+    out.end();
   });
 
   /* -- long format: one row per answer ----------------------------------- */
@@ -95,8 +115,8 @@ export default async function exportRoutes(app) {
                   "optional_block", "status", "is_test", "item_id", "page_key", "item_type",
                   "segment", "seg_position", "value_num", "value_text", "latency_ms",
                   "revisions", "answered_at"];
-    asCsv(reply, "responses_long");
-    reply.raw.write(BOM + row(cols));
+    const out = beginCsv(reply, "responses_long");
+    out.write(BOM + row(cols));
     for await (const batch of scanParticipants(where, params)) {
       const ids = batch.map(p => p.id);
       const { rows } = await pool.query(
@@ -108,10 +128,9 @@ export default async function exportRoutes(app) {
       );
       let chunk = "";
       for (const r of rows) chunk += row(cols.map(c => (c === "participant_id" ? r.participant_id : r[c])));
-      reply.raw.write(chunk);
+      out.write(chunk);
     }
-    reply.raw.end();
-    return reply;
+    out.end();
   });
 
   /* -- wide format: one row per participant, one column per item ---------
@@ -138,8 +157,8 @@ export default async function exportRoutes(app) {
       }
     }
 
-    asCsv(reply, labels ? "wide_labels" : "wide");
-    reply.raw.write(BOM + row([...meta, ...itemIds]));
+    const out = beginCsv(reply, labels ? "wide_labels" : "wide");
+    out.write(BOM + row([...meta, ...itemIds]));
 
     for await (const batch of scanParticipants(where, params)) {
       const ids = batch.map(p => p.id);
@@ -170,10 +189,9 @@ export default async function exportRoutes(app) {
         });
         chunk += row([...metaVals, ...itemVals]);
       }
-      reply.raw.write(chunk);
+      out.write(chunk);
     }
-    reply.raw.end();
-    return reply;
+    out.end();
   });
 
   /* -- page dwell times --------------------------------------------------- */
@@ -181,8 +199,8 @@ export default async function exportRoutes(app) {
     const { where, params } = filters(req.query);
     const cols = ["participant_id", "short_code", "condition", "seg_order", "page_key",
                   "visit", "page_index", "dwell_ms", "entered_at", "left_at"];
-    asCsv(reply, "page_times");
-    reply.raw.write(BOM + row(cols));
+    const out = beginCsv(reply, "page_times");
+    out.write(BOM + row(cols));
     for await (const batch of scanParticipants(where, params)) {
       const { rows } = await pool.query(
         `SELECT t.*, p.short_code, p.condition, p.seg_order
@@ -192,10 +210,9 @@ export default async function exportRoutes(app) {
       );
       let chunk = "";
       for (const r of rows) chunk += row(cols.map(c => r[c]));
-      reply.raw.write(chunk);
+      out.write(chunk);
     }
-    reply.raw.end();
-    return reply;
+    out.end();
   });
 
   /* -- video gate telemetry ----------------------------------------------- */
@@ -203,8 +220,8 @@ export default async function exportRoutes(app) {
     const { where, params } = filters(req.query);
     const cols = ["participant_id", "short_code", "condition", "segment", "seg_position",
                   "video_id", "event", "detail", "position_s", "watch_s", "at"];
-    asCsv(reply, "video_events");
-    reply.raw.write(BOM + row(cols));
+    const out = beginCsv(reply, "video_events");
+    out.write(BOM + row(cols));
     for await (const batch of scanParticipants(where, params)) {
       const { rows } = await pool.query(
         `SELECT v.*, p.short_code, p.condition
@@ -214,10 +231,9 @@ export default async function exportRoutes(app) {
       );
       let chunk = "";
       for (const r of rows) chunk += row(cols.map(c => r[c]));
-      reply.raw.write(chunk);
+      out.write(chunk);
     }
-    reply.raw.end();
-    return reply;
+    out.end();
   });
 
   /* -- codebook: the instrument itself, so the CSVs are self-documenting ---
@@ -312,9 +328,8 @@ export default async function exportRoutes(app) {
   /* -- everything, as one JSON document ----------------------------------- */
   app.get("/api/export/all.json", async (req, reply) => {
     const { where, params } = filters(req.query);
-    reply.header("content-type", "application/json; charset=utf-8");
-    reply.header("content-disposition", `attachment; filename="study1_${stamp()}.json"`);
-    reply.raw.write('{"exportedAt":' + JSON.stringify(new Date().toISOString()) + ',"participants":[');
+    const out = beginJson(reply, "study1");
+    out.write('{"exportedAt":' + JSON.stringify(new Date().toISOString()) + ',"participants":[');
     let first = true;
     for await (const batch of scanParticipants(where, params)) {
       const ids = batch.map(p => p.id);
@@ -331,14 +346,13 @@ export default async function exportRoutes(app) {
       const A = group(answers), T = group(times), V = group(vids);
       for (const p of batch) {
         const { token, ...safe } = p;   // never export the bearer secret
-        reply.raw.write((first ? "" : ",") + JSON.stringify({
+        out.write((first ? "" : ",") + JSON.stringify({
           ...safe, responses: A.get(p.id), pageTimes: T.get(p.id), videoEvents: V.get(p.id)
         }));
         first = false;
       }
     }
-    reply.raw.write("]}");
-    reply.raw.end();
-    return reply;
+    out.write("]}");
+    out.end();
   });
 }

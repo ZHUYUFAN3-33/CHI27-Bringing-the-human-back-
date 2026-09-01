@@ -32,8 +32,12 @@ https://study1-survey.fly.dev/admin?token=<TOKEN>
 
 Allocation across the 42 cells (7 conditions × 6 segment orders), drop-off by
 page, recent participants, and the export panel. `Recount assigned` re-derives
-every counter from the participants table — run it after piloting and before
-recruitment opens.
+every counter from the participants table. The same recount also runs on its
+own, every five minutes on each machine (`ALLOCATION_RECONCILE_MS`), so a click
+that never became a participant gives its slot back after `STALE_MINUTES`
+without anyone watching, and a screen-out gives its slot back at once. The
+button is for after deleting rows, and for peace of mind before recruitment
+opens.
 
 ### Questionnaire preview — and where the wording is edited
 

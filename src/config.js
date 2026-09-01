@@ -66,6 +66,12 @@ export const config = {
      many minutes without contact, so a cell cannot be starved by drop-outs. */
   staleMinutes: int(process.env.STALE_MINUTES, 90),
 
+  /* How often each machine re-derives the allocation counters from the
+     participants table, giving back the slots of sessions that opened the link
+     and never answered (see staleMinutes above). 0 disables it and leaves the
+     dashboard's Recount button as the only way. */
+  allocationReconcileMs: int(process.env.ALLOCATION_RECONCILE_MS, 300_000),
+
   /* How often each machine checks whether the wording was published somewhere
      else. Two machines run behind the proxy, so without this a publish reaches
      only the machine that handled it and the other keeps serving the old

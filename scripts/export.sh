@@ -12,7 +12,7 @@ BASE="${BASE:-https://$APP.fly.dev}"
 OUT="exports/$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$OUT"
 
-for f in wide responses participants page_times video_events codebook; do
+for f in wide responses participants page_times video_events codebook instrument_overrides instrument_publications; do
   echo "==> $f.csv"
   curl -fsS -H "Authorization: Bearer $ADMIN_TOKEN" \
        "$BASE/api/export/$f.csv" -o "$OUT/$f.csv"

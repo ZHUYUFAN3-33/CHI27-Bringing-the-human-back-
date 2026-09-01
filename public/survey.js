@@ -7,7 +7,7 @@
    resolved for this one participant.
 --------------------------------------------------------------------------- */
 
-import { store, post, enqueue, flush, onStatus, pendingCount } from "/net.js";
+import { store, post, enqueue, flush, clearQueue, onStatus, pendingCount } from "/net.js";
 
 /* ------------------------------------------------------------------ state */
 
@@ -92,7 +92,11 @@ async function boot() {
 
   try {
     if (store.token) {
-      session = await post("/api/session/resume", {}).catch(() => null);
+      /* The platform identifiers travel with the resume too. A row that was
+         opened without them — the query string stripped by an in-app browser,
+         or the link pasted by hand — picks them up the first time the
+         participant arrives through the platform proper. */
+      session = await post("/api/session/resume", { params }).catch(() => null);
     }
     if (!session) {
       session = await post("/api/session/start", {
@@ -103,6 +107,11 @@ async function boot() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? null,
         language: navigator.language ?? null
       });
+      /* A fresh session means any save still queued from before belongs to a
+         token this browser no longer holds. It cannot be delivered, and left
+         in place it would sit at the head of the queue returning 401 forever,
+         holding every later page behind it. */
+      if (!session.resumed) clearQueue();
       store.token = session.token;
     }
   } catch (err) {
@@ -1001,8 +1010,18 @@ async function submit(btn) {
     btn.textContent = "Preview — nothing submitted";
     return;
   }
+  const page = S.plan.pages[S.page];
+  const miss = missingOn(page);
+  if (miss.length) { markMissing(miss); updateNext(); return; }
+
   btn.disabled = true;
   btn.textContent = "Submitting…";
+
+  /* This page has no Next, so nothing else ever saves it. Every page turn goes
+     through savePage; the debrief was the one page that did not, and the
+     follow-up question it carries — and, before it moved, the belief item —
+     reached the database for nobody. The dwell on this page went with it. */
+  savePage(page, null);
 
   /* The queue must land before the completion call, or the server would compute
      the quality flags from an incomplete record. */
@@ -1075,15 +1094,15 @@ function completionPage(code, redirectUrl, alreadyDone) {
     a.style.textDecoration = "none";
     a.textContent = "Return to the study platform";
     pageEl.append(a);
-    /* Two fallbacks, in the order a stuck participant would try them: the
-       button if the timed redirect did not fire, then the code if the return
-       itself fails. Naming the second one here is what keeps that person from
-       leaving without being paid. */
+    /* The return is the participant's own click, not a timer. The page used to
+       send itself to the platform after six seconds, which took the code off
+       the screen before anyone could copy it and left a person whose return
+       then failed with nothing to come back to. Naming the code as the
+       fallback here is what keeps that person from leaving without being paid. */
     pageEl.append(el("p", "hint",
-      "You will be returned automatically in a few seconds. If nothing happens, use the button above. " +
-      "If the return still does not work, enter the completion code above on the study platform instead — " +
+      "Press the button above to return to the study platform, which records your participation. " +
+      "If the return does not work, enter the completion code above on the study platform instead — " +
       "your answers are already saved either way."));
-    setTimeout(() => { location.href = redirectUrl; }, 6000);
   }
   barEl.style.width = "100%";
 }
