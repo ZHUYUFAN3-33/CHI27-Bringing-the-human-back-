@@ -75,6 +75,7 @@
     <input id="targetval" type="number" min="0" placeholder="loading…" inputmode="numeric" aria-label="Target per cell">
     <button id="settarget">Apply to all cells</button>
     <button id="cleartarget">Remove all caps</button>
+    <button id="purgetest" title="Deletes rows flagged as test data, with their answers. Real rows are never deleted from here.">Delete test rows…</button>
   </div>
   <div class="scroll"><table id="cells"></table></div>
   <p class="note">
@@ -282,6 +283,18 @@ $("#settarget").addEventListener("click", async () => {
 });
 $("#cleartarget").addEventListener("click", async () => {
   await api("/api/admin/allocation/target", { method: "POST", body: JSON.stringify({ all: true, target: 0 }) });
+  load();
+});
+/* Two round trips on purpose: the first, with an impossible confirm, only
+   reports how many flagged rows there are; the second sends that number back.
+   Real rows cannot be deleted this way — only ones already marked as test. */
+$("#purgetest").addEventListener("click", async () => {
+  const probe = await api("/api/admin/purge-test-rows", { method: "POST", body: JSON.stringify({ confirm: -1 }) });
+  const n = Number(probe.testRows ?? 0);
+  if (!n) { alert("There are no rows flagged as test data."); return; }
+  if (!confirm(`Delete ${n} rows flagged as test data, together with their answers?\nReal participants are untouched. This cannot be undone.`)) return;
+  const out = await api("/api/admin/purge-test-rows", { method: "POST", body: JSON.stringify({ confirm: n }) });
+  alert(out.deleted != null ? `Deleted ${out.deleted} test rows.` : `Nothing deleted: ${out.message ?? out.error}`);
   load();
 });
 

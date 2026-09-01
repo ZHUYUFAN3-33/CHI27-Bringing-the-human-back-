@@ -37,7 +37,9 @@ own, every five minutes on each machine (`ALLOCATION_RECONCILE_MS`), so a click
 that never became a participant gives its slot back after `STALE_MINUTES`
 without anyone watching, and a screen-out gives its slot back at once. The
 button is for after deleting rows, and for peace of mind before recruitment
-opens.
+opens. `Delete test rows…` removes the rows already flagged as test data,
+answers and all, after showing how many; a real row can only ever be flagged
+from the dashboard, never deleted.
 
 ### Questionnaire preview — and where the wording is edited
 

@@ -354,8 +354,10 @@ export default async function adminRoutes(app) {
   });
 
   /* Mark rows as test data so they drop out of every export and every count.
-     Nothing is ever deleted from here: destructive changes belong in psql,
-     over the tunnel, where they leave a trace in your own shell history. */
+     A real row is never deleted from here: the most the dashboard can do to
+     one is flag it, and the flag can be taken off again. Rows already flagged
+     can be purged, below. Anything else destructive belongs in psql, over the
+     tunnel, where it leaves a trace in your own shell history. */
   app.post("/api/admin/mark-test", async (req, reply) => {
     const ids = Array.isArray(req.body?.ids) ? req.body.ids.map(String) : [];
     const isTest = req.body?.isTest !== false;
@@ -365,6 +367,33 @@ export default async function adminRoutes(app) {
       [ids, isTest]
     );
     return { updated: rows.length };
+  });
+
+  /* Delete the rows already flagged as test data — answers, page times, video
+     events and submission go with them (ON DELETE CASCADE) — and nothing else.
+     A pilot leaves hundreds of flagged rows behind, and until now the only way
+     to clear them was psql over the tunnel. `confirm` has to equal the number
+     of rows that will go, so the caller has had to look first; a mismatch
+     returns that number and deletes nothing, which is also how the dashboard
+     asks before it acts. The counters are re-derived afterwards. */
+  app.post("/api/admin/purge-test-rows", async (req, reply) => {
+    const { rows: [{ n }] } = await q(`SELECT COUNT(*)::int AS n FROM participants WHERE is_test`);
+    if (Number(req.body?.confirm) !== n) {
+      return reply.code(409).send({
+        error: "confirm_mismatch",
+        testRows: n,
+        message: `Send confirm: ${n} — the number of rows flagged as test data that would be deleted.`
+      });
+    }
+    const { rowCount } = await q(`DELETE FROM participants WHERE is_test`);
+    await q(
+      `UPDATE allocation a
+          SET completed = (SELECT COUNT(*) FROM participants p
+                            WHERE p.cell = a.cell AND p.status = 'completed' AND NOT p.is_test)`
+    );
+    const cells = await reconcileAllocation();
+    req.log.warn({ deleted: rowCount }, "test rows purged");
+    return { deleted: rowCount, cells };
   });
 
   /* The design as the instrument defines it. The preview's control bar builds
