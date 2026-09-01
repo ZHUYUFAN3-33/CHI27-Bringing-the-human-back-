@@ -355,8 +355,6 @@ function renderSegment(p) {
   gate.innerHTML = `<span class="pip"></span><span id="gatetxt_${p.key}">Please watch the whole interaction. The questions below open when it has finished.</span>`;
   pageEl.append(gate);
 
-  if (p.desc) pageEl.append(tag(el("p", "qintro", esc(p.desc)), `segment.${p.segment}.desc`));
-
   const recap = conditionRecap();
   if (recap) pageEl.append(recap);
 

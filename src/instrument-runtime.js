@@ -257,10 +257,6 @@ export function applyOverrides(plan, ov = published) {
       });
     }
 
-    if (page.segment) {
-      const sd = g(`segment.${page.segment}.desc`);   if (sd != null) page.desc = sd;
-    }
-
     if (page.matrixInstruction != null) {
       const mi = g(`page.${page.key}.matrixInstruction`);
       if (mi != null) page.matrixInstruction = mi;
@@ -350,10 +346,6 @@ export function editableFieldsForPlan(plan, values = new Map()) {
       add(`text.personaHead.${who}`, `Persona heading — ${who}`, "Framing", d.personaHead);
       d.personaLines.forEach((line, n) =>
         add(`text.persona.${who}.${n}`, `Persona line ${n + 1} — ${who}`, "Framing", line.text));
-    }
-
-    if (page.segment) {
-      add(`segment.${page.segment}.desc`, `Clip description — ${page.segment}`, "Segments", page.desc);
     }
 
     if (page.matrixInstruction != null) {

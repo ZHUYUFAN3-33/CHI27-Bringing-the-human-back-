@@ -150,17 +150,27 @@ table.rank label.hit{display:block;padding:4px 0;cursor:pointer}
 .diagram{margin:4px 0 18px;padding:10px 8px 4px;background:var(--sheet);border:1px solid var(--rule);border-radius:4px}
 .diagram svg{display:block;width:100%;height:auto}
 
-/* The condition, restated above each clip. Quieter than the disclosure card
-   it mirrors — this is a reminder, not a second disclosure — but the bold the
-   framing text carries stays at full ink, because those are the words the
-   manipulation rides on. */
+/* The condition, restated above each clip. This is the manipulation, and it is
+   the one thing on the page a participant has to carry into every answer
+   below, so it is no longer the quietest panel on the sheet: it was --ink-2 at
+   13.5px on --sheet-alt, which is grey text on a grey box a few pixels under
+   an amber gate, and it read as a caption.
+
+   Full ink at 14.5px on a cool tint, with a solid left rule. Blue-slate rather
+   than the signal amber, which belongs to the gate immediately above it, or
+   the teal and red that gate uses for its own two states — a second amber
+   panel would compete with the one instruction the participant must act on.
+   By the time this is read the gate is in its quiet open state, so the two are
+   never both loud. Measured contrast is 15.1:1 for the body and 11.4:1 for the
+   bold, which is what the manipulation rides on. */
 .recap{
-  border:1px solid var(--rule);border-radius:4px;background:var(--sheet-alt);
-  padding:14px 16px;margin:0 0 16px;
+  border:1px solid #C3CFE2;border-left:4px solid #3C4E70;border-radius:4px;
+  background:#EEF2F9;
+  padding:16px 18px;margin:0 0 18px;
 }
-.recap p{font-size:13.5px;line-height:1.6;margin:0;color:var(--ink-2)}
-.recap p strong{color:var(--ink);font-weight:600}
-.recap .recap-profile{margin-top:10px;padding-top:10px;border-top:1px solid var(--rule)}
+.recap p{font-size:14.5px;line-height:1.65;margin:0;color:var(--ink)}
+.recap p strong{color:#22304A;font-weight:700}
+.recap .recap-profile{margin-top:12px;padding-top:12px;border-top:1px solid #C3CFE2}
 
 /* video + gate */
 .video{background:#0E1319;border-radius:4px;aspect-ratio:16/9;margin:0 0 18px;overflow:hidden}
@@ -268,9 +278,10 @@ tr.missing td{background:#FDF0EF}
     display:flex;justify-content:space-between;font-size:11px;color:var(--ink-2);
     margin:-2px 0 12px;gap:8px;
   }
-  /* Every pixel here is one the player loses on a 390px screen. */
-  .recap{padding:12px 14px;margin:0 0 14px}
-  .recap p{font-size:13px;line-height:1.55}
+  /* Every pixel here is one the player loses on a 390px screen — but this is
+     the manipulation, so it gives up padding rather than type size. */
+  .recap{padding:13px 15px;margin:0 0 15px}
+  .recap p{font-size:14px;line-height:1.6}
 
   table.rank th.actor{width:44%}
   table.rank td.actor{font-size:13px}

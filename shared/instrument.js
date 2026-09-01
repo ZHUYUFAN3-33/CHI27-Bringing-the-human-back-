@@ -187,13 +187,20 @@ export const ORDER_KEYS = Object.keys(ORDERS);
    different index in each segment so its position carries no information, and
    `correct` is stripped by publicPlan — the browser never receives the key.
 
+   Every option names its own subject and states something that happened. The
+   stem is fixed — "Which of the following happened in the interaction you just
+   watched?" — so an option that is a bare infinitive reads as an instruction
+   rather than an event, and a bare "She" has no referent on a page where the
+   only named party is OriHime. Both were true of ADV and REL: ADV listed four
+   unattributed infinitives and REL opened every option with an unintroduced
+   pronoun. The person is "The person"; advice is attributed to OriHime.
+
    Written from the v1.4 shooting script. The script flags segments R and A as
    reproduced from working text rather than diffed against the v1.2 master, so
    confirm each line against the audio of the final cut before recruiting. */
 export const SEGMENTS = {
   REL: {
     yt: "FM4xHwqv03M",
-    desc: "A person and OriHime have a casual conversation about recent life experiences.",
     neg: "Imagine that OriHime made a hurtful comment, leaving the person talking with Orihime to feel worse.",
     pos: "Imagine instead that OriHime made a thoughtful comment, leading the person talking with Orihime to feel better.",
     av1: {
@@ -202,32 +209,30 @@ export const SEGMENTS = {
          that may be recut for an autumn sample; the visit itself survives that
          edit, and is the more salient detail either way. */
       options: [
-        "She spent the whole weekend catching up on work.",
-        "She visited a botanical garden at the weekend.",
-        "She went to a concert with friends.",
-        "She was away travelling for most of the week."
+        "The person described spending the whole weekend catching up on work.",
+        "The person described visiting a botanical garden at the weekend.",
+        "The person described going to a concert with friends.",
+        "The person described being away travelling for most of the week."
       ],
       correct: 1
     }
   },
   ADV: {
     yt: "MkcK6cGjjwM",
-    desc: "A person describes work overload or work–life strain, and OriHime offers a recommendation.",
     neg: "Imagine that OriHime gave unsuitable advice on workload management, leading the situation of the person talking with Orihime to worsen.",
     pos: "Imagine instead that OriHime gave suitable advice on workload management, leading the situation of the person talking with Orihime to improve.",
     av1: {
       options: [
-        "Hand one of the projects over to a colleague.",
-        "Turn off notifications for the whole day.",
-        "Keep the first hour of the day for her own work.",
-        "Ask for the deadline to be moved back."
+        "OriHime suggested handing one of the projects over to a colleague.",
+        "OriHime suggested turning off notifications for the whole day.",
+        "OriHime suggested keeping the first hour of the day for her own work.",
+        "OriHime suggested asking for the deadline to be moved back."
       ],
       correct: 2
     }
   },
   COL: {
     yt: "hPlQYCCJ4do",
-    desc: "A person and OriHime discuss scheduling, responsibilities, and preparation for a small project.",
     neg: "Imagine that OriHime updated and printed the document incorrectly, leading the person talking with Orihime to incorrectly complete her task.",
     pos: "Imagine instead that OriHime updated and printed the document correctly, leading the person talking with Orihime to correctly complete her task.",
     av1: {
@@ -642,7 +647,6 @@ export function buildPlan(cond, order, optional) {
       segment: seg,
       segPosition: pos,
       video: { id: S.yt, duration: DURATION[seg] },
-      desc: S.desc,
       items
     });
   });
@@ -904,7 +908,6 @@ export function publicPlan(plan) {
       segment: p.segment ?? null,
       segPosition: p.segPosition ?? null,
       video: p.video ?? null,
-      desc: p.desc ?? null,
       items: p.items.map(stripItem)
     }))
   };
