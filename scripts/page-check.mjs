@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const dirs = ["private", "public"];
+const dirs = ["private", "public", "public/s2"];
 
 /* Scripts with a src= are files, and are checked as files elsewhere; a
    type= that is not JavaScript (importmap, application/json) is data. */

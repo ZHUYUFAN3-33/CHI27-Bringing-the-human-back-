@@ -152,7 +152,7 @@ By default the exports exclude test rows and anyone still `in_progress`.
 |---|---|
 | `include_test=1` | keep rows flagged as test data |
 | `status=in_progress` | in-progress participants instead of finished ones |
-| `usable_only=1` | completed, attention check passed, both manipulation checks passed |
+| `usable_only=1` | completed and attention check passed |
 | `since=2026-09-01` | started on or after a date |
 | `labels=1` | wide.csv writes answer labels instead of numbers |
 
@@ -242,6 +242,92 @@ All three must be **Unlisted** — not Private — with embedding allowed, or th
 gate never opens. The clips differ in length by a factor of 1.64, so clip
 duration is confounded with task type in any comparison across segments and
 belongs in the limitations.
+
+---
+
+## Study 2 — who is controlling OriHime?
+
+A second study on a **fresh sample**, served by the same app under `/s2`.
+Nobody is told how OriHime is controlled: page one says only that there are
+three ways it can be, and each of the three clips is followed by the same three
+questions — an open description, who they think is controlling the robot, and
+whether a person involved is thought to have a disability. Five pages:
+information · about OriHime · consent (one page), three clips, finish. The only
+randomised factor is the clip order, balanced across the same six permutations.
+
+Its own tables (`s2_*`), its own dashboard, its own exports, its own open/closed
+switch and its own Connect project. Nothing it does touches the Study 1 rows.
+
+### Participant
+
+| | |
+|---|---|
+| **Live study** — the link for the *new* CloudResearch project | https://study1-survey.fly.dev/s2/ |
+| **Pilot** — flagged as test data, kept out of every export, slot returned | https://study1-survey.fly.dev/s2/?test=1 |
+
+Connect appends `participantId` / `assignmentId` / `projectId` exactly as for
+Study 1. One row per platform participant, as before. **A platform id that
+already has a Study 1 row is refused** with a "you have already taken part in a
+related study" page (they have read one of Study 1's framings of who controls
+OriHime, which is the very thing this study asks people to guess). Set the
+Connect project to exclude Study 1's participants as well; the server check is
+the second line, not the first. `S2_EXCLUDE_STUDY1=false` switches it off.
+
+### Researcher
+
+```
+https://study1-survey.fly.dev/s2/admin?token=<TOKEN>
+https://study1-survey.fly.dev/s2/preview?token=<TOKEN>&order=O3
+```
+
+The dashboard shows, live, how the two forced-choice questions are being
+answered per clip (or per position shown), the length of the open descriptions,
+the most recent descriptions in full, allocation over the six orders, drop-off,
+and the export panel. The preview renders the five pages for any clip order and
+records nothing. **There is no wording editor for Study 2**: its text lives in
+`shared/s2-instrument.js` and changes with a deploy.
+
+### Exports
+
+```
+https://study1-survey.fly.dev/api/s2/export/wide.csv?token=<TOKEN>
+```
+
+| path | one row per |
+|---|---|
+| `/api/s2/export/participants.csv` | participant — order, `pos_REL/ADV/COL`, status, `complete_pass`, `text_chars` |
+| `/api/s2/export/responses.csv` | answer (long); the descriptions are in `value_text` |
+| `/api/s2/export/wide.csv` | participant, one column per item (`E1–E3`, `REL_IMP/WHO/DIS`, `ADV_…`, `COL_…`) |
+| `/api/s2/export/page_times.csv` | page visit |
+| `/api/s2/export/video_events.csv` | player event |
+| `/api/s2/export/codebook.csv` | item — coding and stem |
+| `/api/s2/export/all.json` | everything, nested |
+
+Same query parameters as Study 1: `include_test=1`, `status=`, `usable_only=1`
+(completed with every item answered), `since=`, `labels=1`. All at once:
+
+```bash
+ADMIN_TOKEN=<TOKEN> ./scripts/s2-export.sh
+```
+
+### Configuring the Connect project
+
+```bash
+fly secrets set -a study1-survey \
+  S2_COMPLETION_CODE="<code from the new Connect project>" \
+  S2_COMPLETION_REDIRECT_URL="https://connect.cloudresearch.com/participant/project/<id>/complete"
+fly secrets set -a study1-survey S2_STUDY_OPEN=false    # pause Study 2 only
+```
+
+Until the two secrets are set, the finish page shows each participant their
+own unique code and no return button. Study 1's `STUDY_OPEN`,
+`COMPLETION_CODE` and `COMPLETION_REDIRECT_URL` are untouched by any of this.
+
+### Checking it
+
+```bash
+node scripts/s2-simulate.mjs --n 20 --base https://study1-survey.fly.dev   # test rows only
+```
 
 ---
 

@@ -1,0 +1,38 @@
+/* Study 2 — what its pages need beyond /survey.css. */
+
+/* The open description: a box that grows with the answer, not a one-line
+   input. Same border, radius and type as the other fields. */
+textarea{
+  width:100%;min-height:120px;padding:10px 12px;border:1px solid var(--rule);border-radius:3px;
+  font-size:16px;line-height:1.5;font-family:var(--sans);background:var(--sheet);color:var(--ink);
+  resize:vertical;
+}
+.charhint{font-size:12px;color:var(--ink-2);margin:6px 0 0;line-height:1.5}
+.charhint.short{color:#B3261E}
+
+/* The three ways OriHime can be controlled, on page one. Numbered, each with
+   its name in bold and one sentence under it, so the list reads as three
+   alternatives and not as three facts about the same arrangement. */
+.methods{margin:0 0 14px;padding-left:22px}
+.methods li{margin:0 0 10px;font-size:15px;line-height:1.6}
+.methods li:last-child{margin-bottom:0}
+.methods li b{display:block;color:var(--ink)}
+.methods li span{color:var(--ink-2);font-size:14.5px}
+
+/* The about card lifts off the information sheet above it. */
+.about{margin:26px 0 0}
+.about h3{
+  margin:0 0 12px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  font-family:var(--mono);font-weight:600;color:var(--ink-2);
+}
+
+/* The reminder above the control question: quiet, not the dark panel Study 1
+   uses for its manipulation — there is no manipulation here to carry. */
+.note{
+  font-size:13.5px;line-height:1.55;color:var(--ink-2);
+  padding:11px 13px;background:var(--sheet-alt);border-left:2px solid var(--ink-2);
+  margin:26px 0 16px;
+}
+
+.consent{margin:30px 0 0;padding-top:24px;border-top:1px solid var(--rule)}
+.consent p.qintro{margin-bottom:16px}

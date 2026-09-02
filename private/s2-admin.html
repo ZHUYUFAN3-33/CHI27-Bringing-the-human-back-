@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Study 2 — collection dashboard</title>
+<style>
+  :root{
+    --chrome:#141A22; --chrome-2:#1D2530; --chrome-3:#2A3442;
+    --ink:#C9D2DE; --dim:#7C8899; --signal:#E8A33D; --live:#4ECDC4; --bad:#E5786F; --green:#4ADE80;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--chrome);color:var(--ink);font-family:var(--sans);font-size:14px}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 22px 80px}
+  h1{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin:0 0 4px;font-weight:600;font-family:var(--mono)}
+  .sub{color:var(--dim);font-size:12px;margin:0 0 24px;font-family:var(--mono)}
+  .sub a{color:var(--dim)}
+  h2{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);margin:30px 0 10px;font-family:var(--mono);font-weight:600}
+
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px}
+  .tile{background:var(--chrome-2);border:1px solid var(--chrome-3);border-radius:4px;padding:13px 14px}
+  .tile .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-family:var(--mono)}
+  .tile .v{font-size:26px;color:var(--live);font-variant-numeric:tabular-nums;line-height:1.25;margin-top:3px}
+  .tile .v.warn{color:var(--signal)} .tile .v.bad{color:var(--bad)} .tile .v.plain{color:var(--ink)}
+  .tile .n{font-size:11px;color:var(--dim);margin-top:2px}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px;font-family:var(--mono)}
+  th{text-align:left;color:var(--dim);font-weight:500;font-size:10px;letter-spacing:.08em;
+     text-transform:uppercase;padding:0 8px 7px;border-bottom:1px solid var(--chrome-3);white-space:nowrap}
+  td{padding:7px 8px;border-bottom:1px solid #222B36;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr:hover td{background:var(--chrome-2)}
+  td.num{text-align:right}
+  td.wrap{white-space:normal;font-family:var(--sans);line-height:1.5;max-width:560px}
+  .pill{display:inline-block;padding:1px 7px;border-radius:9px;font-size:10.5px;border:1px solid var(--chrome-3);color:var(--dim)}
+  .pill.ok{border-color:#2A6F66;color:var(--live)}
+  .pill.bad{border-color:#7A3A35;color:var(--bad)}
+  .pill.warn{border-color:#7A5F26;color:var(--signal)}
+
+  .bar{height:5px;background:var(--chrome-3);border-radius:3px;overflow:hidden;min-width:70px}
+  .bar i{display:block;height:100%;background:var(--live)}
+  .bar i.full{background:var(--signal)}
+  .hbar{display:flex;align-items:center;gap:8px}
+  .hbar .bar{flex:1}
+  .hbar span{min-width:74px;text-align:right}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  button,select,input{
+    background:var(--chrome-2);border:1px solid var(--chrome-3);color:var(--ink);
+    font-family:var(--mono);font-size:11.5px;padding:8px 12px;border-radius:3px;cursor:pointer;
+  }
+  button:hover{border-color:var(--dim)}
+  button[aria-pressed="true"]{background:var(--signal);color:#1A1206;border-color:var(--signal);font-weight:700}
+  input{cursor:text;width:90px}
+  a.dl{
+    display:inline-block;background:var(--chrome-2);border:1px solid var(--chrome-3);
+    color:var(--ink);text-decoration:none;font-family:var(--mono);font-size:11.5px;
+    padding:8px 12px;border-radius:3px;
+  }
+  a.dl:hover{border-color:var(--signal);color:var(--signal)}
+  .note{color:var(--dim);font-size:11.5px;line-height:1.65;margin:10px 0 0}
+  .note code{color:var(--ink);background:var(--chrome-2);padding:1px 5px;border-radius:3px}
+  .scroll{overflow-x:auto}
+  .closed{background:#3A2318;border:1px solid #7A5F26;color:var(--signal);padding:10px 14px;border-radius:4px;margin-bottom:18px;font-family:var(--mono);font-size:12px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media (max-width:900px){.two{grid-template-columns:1fr}}
+  .tally caption{text-align:left;color:var(--ink);font-size:12px;padding:0 0 8px;font-family:var(--sans)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Study 2 · who is controlling OriHime? · collection dashboard</h1>
+  <p class="sub" id="sub">loading…</p>
+  <div id="closedbanner"></div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <h2>Answers so far — completed participants</h2>
+  <div class="row">
+    <span style="color:var(--dim);font-size:11.5px">split by</span>
+    <button id="bySeg" aria-pressed="true">clip</button>
+    <button id="byPos" aria-pressed="false">position shown</button>
+  </div>
+  <div class="two">
+    <div class="scroll"><table id="tallyWho" class="tally"></table></div>
+    <div class="scroll"><table id="tallyDis" class="tally"></table></div>
+  </div>
+  <div class="scroll" style="margin-top:14px"><table id="tallyText" class="tally"></table></div>
+  <p class="note">
+    Counts are of completed, non-test participants. Each cell is <code>n (% of that column)</code>.
+    The open descriptions are summarised by length here and readable in full below and in
+    <code>responses.csv</code>.
+  </p>
+
+  <h2>Allocation — 6 clip orders</h2>
+  <div class="row">
+    <button id="reconcile">Recount assigned</button>
+    <span id="targetstate" style="color:var(--dim);font-size:11.5px">current target: loading…</span>
+    <input id="targetval" type="number" min="0" placeholder="loading…" inputmode="numeric" aria-label="Target per cell">
+    <button id="settarget">Apply to all cells</button>
+    <button id="cleartarget">Remove all caps</button>
+    <button id="purgetest" title="Deletes rows flagged as test data, with their answers. Real rows are never deleted from here.">Delete test rows…</button>
+  </div>
+  <div class="scroll"><table id="cells"></table></div>
+  <p class="note">
+    The only randomised factor is the order of the three clips. A new participant is given the least-filled
+    open order, ties broken at random. <code>usable</code> counts completions with every item answered.
+    Leave the targets at 0 and let the CloudResearch quota be the stop.
+  </p>
+
+  <h2>Drop-off by page</h2>
+  <div class="scroll"><table id="dropoff"></table></div>
+
+  <h2>Most recent participants</h2>
+  <div class="scroll"><table id="recent"></table></div>
+
+  <h2>Most recent descriptions</h2>
+  <div class="scroll"><table id="recenttext"></table></div>
+
+  <h2>Export</h2>
+  <div class="row" id="exports"></div>
+  <p class="note">
+    <code>wide.csv</code> is one row per participant with one column per item; <code>pos_REL</code>,
+    <code>pos_ADV</code>, <code>pos_COL</code> say where each clip was shown. <code>responses.csv</code> is long
+    format, with the descriptions in <code>value_text</code>. Add <code>?include_test=1</code> to include test
+    rows, <code>?usable_only=1</code> for the analysis sample, or <code>?labels=1</code> on the wide file for
+    option text instead of indices.
+  </p>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const n = v => (v == null ? "—" : Number(v).toLocaleString());
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const qs = new URLSearchParams(location.search);
+const TOKEN = qs.get("token") || "";
+const auth = TOKEN ? { authorization: "Bearer " + TOKEN } : {};
+const api = (p, opts) => fetch(p, { ...opts, headers: { "content-type": "application/json", ...auth, ...(opts?.headers||{}) } }).then(r => r.json());
+
+let DESIGN = null;
+let TALLY = null;
+let SPLIT = "seg";
+
+function tiles(d) {
+  const t = d.totals, pct = (a, b) => (b ? Math.round(a / b * 100) + "%" : "—");
+  const mins = t.median_seconds ? (t.median_seconds / 60).toFixed(1) + " min" : "—";
+  $("#tiles").innerHTML = [
+    ["Completed",        n(t.completed), "", `${pct(t.completed, t.total)} of ${n(t.total)} started`],
+    ["Usable",           n(t.usable), "", `${pct(t.usable, t.completed)} of completions`],
+    ["In progress",      n(t.in_progress), "plain", `${n(d.activeNow)} active in last 5 min`],
+    ["Screened out",     n(t.screened_out), "plain", "ineligible or declined"],
+    ["Thin descriptions", n(t.thin_text), t.thin_text > 0 ? "warn" : "plain", "under 60 characters in total"],
+    ["Median duration",  mins, "plain", "first to last answer"],
+    ["Median text",      t.median_text_chars != null ? n(t.median_text_chars) + " ch" : "—", "plain", "characters across the three descriptions"]
+  ].map(([k, v, cls, note]) =>
+    `<div class="tile"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div><div class="n">${note}</div></div>`
+  ).join("");
+
+  const t2 = TOKEN ? "?token=" + encodeURIComponent(TOKEN) : "";
+  $("#sub").innerHTML =
+    `instrument ${esc(d.instrumentVersion)} · recruitment ${esc(d.recruitment)} · ` +
+    `study 1 participants ${d.excludeStudy1 ? "refused" : "allowed"} · ` +
+    `<a href="/s2/preview${t2}">preview the pages</a> · <a href="/admin${t2}">study 1 dashboard</a> · ` +
+    `refreshed ${new Date().toLocaleTimeString()}`;
+  $("#closedbanner").innerHTML = d.studyOpen ? ""
+    : `<div class="closed">S2_STUDY_OPEN is false — new participants are being turned away. Anyone already in progress can still finish. Re-open with: fly secrets set S2_STUDY_OPEN=true</div>`;
+}
+
+/* One table per forced-choice item: rows are the options, columns the clips
+   (or the positions), each cell a count with the column percentage and a bar. */
+function tallyTable(elId, code, caption) {
+  if (!DESIGN || !TALLY) return;
+  const options = DESIGN.items[code].options;
+  const src = SPLIT === "seg" ? TALLY.bySegment : TALLY.byPosition;
+  const colKeys = SPLIT === "seg" ? DESIGN.segments : [1, 2, 3];
+  const colLabel = k => SPLIT === "seg" ? k : `shown ${k}${["st","nd","rd"][k-1]}`;
+  const keyOf = r => SPLIT === "seg" ? r.segment : Number(r.seg_position);
+  const cell = {};
+  const colTotal = {};
+  for (const r of src) {
+    if (r.code !== code) continue;
+    const k = keyOf(r);
+    cell[`${k}|${r.option}`] = Number(r.n);
+    colTotal[k] = (colTotal[k] ?? 0) + Number(r.n);
+  }
+  const head = `<caption>${esc(caption)}</caption><tr><th>option</th>` +
+    colKeys.map(k => `<th>${esc(colLabel(k))} <span style="color:var(--chrome-3)">·</span> n=${n(colTotal[k] ?? 0)}</th>`).join("") + `</tr>`;
+  const body = options.map((label, i) => `<tr><td class="wrap" style="max-width:260px">${esc(label)}</td>` +
+    colKeys.map(k => {
+      const v = cell[`${k}|${i}`] ?? 0, tot = colTotal[k] ?? 0;
+      const p = tot ? Math.round(v / tot * 100) : 0;
+      return `<td><div class="hbar"><div class="bar"><i style="width:${p}%"></i></div><span>${n(v)} (${tot ? p + "%" : "—"})</span></div></td>`;
+    }).join("") + `</tr>`).join("");
+  $(elId).innerHTML = head + body;
+}
+
+function tallyText() {
+  const rows = TALLY?.text ?? [];
+  $("#tallyText").innerHTML = `<caption>Open descriptions — length in characters</caption>
+    <tr><th>clip</th><th class="num">n</th><th class="num">median</th><th class="num">mean</th></tr>` +
+    rows.map(r => `<tr><td>${esc(r.segment)}</td><td class="num">${n(r.n)}</td>
+      <td class="num">${n(r.median_chars)}</td><td class="num">${n(r.mean_chars)}</td></tr>`).join("");
+}
+
+function tallies() {
+  tallyTable("#tallyWho", "WHO", "Who do you think is controlling OriHime in this video?");
+  tallyTable("#tallyDis", "DIS", "If a person is involved… do you think that person has a disability?");
+  tallyText();
+}
+
+function cellTable(cells) {
+  syncTargetControl(cells);
+  const head = `<tr><th>order</th><th>clips</th><th class="num">assigned</th>
+    <th class="num">completed</th><th class="num">usable</th><th class="num">in prog</th>
+    <th class="num">screened</th><th class="num">target</th><th style="width:110px">fill</th><th></th></tr>`;
+  const maxA = Math.max(1, ...cells.map(c => c.assigned));
+  const segsOf = o => (DESIGN?.orders.find(x => x.key === o)?.segments ?? []).join(" · ");
+  const body = cells.map(c => {
+    const denom = c.target > 0 ? c.target : maxA;
+    const pct = Math.min(100, Math.round(c.assigned / denom * 100));
+    const full = c.target > 0 && c.assigned >= c.target;
+    return `<tr>
+      <td>${esc(c.cell)}</td><td>${esc(segsOf(c.cell))}</td>
+      <td class="num">${n(c.assigned)}</td><td class="num">${n(c.completed)}</td>
+      <td class="num" style="color:var(--live)">${n(c.usable)}</td>
+      <td class="num">${n(c.in_progress)}</td><td class="num">${n(c.screened_out)}</td>
+      <td class="num">${c.target ? n(c.target) : "—"}</td>
+      <td><div class="bar"><i class="${full ? "full" : ""}" style="width:${pct}%"></i></div></td>
+      <td><span class="pill ${c.enabled ? "ok" : "bad"}" data-toggle="${esc(c.cell)}" data-on="${c.enabled}"
+            style="cursor:pointer">${c.enabled ? "open" : "closed"}</span></td>
+    </tr>`;
+  }).join("");
+  $("#cells").innerHTML = head + body;
+  $("#cells").querySelectorAll("[data-toggle]").forEach(p => p.addEventListener("click", async () => {
+    await api("/api/s2/admin/allocation/enabled", {
+      method: "POST", body: JSON.stringify({ cell: p.dataset.toggle, enabled: p.dataset.on !== "true" })
+    });
+    load();
+  }));
+}
+
+function syncTargetControl(cells) {
+  const input = $("#targetval"), state = $("#targetstate");
+  const targets = [...new Set(cells.map(c => Number(c.target)))];
+  input.disabled = targets.length === 0;
+  if (targets.length === 1) {
+    const target = targets[0];
+    input.value = String(target); input.placeholder = "";
+    state.textContent = target === 0 ? "current target: 0 (all cells uncapped)" : `current target: ${target} per cell`;
+    return;
+  }
+  input.value = ""; input.placeholder = "mixed";
+  state.textContent = "current target: mixed — applying a value will replace all cells";
+}
+
+function recentTable(rows) {
+  const head = `<tr><th>started</th><th>code</th><th>order</th><th>status</th>
+    <th class="num">items</th><th class="num">text chars</th><th>complete</th><th>external id</th></tr>`;
+  $("#recent").innerHTML = head + rows.map(r => {
+    const st = r.status === "completed" ? "ok" : r.status === "screened_out" ? "bad" : "warn";
+    const cp = r.complete_pass == null ? "" : `<span class="pill ${r.complete_pass ? "ok" : "bad"}">${r.complete_pass ? "all items" : "missing"}</span>`;
+    return `<tr>
+      <td>${new Date(r.started_at).toLocaleString()}</td>
+      <td>${esc(r.short_code)}</td><td>${esc(r.seg_order)}</td>
+      <td><span class="pill ${st}">${esc(r.status)}</span></td>
+      <td class="num">${n(r.answered_count)}</td>
+      <td class="num" style="color:${r.text_chars < 60 && r.status === "completed" ? "var(--signal)" : "inherit"}">${n(r.text_chars)}</td>
+      <td>${cp}</td>
+      <td>${esc(r.external_pid ?? "")}</td>
+    </tr>`;
+  }).join("");
+}
+
+function recentText(rows) {
+  const head = `<tr><th>when</th><th>code</th><th>clip</th><th>description</th><th>who</th><th>disability</th></tr>`;
+  $("#recenttext").innerHTML = head + rows.map(r => `<tr>
+      <td>${new Date(r.answered_at).toLocaleString()}</td>
+      <td>${esc(r.short_code)}</td>
+      <td>${esc(r.segment)} <span style="color:var(--dim)">#${esc(r.seg_position)}</span></td>
+      <td class="wrap">${esc(r.value_text)}</td>
+      <td class="wrap" style="max-width:180px">${esc(r.who ?? "—")}</td>
+      <td class="wrap" style="max-width:160px">${esc(r.disability ?? "—")}</td>
+    </tr>`).join("");
+}
+
+function dropTable(pages) {
+  const head = `<tr><th>page</th><th class="num">reached</th><th class="num">median dwell</th><th class="num">mean dwell</th><th style="width:200px"></th></tr>`;
+  const top = Math.max(1, ...pages.map(p => p.reached));
+  $("#dropoff").innerHTML = head + pages.map(p => `<tr>
+      <td>${esc(p.page_key)}</td>
+      <td class="num">${n(p.reached)}</td>
+      <td class="num">${p.median_dwell_s ?? "—"}s</td>
+      <td class="num">${p.mean_dwell_s ?? "—"}s</td>
+      <td><div class="bar"><i style="width:${Math.round(p.reached / top * 100)}%"></i></div></td>
+    </tr>`).join("");
+}
+
+function exportLinks() {
+  const t = TOKEN ? "?token=" + encodeURIComponent(TOKEN) : "";
+  const j = (p, extra) => p + (t ? t + (extra ? "&" + extra : "") : (extra ? "?" + extra : ""));
+  $("#exports").innerHTML = [
+    ["wide.csv (analysis)",    j("/api/s2/export/wide.csv")],
+    ["wide.csv (labels)",      j("/api/s2/export/wide.csv", "labels=1")],
+    ["wide.csv (usable only)", j("/api/s2/export/wide.csv", "usable_only=1")],
+    ["responses.csv (long)",   j("/api/s2/export/responses.csv")],
+    ["participants.csv",       j("/api/s2/export/participants.csv")],
+    ["page_times.csv",         j("/api/s2/export/page_times.csv")],
+    ["video_events.csv",       j("/api/s2/export/video_events.csv")],
+    ["codebook.csv",           j("/api/s2/export/codebook.csv")],
+    ["all.json",               j("/api/s2/export/all.json")]
+  ].map(([label, href]) => `<a class="dl" href="${href}">${label}</a>`).join("");
+}
+
+function panel(name, fn) {
+  try { fn(); } catch (e) { console.error(name, e); return name; }
+  return null;
+}
+
+async function load() {
+  let sum, drop, tally, text;
+  try {
+    if (!DESIGN) DESIGN = await api("/api/s2/admin/design").catch(() => null);
+    [sum, drop, tally, text] = await Promise.all([
+      api("/api/s2/admin/summary").catch(e => ({ error: e.message })),
+      api("/api/s2/admin/dropoff").catch(e => ({ error: e.message })),
+      api("/api/s2/admin/tally").catch(e => ({ error: e.message })),
+      api("/api/s2/admin/recent-text?limit=30").catch(e => ({ error: e.message }))
+    ]);
+  } catch (e) {
+    $("#sub").textContent = "could not reach the server: " + e.message;
+    return;
+  }
+  if (sum?.error === "unauthorized") {
+    $("#sub").textContent = "unauthorized — append ?token=<ADMIN_TOKEN> to the URL";
+    return;
+  }
+  if (tally?.bySegment) TALLY = tally;
+
+  const broken = [
+    sum?.totals && panel("tiles",   () => tiles(sum)),
+    sum?.cells  && panel("cells",   () => cellTable(sum.cells)),
+    sum?.recent && panel("recent",  () => recentTable(sum.recent)),
+    drop?.pages && panel("dropoff", () => dropTable(drop.pages)),
+    TALLY       && panel("tally",   tallies),
+    text?.rows  && panel("text",    () => recentText(text.rows)),
+    panel("exports", exportLinks)
+  ].filter(Boolean);
+  if (broken.length) $("#sub").textContent += "  ·  panels failed: " + broken.join(", ");
+}
+
+$("#bySeg").addEventListener("click", () => { SPLIT = "seg"; $("#bySeg").setAttribute("aria-pressed","true"); $("#byPos").setAttribute("aria-pressed","false"); tallies(); });
+$("#byPos").addEventListener("click", () => { SPLIT = "pos"; $("#bySeg").setAttribute("aria-pressed","false"); $("#byPos").setAttribute("aria-pressed","true"); tallies(); });
+
+$("#reconcile").addEventListener("click", async () => {
+  await api("/api/s2/admin/allocation/reconcile", { method: "POST" });
+  load();
+});
+$("#settarget").addEventListener("click", async () => {
+  const target = Number($("#targetval").value);
+  if (!Number.isInteger(target) || target < 0) return;
+  await api("/api/s2/admin/allocation/target", { method: "POST", body: JSON.stringify({ all: true, target }) });
+  load();
+});
+$("#cleartarget").addEventListener("click", async () => {
+  await api("/api/s2/admin/allocation/target", { method: "POST", body: JSON.stringify({ all: true, target: 0 }) });
+  load();
+});
+$("#purgetest").addEventListener("click", async () => {
+  const probe = await api("/api/s2/admin/purge-test-rows", { method: "POST", body: JSON.stringify({ confirm: -1 }) });
+  const k = Number(probe.testRows ?? 0);
+  if (!k) { alert("There are no rows flagged as test data."); return; }
+  if (!confirm(`Delete ${k} rows flagged as test data, together with their answers?\nReal participants are untouched. This cannot be undone.`)) return;
+  const out = await api("/api/s2/admin/purge-test-rows", { method: "POST", body: JSON.stringify({ confirm: k }) });
+  alert(out.deleted != null ? `Deleted ${out.deleted} test rows.` : `Nothing deleted: ${out.message ?? out.error}`);
+  load();
+});
+
+load();
+setInterval(load, 20000);
+</script>
+</body>
+</html>

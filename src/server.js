@@ -19,6 +19,10 @@ import {
   loadOverrides, watchOverrides, ensureInitialPublication,
   currentVersion, overrideCount, currentGeneration
 } from "./instrument-runtime.js";
+import s2Routes from "./s2/index.js";
+import { migrateS2 } from "./s2/db.js";
+import { watchS2Allocation } from "./s2/allocation.js";
+import { S2_VERSION } from "../shared/s2-instrument.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(here, "..");
@@ -149,7 +153,8 @@ app.get("/healthz", async (_req, reply) => {
       instrument: currentVersion(),
       overrides: overrideCount(),
       generation: currentGeneration(),
-      open: config.studyOpen
+      open: config.studyOpen,
+      s2: { instrument: S2_VERSION, open: config.s2StudyOpen }
     };
   } catch (err) {
     reply.code(503);
@@ -175,6 +180,18 @@ await app.register(async scope => {
   await scope.register(exportRoutes);
 });
 
+/* Study 2 lives under /s2 and /api/s2 with its own tables, its own dashboard
+   and its own exports; see src/s2/. It shares the process, the database, the
+   admin token and the rate limiter, and nothing else. */
+app.get("/api/s2/config", async () => ({
+  studyOpen: config.s2StudyOpen,
+  instrumentVersion: S2_VERSION,
+  recruitment: config.recruitment,
+  contact: config.contact || null,
+  funding: config.funding || null
+}));
+await app.register(s2Routes, { requireAdmin });
+
 /* ------------------------------------------------------------ asset version
    index.html is no-store, but it asked for /survey.js by that bare name, and
    the browser holds those for an hour. So a fix deployed mid-collection did not
@@ -185,34 +202,43 @@ await app.register(async scope => {
    file>. The name changes exactly when the contents change, so a deploy lands
    immediately and an unchanged file still comes from cache. */
 
-const ASSET_HASH = (() => {
+const hashOf = files => {
   const h = crypto.createHash("sha256");
-  for (const f of ["survey.js", "survey.css", "net.js"]) {
-    h.update(fs.readFileSync(path.join(rootDir, "public", f)));
-  }
+  for (const f of files) h.update(fs.readFileSync(path.join(rootDir, "public", f)));
   return h.digest("hex").slice(0, 12);
-})();
+};
+const ASSET_HASH = hashOf(["survey.js", "survey.css", "net.js", "net-core.js"]);
+/* Study 2's pages share the stylesheet and the transport core with Study 1
+   but carry their own runtime, so they get their own version that moves when
+   any of the four moves. */
+const S2_ASSET_HASH = hashOf(["s2/survey.js", "s2/s2.css", "survey.css", "net-core.js"]);
+const ASSET_HASHES = new Set([ASSET_HASH, S2_ASSET_HASH]);
+
+const ASSETS = {
+  study1: { hash: ASSET_HASH,    pattern: /(["'])\/(survey\.js|survey\.css|net\.js)\1/g },
+  s2:     { hash: S2_ASSET_HASH, pattern: /(["'])\/(s2\/survey\.js|s2\/s2\.css|survey\.css|net\.js)\1/g }
+};
 
 const htmlCache = new Map();
-function versionedHtml(dir, file) {
+function versionedHtml(dir, file, assets = ASSETS.study1) {
   const key = `${dir}/${file}`;
   if (!htmlCache.has(key)) {
     const src = fs.readFileSync(path.join(rootDir, dir, file), "utf8");
     htmlCache.set(key, src.replace(
-      /(["'])\/(survey\.js|survey\.css|net\.js)\1/g,
-      (_m, quote, name) => `${quote}/${name}?v=${ASSET_HASH}${quote}`
+      assets.pattern,
+      (_m, quote, name) => `${quote}/${name}?v=${assets.hash}${quote}`
     ));
   }
   return htmlCache.get(key);
 }
-function sendHtml(reply, dir, file) {
+function sendHtml(reply, dir, file, assets) {
   return reply
     .header("content-type", "text/html; charset=utf-8")
     .header("cache-control", "no-store")
-    .send(versionedHtml(dir, file));
+    .send(versionedHtml(dir, file, assets));
 }
 
-app.log.info({ assets: ASSET_HASH }, "asset version");
+app.log.info({ assets: ASSET_HASH, s2Assets: S2_ASSET_HASH }, "asset version");
 
 /* The researcher dashboard and the original design mockup both sit behind the
    admin token. The mockup is kept verbatim so the team can still compare cells
@@ -241,6 +267,15 @@ app.get("/editor", { onRequest: requireAdmin }, (req, reply) =>
 /* The entry page is served from memory so the asset URLs carry the version. */
 app.get("/", (_req, reply) => sendHtml(reply, "public", "index.html"));
 
+/* Study 2: participant entry (this is the link CloudResearch gets, with or
+   without the trailing slash), its dashboard, and a read-only preview of any
+   clip order. */
+const sendS2 = (_req, reply) => sendHtml(reply, "public", "s2/index.html", ASSETS.s2);
+app.get("/s2",  sendS2);
+app.get("/s2/", sendS2);
+app.get("/s2/admin",   { onRequest: requireAdmin }, (_req, reply) => reply.sendFile("s2-admin.html", path.join(rootDir, "private")));
+app.get("/s2/preview", { onRequest: requireAdmin }, (_req, reply) => sendHtml(reply, "private", "s2-preview.html", ASSETS.s2));
+
 /* Participant app. index.html is served for the survey routes so a refresh
    mid-survey does not 404. */
 await app.register(fastifyStatic, {
@@ -253,7 +288,7 @@ await app.register(fastifyStatic, {
     /* A versioned URL can be held as long as the browser likes: a change to the
        file changes the URL. Without ?v= it stays at the shorter default, so a
        direct hit on /survey.js is never frozen for a year. */
-    if (/\.(js|css)$/.test(filePath) && reply.request.query?.v === ASSET_HASH) {
+    if (/\.(js|css)$/.test(filePath) && ASSET_HASHES.has(reply.request.query?.v)) {
       reply.header("cache-control", "public, max-age=31536000, immutable");
     }
   }
@@ -261,6 +296,7 @@ await app.register(fastifyStatic, {
 
 app.setNotFoundHandler((req, reply) => {
   if (req.url.startsWith("/api/")) return reply.code(404).send({ error: "not_found" });
+  if (/^\/s2(\/|\?|$)/.test(req.url)) return sendS2(req, reply);
   return sendHtml(reply, "public", "index.html");
 });
 
@@ -277,9 +313,11 @@ app.setErrorHandler((err, req, reply) => {
 
 let stopWatching = () => {};
 let stopRecount  = () => {};
+let stopS2Recount = () => {};
 
 try {
   await migrate(app.log);
+  await migrateS2(app.log);
   /* An existing deployment already has wording live. Give it a publication row
      before anything reads the published set, or the first boot after this
      shipped would serve the instrument in code to everybody. */
@@ -294,13 +332,14 @@ try {
      cell is not starved for the rest of a launch by a handful of clicks that
      never became participants. */
   stopRecount = watchAllocation(app.log);
+  stopS2Recount = watchS2Allocation(app.log);
 } catch (err) {
   app.log.error({ err }, "migration failed");
   if (config.nodeEnv === "production") process.exit(1);
 }
 
 await app.listen({ port: config.port, host: config.host });
-app.log.info(`study1 survey listening on ${config.host}:${config.port} · instrument ${currentVersion()}`);
+app.log.info(`study1 survey listening on ${config.host}:${config.port} · instrument ${currentVersion()} · study 2 ${S2_VERSION}`);
 
 /* Fly sends SIGINT/SIGTERM before replacing a machine. Stop taking new work,
    let in-flight saves finish, then close the pool: a participant's page turn
@@ -313,6 +352,7 @@ for (const sig of ["SIGINT", "SIGTERM"]) {
     app.log.info(`${sig} received, draining`);
     stopWatching();
     stopRecount();
+    stopS2Recount();
     try { await app.close(); } catch (err) { app.log.error({ err }, "close failed"); }
     try { await pool.end(); } catch { /* already gone */ }
     process.exit(0);

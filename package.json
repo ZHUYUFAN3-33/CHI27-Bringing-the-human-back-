@@ -11,7 +11,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "migrate": "node src/migrate.js",
-    "check": "node --check src/server.js && node --check public/survey.js && node scripts/page-check.mjs && node scripts/plan-check.mjs && node -e \"import('./shared/instrument.js').then(m=>{const p=m.buildPlan('H1','O1',true);console.log('plan ok:',p.pages.length,'pages,',m.planItems(p).length,'items')})\""
+    "check": "node --check src/server.js && node --check public/survey.js && node --check public/s2/survey.js && node scripts/page-check.mjs && node scripts/plan-check.mjs && node scripts/s2-plan-check.mjs && node -e \"import('./shared/instrument.js').then(m=>{const p=m.buildPlan('H1','O1',true);console.log('plan ok:',p.pages.length,'pages,',m.planItems(p).length,'items')})\""
   },
   "dependencies": {
     "@fastify/compress": "^8.0.1",

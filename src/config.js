@@ -53,6 +53,18 @@ export const config = {
   /* Grant or funder to name on the information page. */
   funding: process.env.STUDY_FUNDING || "",
 
+  /* Study 2 — the perception study, served under /s2 ------------------------
+     Its own open/closed switch and its own Connect project (a different
+     completion code and redirect), so one study can be paused or paid without
+     touching the other. */
+  s2StudyOpen: bool(process.env.S2_STUDY_OPEN, true),
+  s2CompletionRedirectUrl: process.env.S2_COMPLETION_REDIRECT_URL || "",
+  s2CompletionCode: process.env.S2_COMPLETION_CODE || "",
+  /* Refuse a platform participant who already has a Study 1 row: they have
+     read one of its framings of who controls OriHime. Belt and braces with
+     the platform's own exclusion list. */
+  s2ExcludeStudy1: bool(process.env.S2_EXCLUDE_STUDY1, true),
+
   /* Ops -------------------------------------------------------------------- */
   rateLimitMax: int(process.env.RATE_LIMIT_MAX, 240),      // per participant token, per window
   /* /api/session/start has no token yet, so it is metered per IP. Raise this

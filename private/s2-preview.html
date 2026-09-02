@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Study 2 — page preview</title>
+<link rel="stylesheet" href="/survey.css">
+<link rel="stylesheet" href="/s2/s2.css">
+<link rel="icon" href="data:,">
+<style>
+  /* The participant runtime, with a bar on top to pick the clip order and jump
+     between the five pages. Nothing is recorded, and there is no wording editor
+     here: Study 2's text lives in shared/s2-instrument.js and changes with a
+     deploy. */
+  :root{ --chrome:#141A22; --chrome-2:#1D2530; --chrome-3:#2A3442;
+         --pale:#C9D2DE; --dim:#7C8899; --signal:#E8A33D; --live:#4ECDC4; --green:#4ADE80;
+         --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace; }
+  .bar{background:var(--chrome);color:var(--pale);padding:14px 18px 14px;font:13px/1.5 var(--mono)}
+  .bar h1{margin:0 0 10px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--green)}
+  .bar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+  .bar .lab{color:var(--dim);min-width:74px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .bar button{background:var(--chrome-2);color:var(--pale);border:1px solid var(--chrome-3);border-radius:3px;padding:6px 11px;font:inherit;cursor:pointer}
+  .bar button:hover{border-color:var(--dim)}
+  .bar button[aria-pressed="true"]{background:var(--signal);color:#1A1206;border-color:var(--signal);font-weight:700}
+  .bar .read{color:var(--dim)}
+  .bar .read b{color:var(--live);font-weight:600}
+  .bar a{color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>Study 2 · page preview — nothing is recorded</h1>
+  <div class="grp"><span class="lab">Clip order</span><span id="orders"></span></div>
+  <div class="grp"><span class="lab">Page</span><span id="pages"></span></div>
+  <div class="read" id="read">loading…</div>
+</div>
+
+<div class="stage">
+  <div class="sheet">
+    <div class="progress"><i id="bar" style="width:0%"></i></div>
+    <div class="sheetbody" id="page"><div class="loading" id="boot">Loading the preview…</div></div>
+    <div class="nav" id="nav" hidden>
+      <button class="btn sec" id="back" type="button">Back</button>
+      <span class="pos" id="poslabel"></span><span class="navwarn" id="navwarn"></span>
+      <button class="btn" id="next" type="button">Next</button>
+    </div>
+  </div>
+</div>
+<div class="savebar" id="savebar" role="status" aria-live="polite"></div>
+
+<script>
+  const qs = new URLSearchParams(location.search);
+  const TOKEN = qs.get("token") || "";
+  let ORDER = qs.get("order") || "O1";
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  window.__PREVIEW__ = {
+    token: TOKEN,
+    order: ORDER,
+    onLoaded(data) {
+      const d = data.design;
+      document.getElementById("read").innerHTML =
+        `order <b>${esc(d.order)}</b> · clips <b>${d.segOrder.join(" · ")}</b> · ` +
+        `instrument <b>${esc(d.instrumentVersion)}</b> · ${d.itemCount} stored items · ` +
+        `<a href="/s2/admin${TOKEN ? "?token=" + encodeURIComponent(TOKEN) : ""}">dashboard</a>`;
+      const pages = data.plan.pages;
+      document.getElementById("pages").innerHTML = pages.map((p, i) =>
+        `<button type="button" data-page="${i}">${i + 1} · ${esc(p.title)}</button>`).join("");
+      document.querySelectorAll("[data-page]").forEach(b =>
+        b.addEventListener("click", () => window.__previewGoto(Number(b.dataset.page))));
+    },
+    onPage(i) {
+      document.querySelectorAll("[data-page]").forEach(b =>
+        b.setAttribute("aria-pressed", String(Number(b.dataset.page) === i)));
+    }
+  };
+
+  fetch("/api/s2/admin/design", { headers: TOKEN ? { authorization: "Bearer " + TOKEN } : {} })
+    .then(r => r.json())
+    .then(d => {
+      const host = document.getElementById("orders");
+      host.innerHTML = d.orders.map(o =>
+        `<button type="button" data-order="${esc(o.key)}" aria-pressed="${o.key === ORDER}" title="${o.segments.join(" · ")}">${esc(o.key)}</button>`).join("");
+      host.querySelectorAll("[data-order]").forEach(b => b.addEventListener("click", () => {
+        ORDER = b.dataset.order;
+        host.querySelectorAll("[data-order]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+        const u = new URL(location.href); u.searchParams.set("order", ORDER); history.replaceState(null, "", u);
+        window.__previewLoad(ORDER, { keepPage: true });
+      }));
+    })
+    .catch(() => {});
+</script>
+<script type="module" src="/s2/survey.js"></script>
+</body>
+</html>
