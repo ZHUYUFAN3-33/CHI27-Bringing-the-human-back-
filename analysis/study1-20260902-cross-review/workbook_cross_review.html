@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Study 1 交叉复核版 · 2026-09-04</title>
+  <style>
+    :root{--ink:#17211d;--muted:#5d6a64;--paper:#f6f2e8;--card:#fffdf7;--line:#d9d3c5;--green:#167a58;--green-bg:#e9f6ef;--amber:#9a6500;--amber-bg:#fff4d7;--red:#b23b32;--red-bg:#fff0ed;--blue:#285f93;--blue-bg:#eef6ff;--shadow:0 18px 48px rgba(42,48,43,.09)}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:linear-gradient(180deg,#ece8dc 0,#f7f3e9 20rem);color:var(--ink);font:16px/1.7 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans CJK SC",sans-serif}
+    a{color:var(--blue)} code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace} code{font-size:.9em;background:#eee8da;border-radius:5px;padding:.08rem .3rem}
+    .hero{padding:4.5rem max(1.2rem,calc((100vw - 1180px)/2)) 3rem;background:radial-gradient(circle at 78% 15%,rgba(255,255,255,.20),transparent 32%),#173f35;color:#fff}
+    .kicker{font-size:.75rem;font-weight:800;letter-spacing:.17em;text-transform:uppercase;color:#bfe4d5} h1{font:700 clamp(2.1rem,5vw,4.6rem)/1.05 ui-serif,Georgia,"Noto Serif CJK SC",serif;margin:.7rem 0 1rem;max-width:950px} .hero p{max-width:850px;color:#e1eee8;font-size:1.08rem}
+    .badges{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.5rem} .badge{border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:.34rem .75rem;background:rgba(255,255,255,.08);font-size:.86rem}
+    nav{position:sticky;top:0;z-index:10;display:flex;gap:.3rem;overflow:auto;padding:.62rem max(1rem,calc((100vw - 1180px)/2));background:rgba(255,253,247,.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)} nav a{white-space:nowrap;text-decoration:none;color:var(--ink);font-size:.86rem;padding:.35rem .65rem;border-radius:7px} nav a:hover{background:#e9e4d8}
+    main{max-width:1180px;margin:0 auto;padding:2.3rem 1.2rem 5rem} section{margin:0 0 3.6rem} h2{font:700 2rem/1.2 ui-serif,Georgia,"Noto Serif CJK SC",serif;margin:0 0 1rem} h3{line-height:1.35} .lede{max-width:900px;color:var(--muted)}
+    .verdict-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin:1.5rem 0} .verdict{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.2rem;box-shadow:var(--shadow)} .verdict b{display:block;font-size:1.05rem} .verdict .big{font:700 2.2rem/1 ui-serif,Georgia,serif;margin:.55rem 0} .oktext{color:var(--green)} .warntext{color:var(--amber)} .badtext{color:var(--red)}
+    .bottom-line{background:#17211d;color:#f9f4e8;border-radius:18px;padding:1.5rem 1.6rem;margin:1.5rem 0} .bottom-line strong{color:#bfe4d5} .bottom-line p{margin:.4rem 0}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)} table{border-collapse:collapse;width:100%;min-width:720px} th,td{padding:.72rem .8rem;border-bottom:1px solid #e7e1d4;text-align:left;vertical-align:top} thead th{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;background:#eee9dd;position:sticky;top:0} tbody tr:last-child>*{border-bottom:0} td{font-variant-numeric:tabular-nums}
+    .pill{display:inline-block;padding:.13rem .52rem;border-radius:999px;font-size:.76rem;font-weight:800} .pill.pass{background:var(--green-bg);color:var(--green)} .pill.fail{background:var(--red-bg);color:var(--red)}
+    .flags{display:grid;gap:1rem} .flag{border:1px solid var(--line);border-left-width:6px;border-radius:12px;background:var(--card);overflow:hidden} .flag.high{border-left-color:var(--red)} .flag.medium{border-left-color:var(--amber)} .flag.low{border-left-color:var(--green)} .flag-head{display:flex;gap:.75rem;align-items:center;padding:1rem 1.1rem .45rem} .flag-head h3{margin:0;font-size:1.03rem} .signal{font-size:.68rem;letter-spacing:.09em;font-weight:900;border-radius:999px;padding:.18rem .5rem} .high .signal{background:var(--red-bg);color:var(--red)} .medium .signal{background:var(--amber-bg);color:var(--amber)} .low .signal{background:var(--green-bg);color:var(--green)} .flag-body{padding:0 1.1rem .9rem;color:#3f4a45} .flag-body p{margin:.3rem 0}
+    .forest{padding:1rem;background:var(--card);border:1px solid var(--line);border-radius:14px;margin:1.2rem 0} .forest-row{display:grid;grid-template-columns:180px minmax(260px,1fr) 170px;gap:1rem;align-items:center;padding:.7rem 0;border-bottom:1px solid #eee8dc} .forest-row:last-child{border:0} .forest-row small{display:block;color:var(--muted)} .track{height:28px;position:relative;background:linear-gradient(90deg,transparent 0 66.66%,rgba(22,122,88,.08) 66.66% 100%);border-bottom:1px solid #b9b1a2} .zero{position:absolute;top:0;bottom:0;width:1px;background:#17211d} .ci{position:absolute;top:13px;height:3px;background:var(--red)} .dot{position:absolute;top:8px;width:12px;height:12px;border-radius:50%;background:var(--red);transform:translateX(-6px);box-shadow:0 0 0 3px var(--red-bg)}
+    .note{border-radius:12px;padding:1rem 1.15rem;background:var(--blue-bg);border:1px solid #c9def1} .quote-review{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(320px,1.3fr);gap:1rem;margin:1rem 0} .quote{background:#ede7d9;border-radius:12px;padding:1rem;color:#493f33} .review{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1rem} .review b{color:var(--red)}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem} .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.25rem} .card h3{margin-top:0} .callout{background:var(--amber-bg);border:1px solid #e8d39b;border-radius:12px;padding:1rem 1.2rem}
+    .copy{background:#f0ede5;border-left:4px solid var(--green);padding:1.1rem 1.3rem;border-radius:0 12px 12px 0} details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.8rem 1rem;margin:.75rem 0} summary{font-weight:800;cursor:pointer} footer{color:var(--muted);font-size:.86rem;border-top:1px solid var(--line);padding-top:1.2rem}
+    @media(max-width:900px){.verdict-grid{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}.forest-row{grid-template-columns:125px minmax(190px,1fr)}.forest-row .mono{grid-column:2}.quote-review{grid-template-columns:1fr}}
+    @media(max-width:560px){.verdict-grid{grid-template-columns:1fr}.hero{padding-top:3rem}main{padding-inline:.8rem}}
+    @media print{nav{display:none}body{background:#fff}.hero{padding:2rem;color:#000;background:#fff;border-bottom:2px solid #000}.hero p,.kicker{color:#333}.verdict,.flag,.card{box-shadow:none}details{break-inside:avoid}}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="kicker">Independent cross-review · 2026-09-04</div>
+    <h1>Study 1 分析手册<br>交叉复核版</h1>
+    <p>以原 <a href="../study1-20260902/workbook.html" style="color:#d7f2e7">workbook.html</a> 为蓝本，独立核对原始导出、派生数据、主结果与解释边界。原报告及其代码、日志均未修改；本页只在新的 sibling 目录中生成。</p>
+    <div class="badges"><span class="badge">原始完成者 300</span><span class="badge">主样本 272</span><span class="badge">C3 人类条件 n=236</span><span class="badge">50,000 次随机化复核</span></div>
+  </header>
+  <nav><a href="#verdict">结论</a><a href="#disability">残障复核</a><a href="#flags">疑点标记</a><a href="#equivalence">等价 / BF</a><a href="#design">设计解释</a><a href="#other">其他发现</a><a href="#writing">建议写法</a><a href="#audit">审计</a></nav>
+  <main>
+    <section id="verdict">
+      <h2>先给结论</h2>
+      <p class="lede">“残障告知没有达到统计显著”可以复现；“残障没有效应”则超出了这项设计和当前精度。最稳妥的判断是：<b>没有发现算错，但原 artifact 对 null 的叙述偏强。</b></p>
+      <div class="verdict-grid">
+        <div class="verdict"><b>数据与编码</b><div class="big oktext">通过</div><span>原始表、派生表、条件映射和合成分一致。</span></div>
+        <div class="verdict"><b>C3 两侧显著性</b><div class="big oktext">未显著</div><span>四个主结果 LMM 均 p ≥ .112。</span></div>
+        <div class="verdict"><b>“近似零”证据</b><div class="big warntext">有限</div><span>OH 较清楚；AU1/CR1 仍兼容 d≈−.5。</span></div>
+        <div class="verdict"><b>因果外推</b><div class="big badtext">应收窄</div><span>只适用于这次显式、单句、带能力保证的披露。</span></div>
+      </div>
+      <div class="bottom-line"><strong>一句话复核结论</strong><p>在 H/HA 条件里，显式披露智力或行动残障相对“不提及”没有产生可检出的平均效应；但 AU1 与 CR1 的多种参与者层方法落在 p=.064–.088，95% CI 仍允许约半个 SD 的负效应，且操纵接收并未被直接验证。</p></div>
+    </section>
+
+    <section id="disability">
+      <div class="kicker" style="color:var(--green)">C3 · disability disclosure</div>
+      <h2>残障结果：数值是真的，解释需要降一档</h2>
+      <p class="lede">下表把原主 LMM、独立参与者层 HC3、原 cluster bootstrap、按实际随机化结构置换 profile 的随机化检验，以及原协变量调整并列。没有一种预先合理的方法给出两侧 p&lt;.05；但 AU1/CR1 明显不是“精确的零”。</p>
+      <div class="forest">
+        <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:.78rem;margin-left:180px"><span>d = −.60</span><span>95% CI；竖线 = 0</span><span>d = +.30</span></div>
+
+      <div class="forest-row">
+        <div><b>OriHime 综合评价</b><small>OH</small></div>
+        <div class="track" aria-label="d -0.10, 95% CI -0.37 to +0.17">
+          <span class="zero" style="left:66.67%"></span>
+          <span class="ci" style="left:25.16%;width:60.51%"></span>
+          <span class="dot" style="left:55.41%"></span>
+        </div>
+        <div class="mono">-0.10 [-0.37, +0.17]</div>
+      </div>
+      <div class="forest-row">
+        <div><b>互动真实感</b><small>AU1</small></div>
+        <div class="track" aria-label="d -0.24, 95% CI -0.51 to +0.03">
+          <span class="zero" style="left:66.67%"></span>
+          <span class="ci" style="left:9.58%;width:60.66%"></span>
+          <span class="dot" style="left:39.91%"></span>
+        </div>
+        <div class="mono">-0.24 [-0.51, +0.03]</div>
+      </div>
+      <div class="forest-row">
+        <div><b>操作员温暖</b><small>CR1</small></div>
+        <div class="track" aria-label="d -0.25, 95% CI -0.52 to +0.03">
+          <span class="zero" style="left:66.67%"></span>
+          <span class="ci" style="left:8.92%;width:60.67%"></span>
+          <span class="dot" style="left:39.26%"></span>
+        </div>
+        <div class="mono">-0.25 [-0.52, +0.03]</div>
+      </div>
+      <div class="forest-row">
+        <div><b>操作员能力</b><small>CR2</small></div>
+        <div class="track" aria-label="d -0.14, 95% CI -0.41 to +0.13">
+          <span class="zero" style="left:66.67%"></span>
+          <span class="ci" style="left:20.94%;width:60.54%"></span>
+          <span class="dot" style="left:51.21%"></span>
+        </div>
+        <div class="mono">-0.14 [-0.41, +0.13]</div>
+      </div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>结果</th><th>原 LMM Δ [95% CI]</th><th>d [95% CI]</th><th>LMM p</th><th>参与者 HC3 p</th><th>bootstrap p</th><th>随机化 p</th><th>原调整 LMM Δ / p</th></tr></thead>
+        <tbody><tr><th>OriHime 综合评价 <code>OH</code></th><td>-0.09 [-0.35, +0.17]</td><td>-0.10 [-0.37, +0.17]</td><td>.491</td><td>.474</td><td>.487</td><td>.468</td><td>+0.07 / .502</td></tr><tr><th>互动真实感 <code>AU1</code></th><td>-0.29 [-0.64, +0.07]</td><td>-0.24 [-0.51, +0.03]</td><td>.112</td><td>.074</td><td>.066</td><td>.086</td><td>-0.10 / .570</td></tr><tr><th>操作员温暖 <code>CR1</code></th><td>-0.21 [-0.48, +0.05]</td><td>-0.25 [-0.52, +0.03]</td><td>.114</td><td>.066</td><td>.064</td><td>.074</td><td>-0.18 / .166</td></tr><tr><th>操作员能力 <code>CR2</code></th><td>-0.11 [-0.34, +0.12]</td><td>-0.14 [-0.41, +0.13]</td><td>.342</td><td>.318</td><td>.320</td><td>.313</td><td>-0.03 / .754</td></tr></tbody>
+      </table></div>
+      <div class="note" style="margin-top:1rem"><b>怎么看：</b>两侧 .05 阈值下应报告 null result；但“未显著”不等于“估计为零”。所有四个未调整点估计都为负，AU1/CR1 的参与者层 p 约 .06–.09。因为四个结果高度相关，这个方向一致性是一个需要预注册复现的线索，不应在本样本改成单侧检验来追显著。</div>
+      <div class="two-col" style="margin-top:1.2rem">
+        <div class="card"><h3>当前精度</h3><p>人类格子中，告知 n=159，不提及 n=77。普通两组近似下，80% power 的最小可检出效应约 <b>d=0.39</b>；若真实 d=.24，当前 power 约 <b>41%</b>。所以它能较好排除大效应，不能稳定检出小效应。</p></div>
+        <div class="card"><h3>样本筛选不是主要解释</h3><p>C3 相关的 usable 比例为：告知 91.9%，不提及 92.8%，Fisher p=1.000。排除在两组间基本相当；原报告的 all-completers 敏感性也保持同方向。</p></div>
+      </div>
+    </section>
+
+    <section id="flags">
+      <h2>对原 artifact 的疑点标记</h2>
+      <p class="lede">HIGH 表示会改变可以声称的结论；MEDIUM 表示数值不一定错，但证据强度或方法标签需要收窄。</p>
+      <div class="flags"><article class="flag high"><div class="flag-head"><span class="signal">HIGH</span><h3>C3 的处理变量是“显式告知 vs 不提及”，不是“残障 vs 无残障”</h3></div><div class="flag-body"><p>H1/HA1 从未说操作员没有残障。参与者完全可能把“不提及”理解为未知，甚至因为前一页刚回答了 9 个残障刻板印象题而主动想到残障。可识别的因果结论只到：<b>在这套材料中，多加一句残障标签的平均增量效应</b>。</p></div></article><article class="flag high"><div class="flag-head"><span class="signal">HIGH</span><h3>“被读到、被相信”没有被直接测量</h3></div><div class="flag-body"><p>D1 只有一个强制选项“I have read it”；停留时间是整页时长，而且告知组本来就多一句话；BEL1 问的是对整段 operator description 的总体相信程度，并没有让参与者回忆 disability 内容。三者都不能证明残障标签被注意、记住并相信。</p></div></article><article class="flag high"><div class="flag-head"><span class="signal">HIGH</span><h3>材料本身会主动削弱残障标签效应</h3></div><div class="flag-body"><p>披露前先问“people with disabilities”的 9 个 SCM 题；披露句后又立即说明“所有操作员完成同样训练并达到同样标准”；之后观看的是流畅、相同的影片。人类条件 CR2 有 <b>73.3%</b> 的评分 ≥ 6。这个 null 更像是<b>弱标签 + 强反刻板能力保证 + 高能力行为证据</b>的联合结果。</p></div></article><article class="flag high"><div class="flag-head"><span class="signal">HIGH</span><h3>D1/D2 不能排除“标签在第一段影片内就被覆盖”</h3></div><div class="flag-body"><p>第一次因变量测量发生在完整观看 70–115 秒影片之后，没有披露后、影片前的基线。第一段结果接近零只能说明<b>看完第一段时</b>没有差异，不能证明标签从未即时起效，也不能靠位置轨迹否定快速覆盖机制。</p></div></article><article class="flag medium"><div class="flag-head"><span class="signal">MEDIUM</span><h3>AU1 与 CR1 仍兼容小到中等负效应</h3></div><div class="flag-body"><p>主模型 p 分别为 .112、.114；但参与者均值 HC3 为 .074、.066，原报告 bootstrap 为 .066、.064。两者 d≈−.24/−.25，95% CI 下界约 −.51/−.52。它们确实没有越过 .05，但也不是精确的零。</p></div></article><article class="flag medium"><div class="flag-head"><span class="signal">MEDIUM</span><h3>等价界限来自可检测效应，不是实质性最小重要差异</h3></div><div class="flag-body"><p>±0.35 SD 只有 OH 通过；其余主要结果只能在较宽的 ±0.50 SD 界内通过。把研究的 MDE 直接当 SESOI 会让“设备能看见多大”替代“多大才重要”。论文应先给出领域依据，再决定是否用“等价”这个词。</p></div></article><article class="flag medium"><div class="flag-head"><span class="signal">MEDIUM</span><h3>BIC Bayes factor 把 708 行当成了 708 个信息单位</h3></div><div class="flag-body"><p>残障是人际变量，独立随机化单位是 236 人。原 MixedLM BIC 使用 clip rows 作为 n；在参与者均值上重算后，AU1/CR1 的 BF01 从约 6 降到约 3，CR2/CR3 从“强”降到“中等”。它仍偏向 null，但不足以无条件“升级”为无效应。</p></div></article><article class="flag medium"><div class="flag-head"><span class="signal">MEDIUM</span><h3>基线年龄失衡很大，调整结果与未调整结果应并列</h3></div><div class="flag-body"><p>告知组平均 38.8 岁，不提及组 46.1 岁，SMD=-0.53（Welch p&lt;.001）。GAAIS 正向态度也有 SMD≈−.24。协变量调整使估计缩小，但它是事后选择的敏感性分析；不能据此宣布原始差异“就是”失衡造成。</p></div></article></div>
+    </section>
+
+    <section id="equivalence">
+      <h2>等价性与 Bayes factor：可以辅助，不能兜底</h2>
+      <h3>TOST</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>结果</th><th>d [90% CI]</th><th>±0.35 SD</th><th>±0.50 SD</th></tr></thead><tbody><tr><th>OriHime 综合评价</th><td>-0.10 [-0.33, +0.13]</td><td>.040 · <b>通过</b></td><td>.003 · <b>通过</b></td></tr><tr><th>互动真实感</th><td>-0.24 [-0.47, -0.01]</td><td>.203 · <b>未通过</b></td><td>.025 · <b>通过</b></td></tr><tr><th>操作员温暖</th><td>-0.25 [-0.48, -0.02]</td><td>.217 · <b>未通过</b></td><td>.029 · <b>通过</b></td></tr><tr><th>操作员能力</th><td>-0.14 [-0.37, +0.09]</td><td>.064 · <b>未通过</b></td><td>.005 · <b>通过</b></td></tr></tbody>
+      </table></div>
+      <p class="callout"><b>复核意见：</b>原报告说“C3 在 ±0.50 SD 内等价”在计算上成立；但 ±0.50 是中等效应的宽边界，而且 AU1/CR1/HM 的结果靠近边缘。更关键的是，边界来自本设计的 sensitivity/MDE，不是外部定义的最小重要效应。建议写“排除大于约半个 SD 的效应”，不要直接写“无实际效应”。</p>
+      <h3>BIC 近似 BF01</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>结果</th><th>原报告（clip rows 作 n）</th><th>参与者均值重算（n=236）</th><th>膨胀比</th></tr></thead><tbody><tr><th>OriHime 综合评价</th><td>20.3</td><td>11.7</td><td>1.73×</td></tr><tr><th>互动真实感</th><td>6.0</td><td>3.5</td><td>1.73×</td></tr><tr><th>操作员温暖</th><td>5.5</td><td>3.2</td><td>1.73×</td></tr><tr><th>操作员能力</th><td>16.0</td><td>9.2</td><td>1.73×</td></tr><tr><th>操作员掌控</th><td>13.2</td><td>7.6</td><td>1.73×</td></tr><tr><th>绩效期望</th><td>9.6</td><td>9.6</td><td>1.00×</td></tr><tr><th>享乐动机</th><td>2.8</td><td>2.8</td><td>1.00×</td></tr></tbody>
+      </table></div>
+      <p class="lede">参与者均值重算仍普遍偏向 null，但力度更温和：AU1/CR1 约 3:1，CR2/CR3 约 8–9:1，OH 约 12:1。所有 BIC-BF 都依赖 unit-information prior；不宜把它写成不依赖先验的“20 倍证明”。</p>
+    </section>
+
+    <section id="design">
+      <h2>为什么这个 null 没那么反常</h2>
+      <div class="quote-review"><div class="quote">披露前：<b>“About people with disabilities”</b><br>连续 9 个 competence / warmth 刻板印象题。</div><div class="review"><b>需求特征 / 启动</b><br>所有组在看到操纵前都被明显提醒“残障”是研究主题。H1/HA1 因而不是心理意义上的真正 unmarked control，也可能提高社会期许作答。</div></div>
+      <div class="quote-review"><div class="quote">披露后：<b>“All operators complete the same training and meet the same standard …”</b></div><div class="review"><b>反刻板能力保证</b><br>这句话紧跟残障标签，等于直接告诉参与者能力达标。如果研究目标是测试能力刻板印象，它很可能主动中和 CR2 甚至相邻评价的差异。</div></div>
+      <div class="quote-review"><div class="quote">操纵：一行粗体标签，只出现一次；随后完整观看相同影片。</div><div class="review"><b>弱且一次性的处理</b><br>检验对象不是可见残障，也不是反复提醒后的身份线索。效果被具体、流畅行为证据覆盖并不奇怪；而且第一项结果只在看完影片后测。</div></div>
+      <div class="quote-review"><div class="quote">BEL1：相信“the description of the OriHime operator”。</div><div class="review"><b>复合而非 disability-specific</b><br>描述还包含控制方式、经验、频率、培训标准。高 BEL1 可能只是相信其中大部分，并不等于相信或记住那一句残障标签。</div></div>
+      <h3>基线失衡</h3>
+      <div class="table-wrap"><table><thead><tr><th>变量</th><th>告知</th><th>不提及</th><th>SMD</th><th>Welch p</th></tr></thead><tbody><tr><th>BG_age</th><td>38.78</td><td>46.06</td><td>-0.53</td><td>&lt;.001</td></tr><tr><th>GAAIS_pos</th><td>4.78</td><td>5.12</td><td>-0.24</td><td>.078</td></tr><tr><th>NARS</th><td>3.84</td><td>3.69</td><td>+0.13</td><td>.323</td></tr><tr><th>SCM_comp</th><td>5.07</td><td>5.29</td><td>-0.23</td><td>.110</td></tr><tr><th>SCM_warm</th><td>5.31</td><td>5.39</td><td>-0.08</td><td>.562</td></tr></tbody></table></div>
+      <p class="lede">年龄差是最明显的一项（不提及组约大 7.3 岁）。随机化保证长期无偏，不保证这一次样本完全平衡。原协变量分析值得保留，但应和未调整的随机化估计并列，而不是让它单独裁决。</p>
+    </section>
+
+    <section id="other">
+      <h2>原报告其他部分的交叉复核</h2>
+      <div class="flags">
+        <article class="flag medium"><div class="flag-head"><span class="signal">MEDIUM</span><h3>“confirmatory”标签应改成“analysis-plan primary”</h3></div><div class="flag-body"><p>主样本、结果和对比是在数据收完后、未外部预注册的情况下锁定；且描述性 pass 已经发生。代码日志透明，这是优点，但严格意义上不能获得预注册 confirmatory 的证据等级。</p></div></article>
+        <article class="flag medium"><div class="flag-head"><span class="signal">MEDIUM</span><h3>C1 的 power 叙述用了 all-completers 人数</h3></div><div class="flag-body"><p>手册写 256 vs 44、MDE≈.46；主样本实际为 236 vs 36，对应两组近似 MDE≈.50。差异不改变 AU1 结论，但会轻微高估主分析对 AI-only 对比的精度。</p></div></article>
+        <article class="flag medium"><div class="flag-head"><span class="signal">MEDIUM</span><h3>AU1 题目与 AI-only 操纵存在语义贴近</h3></div><div class="flag-body"><p>“felt genuine, rather than like the execution of a program” 几乎直接呼应“entirely by an AI system”。AU1 的强 C1 效应可以是真实感知，也可能含有需求一致性；它不应被当作与操纵语义完全独立的结果。</p></div></article>
+        <article class="flag medium"><div class="flag-head"><span class="signal">MEDIUM</span><h3>归因排名跨 H/HA 改变了选项集合</h3></div><div class="flag-body"><p>H 有 3 个角色，HA 多出 AI，operator 排第一的 odds 自然会下降。用共同角色作锚后，operator 相对 ORG/USER 仍从责任 72.3%→60.7%、功劳 71.2%→60.2%（p=.022/.032），所以方向不全是机械结果；但“odds 减半”仍混合了真实再分配与增加竞争选项两部分。</p></div></article>
+        <article class="flag low"><div class="flag-head"><span class="signal">LOW</span><h3>主 LMM 本身可复现</h3></div><div class="flag-body"><p>四个主结果和 CR3 的 REML 模型均重新拟合并收敛；随机截距方差非零。原始导出到合成分也一致。未看到足以推翻主表的实现错误。</p></div></article>
+      </div>
+      <details><summary>共同角色锚定的归因复核表</summary><div class="table-wrap" style="margin-top:.8rem"><table><thead><tr><th>问题</th><th>H：operator 胜过 ORG/USER</th><th>HA</th><th>OR</th><th>p</th></tr></thead><tbody><tr><th>责任</th><td>72.3%</td><td>60.7%</td><td>0.59</td><td>.022</td></tr><tr><th>功劳</th><td>71.2%</td><td>60.2%</td><td>0.61</td><td>.032</td></tr></tbody></table></div></details>
+    </section>
+
+    <section id="writing">
+      <h2>建议替换成的论文表述</h2>
+      <h3>中文判断</h3>
+      <div class="copy"><p>在六个人类操作员条件中，与不提供残障信息相比，显式说明操作员有智力残障或行动相关残障，并未在四个主结果上产生统计上可检出的平均差异（双侧 p ≥ .112）。四个未调整点估计均为负；其中真实感和温暖的效应约为 d = −.24 与 −.25，95% 置信区间仍延伸至约 −.51 与 −.52，参与者均值与 bootstrap 分析的 p 值约为 .06–.09。因此，本研究较能排除大效应，但不能把小到中等的负效应视为已经排除。该结论只适用于本研究的一次性文字披露、同等培训保证及随后呈现的称职行为，不能推广为“残障身份本身没有影响”。</p></div>
+      <h3>English draft</h3>
+      <div class="copy"><p>Within the six human-operator conditions, explicitly disclosing an intellectual or mobility-related disability, compared with omitting disability information, did not produce statistically detectable average differences in the four primary outcomes (two-sided ps ≥ .112). All four unadjusted point estimates were negative. For genuineness and warmth, the estimates were approximately d = −.24 and −.25, with 95% confidence intervals extending to about −.51 and −.52; participant-mean and bootstrap analyses yielded ps of approximately .06–.09. The data therefore rule out large effects more clearly than small-to-moderate negative effects. Because the manipulation was a single textual sentence followed by an equal-training assurance and competent behavioral evidence, and because disability-specific uptake was not measured, this result should be interpreted as a null average effect of explicit disclosure in this framing rather than evidence that disability status generally has no effect.</p></div>
+      <h3>后续研究最值钱的三处改动</h3>
+      <ol><li>在所有结果之后加入 disability-specific recall：未提及 / 智力残障 / 行动残障 / 不记得。</li><li>把 SCM 残障前测移到结果之后，或在预注册中把“被启动”明确作为边界条件。</li><li>把“同样训练与标准”的能力保证作为独立因子，或删去；按 d=.20–.25 预注册功效，并优先指定一个全局主要结果，避免四个高度相关结果分散功效。</li></ol>
+      <p class="note"><b>关于现有 Study 2：</b>它可以告诉你新样本在无描述时会默认推断什么，是很有价值的语境证据；但它不能回溯证明 Study 1 的参与者读到/相信了残障句，也不能单独识别 Study 1 null 的机制。</p>
+    </section>
+
+    <section id="audit">
+      <h2>审计轨迹</h2>
+      <div class="table-wrap"><table><thead><tr><th>检查</th><th>状态</th><th>结果</th></tr></thead><tbody><tr><td>原始完成者 ↔ 清洗表 ID</td><td><span class="pill pass">通过</span></td><td>300 ↔ 300</td></tr><tr><td>condition / ctrl / profile</td><td><span class="pill pass">通过</span></td><td>逐行一致</td></tr><tr><td>每人三段影片</td><td><span class="pill pass">通过</span></td><td>900 行</td></tr><tr><td>OH1–3 → OH</td><td><span class="pill pass">通过</span></td><td>最大绝对误差 0.0e+00</td></tr><tr><td>PE / HM 合成分</td><td><span class="pill pass">通过</span></td><td>最大绝对误差 0.0e+00</td></tr><tr><td>主样本规则</td><td><span class="pill pass">通过</span></td><td>AT1 + AV1：272 人</td></tr><tr><td>主 LMM / C3 独立重拟合</td><td><span class="pill pass">通过</span></td><td>5 个模型收敛；最大 Δ 差 5.6e-17，最大 p 差 8.3e-17</td></tr></tbody></table></div>
+      <details><summary>方法说明</summary><ul><li>没有 import 或执行原分析脚本；只读取 CSV，再用独立代码重算。</li><li>随机化检验在 H、HA 内分别打乱 profile，保持六个 condition 的实际样本量，统计量与原 C3 相同：四个告知 cell 的等权均值减两个不提及 cell 的等权均值。</li><li>参与者 HC3 先把三段影片求均值，再拟合 outcome ~ disclosure + control source；这把独立单位明确设为参与者。</li><li>BF 复核仍是 BIC 近似，只是把独立信息单位从 clip rows 改为 participant means；它不是完整的先验敏感性分析。</li></ul></details>
+      <footer>生成脚本：<code>analysis/study1-20260902-cross-review/build_cross_review.py</code> · 数值表：<code>review_results.csv</code> · 原 artifact 未修改。</footer>
+    </section>
+  </main>
+</body>
+</html>
