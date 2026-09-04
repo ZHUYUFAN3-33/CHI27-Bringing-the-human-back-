@@ -1,0 +1,804 @@
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="eyebrow">Contents</div>
+  <a href="#status">Status</a>
+  <a href="#design">1 · Study design</a>
+  <a class="sub" href="#unit">Unit of analysis</a>
+  <a href="#vars">2 · Variable map</a>
+  <a class="sub" href="#scales">Scales and reliability</a>
+  <a href="#quality">3 · Data quality</a>
+  <a class="sub" href="#excl">Exclusion rules</a>
+  <a class="sub" href="#balance">Covariate balance</a>
+  <a href="#desc">4 · Descriptives</a>
+  <a class="sub" href="#seen">Descriptive patterns</a>
+  <a href="#rq">5 · RQs → statistical questions</a>
+  <a href="#framework">6 · Primary framework</a>
+  <a href="#pairwise">7–8 · All pairwise comparisons</a>
+  <a href="#patterns">9 · Pattern mapping</a>
+  <a href="#contrasts">11 · Contrasts</a>
+  <a href="#interactions">12 · Interactions</a>
+  <a href="#ranks">RQ4 · Attribution</a>
+  <a href="#robust">13 · Robustness</a>
+  <a href="#explore">14 · Exploration E1–E8</a>
+  <a href="#grading">Grading of findings</a>
+  <a href="#paper">15–21 · Trial storyline and drafts</a>
+  <a href="#disab">Appendix A · Disability sweep</a>
+  <a href="#study2">Appendix B · Study 2 plan</a>
+  <a href="#roadmap">Analysis Roadmap</a>
+  <a href="#log">Analysis Log</a>
+  <a href="#teach">Statistical concepts</a>
+  <a href="#questions">Open decisions</a>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">CHI '27 · Study 1 · “Bringing the Human Back?”</div>
+  <h1>OriHime Study 1 Analysis Workbook</h1>
+  <div class="ctrlbar"><button type="button" data-action="expand">Expand all</button><button type="button" data-action="collapse">Collapse all</button><span class="hint">Click any section heading or subheading to collapse or expand it; the contents links expand their target; the collapsed state is stored only in your own browser.</span></div>
+  <p class="lede">Data exported 2026-09-02 10:41 UTC (instrument v6e), 300 completed questionnaires. This page is the working surface for the whole analysis: how the design was reconstructed, what the data look like, their quality, where the roadmap stands, and why each analysis was run. It is updated at the end of every phase. <b>Current stage: Phases 15–21 complete. Under a <b>trial storyline</b>, Methods, Results, Limitations, reviewer-facing rationale, publication figures and a reproducible pipeline have been produced; the storyline itself remains a trial pending your decision.</b></p>
+</header>
+
+<section id="status">
+  <div class="eyebrow">Status</div>
+  <h2>Status and main conclusions</h2>
+  <div class="tiles">
+    <div class="tile"><div class="v">300</div><div class="l">completed questionnaires (15 more abandoned, 1 screened out)</div></div>
+    <div class="tile"><div class="v">[[N_AT1]]</div><div class="l">passed the attention check AT1</div></div>
+    <div class="tile"><div class="v">[[N_AV1]]</div><div class="l">passed the comprehension check AV1</div></div>
+    <div class="tile"><div class="v">[[N_BOTH]]</div><div class="l">passed both checks</div></div>
+    <div class="tile"><div class="v">272</div><div class="l">primary analysis sample (816 clip rows)</div></div>
+    <div class="tile"><div class="v">[[N_PAIRS_TOTAL]]</div><div class="l">pairwise comparisons; [[N_RAW_SIG]] with raw p &lt; .05, about [[N_EXPECTED]] expected by chance</div></div>
+  </div>
+  <ul>
+    <li><b>Decisions fixed (2026-09-04, before any p-value was computed):</b> primary sample = the 272 participants who passed AT1 and AV1; primary outcomes = OH composite, AU1, CR1, CR2; primary model = linear mixed model; primary contrasts = C1 human-involved vs AI-only, C2 H vs HA, C3 disability disclosed vs no mention; BEL1 used only as a credibility check and moderator. No top-up of cell A.</li>
+    <li><b>Findings that hold:</b> people told that OriHime was “controlled entirely by an AI system” found the interaction less genuine (AU1, d ≈ .62, p &lt; .02 under all eight specifications); AI involvement moves responsibility and credit away from the human operator (odds ratios .42–.47); people told that AI assisted the operator rated the operator as less in control (CR3, d ≈ .40).</li>
+    <li><b>Suggestive only:</b> the controller was rated less warm under AI-only control (CR1, d ≈ .52; two of the robust methods give p just above .05); the OriHime evaluation was lower (OH, significant only under the model-based methods); disclosing a disability slightly lowered genuineness and warmth (d ≈ −.24, p ≈ .06–.11, partly explained by covariates).</li>
+    <li><b>No difference:</b> H vs HA on every perception item (d ≤ .17); intellectual vs mobility disability; control source × profile interaction; PE, HM and BEL1 across conditions.</li>
+    <li><b>Added in the exploration phase:</b> prior attitude to AI moderates the AI-only penalty (interaction p = .003–.09, consistent direction; the penalty sits in participants who are less positive about AI, and AI-positive participants rate the AI-controlled OriHime no lower than the human-controlled one); H and HA pass ±0.35 SD equivalence tests on OH, AU1, CR1 and HM; the disclosure effect is bounded within ±0.5 SD with no moderator found; the HM disclosure hint and the CR2 position interaction proved to be single-cell fluctuations and were dropped.</li>
+    <li><b>Disability sweep (Appendix A, corrected after the 2026-09-04 cross-review):</b> eight further analyses and 31 tests remained non-significant; all four primary point estimates are negative, genuineness and warmth d ≈ −.24 with 95% intervals reaching −.5 and participant-level p .06–.09; Bayes factors computed on participant units favour the null by 3–12, only 3.5 and 3.2 for genuineness and warmth. There is evidence that the disclosure sentence was read (5.5 s longer dwell), but whether it was remembered or believed was not measured directly. The design detects d ≥ .39 for C3 with 80% power and has 41% power at d = .24. The conclusion applies only to the incremental effect of an explicit one-sentence disclosure in this material, not to “disability status has no effect”.</li>
+    <li>All scripts and result tables are in <code>analysis/study1-20260902/</code> (every table as CSV under <code>results/</code>; the 113 exploratory tests in <code>results/phase14_test_log.csv</code>).</li>
+  </ul>
+</section>
+
+<section id="design">
+  <div class="eyebrow">Phase 1.5 · Design reconstruction</div>
+  <h2>Study design</h2>
+  <p>Everything below was reconstructed from the questionnaire code (<code>shared/instrument.js</code>) and the export; please confirm each point.</p>
+
+  <h3>Participants and allocation</h3>
+  <p>English-speaking participants recruited on CloudResearch Connect: 263 in the United States, 30 in Canada, 6 in the United Kingdom, 1 in Ireland. Ages 18–78 (mean [[AGE_MEAN]]), half women. Each person took part once; the condition was assigned by the <b>server</b>: 42 cells (7 conditions × 6 clip orders), each newcomer placed in the currently least-filled cell, ties broken at random. Condition sizes are therefore almost equal (41–45) and clip order is balanced within every condition.</p>
+
+  <h3>Manipulation</h3>
+  <p>Before any clip, participants read a page “about the OriHime you will see”. <b>The clips themselves were identical for everyone</b>; the only difference between conditions is that this text told them who controls OriHime and, in the human conditions, who the operator is. Any condition difference can therefore only come from this prior description, not from inference about the robot's behaviour — this is the core of the design and the point the interpretation keeps returning to.</p>
+
+  <div class="grid7">
+    <div class="hd"></div><div class="hd">H · human operator</div><div class="hd">HA · human + AI assistance</div><div class="hd">A · AI only</div>
+    <div class="rh">Profile 1 · no mention</div><div class="cell h"><b>H1</b> n = 42</div><div class="cell ha"><b>HA1</b> n = 41</div><div class="cell a"><b>A</b> n = 44<br><span class="small">no operator, so no profile</span></div>
+    <div class="rh">Profile 2 · intellectual disability</div><div class="cell h"><b>H2</b> n = 43</div><div class="cell ha"><b>HA2</b> n = 42</div><div class="cell none">does not exist</div>
+    <div class="rh">Profile 3 · mobility disability</div><div class="cell h"><b>H3</b> n = 43</div><div class="cell ha"><b>HA3</b> n = 45</div><div class="cell none">does not exist</div>
+  </div>
+
+  <ul>
+    <li><b>Factor 1 · control source <code>ctrl</code> (between subjects):</b> <span class="chip h">H</span> controlled in real time by a trained person, no AI at all; <span class="chip ha">HA</span> a person controls, an AI suggests wording and movements, the person makes the final decisions; <span class="chip a">A</span> controlled entirely by an AI system, no human.</li>
+    <li><b>Factor 2 · operator profile <code>profile</code> (between subjects, exists only when there is a human):</b> 1 = nothing said (control); 2 = “the operator has an intellectual disability”; 3 = “the operator has a mobility-related disability”. Condition A has no operator, so this factor does not apply — the design is <b>3 × 2 plus one reference cell</b>, not a full 3 × 3.</li>
+    <li><b>Factor 3 · clip / task type <code>clip</code> (within subjects):</b> everyone watched three clips: REL, a chat about recent life (70 s); ADV, advice on workload (105 s); COL, collaboratively editing and printing a document (115 s). All six orders were used, so presentation position (1–3) and the preceding clip are balanced.</li>
+    <li><b>Shape of the sample:</b> H 128, HA 128, but A only 44 (one cell, one seventh of the sample). Every “human vs no human” comparison is 256 against 44 (236 against 36 in the primary sample), which fixes the precision of that contrast, discussed later.</li>
+  </ul>
+
+  <h3>Measurement order</h3>
+  <ol class="timeline">
+    <li>Consent and eligibility (E1–E3).</li>
+    <li><b>Pre-measures</b>: negative attitudes towards robots NARS (10 items), general attitudes to AI GAAIS (9 items), stereotype content about people with disabilities SCM (9 items). All answered before the manipulation, so they are clean baseline variables.</li>
+    <li><b>Manipulation</b>: the condition description page (control source + profile + a diagram); click “I have read it”.</li>
+    <li><b>Clip 1</b> → comprehension check AV1 (first clip only) → OH1 trustworthy, OH2 useful, OH3 willing to take part, AU1 felt genuine → CR1 controller warm, CR2 controller competent, CR3 operator in control (not asked in A) → R1 who bears most responsibility for a negative outcome (ranking), R2 who deserves most credit for a positive outcome (ranking).</li>
+    <li><b>Clip 2</b>: as above, plus the attention check AT1 (“please select Disagree”).</li>
+    <li><b>Clip 3</b>: as above.</li>
+    <li><b>General items</b>: PE1–4 OriHime would be useful in daily life, HM1–3 conversing with OriHime seems fun.</li>
+    <li><b>BEL1</b>: “how much did you believe the description of the operator given at the beginning”, then demographics and contact frequencies.</li>
+    <li>Debrief and willingness to be contacted for a follow-up interview, FU1.</li>
+  </ol>
+
+  <div class="warn">
+    <p><b>One fact you must know:</b> the mockup designed two manipulation checks (C1 “who controls”, C2 “operator profile”), but the v6 instrument <b>does not contain them</b>; <code>check_c1_pass</code> / <code>check_c2_pass</code> are empty in the export. Only two things in the data can play a similar role: BEL1 (belief asked at the end, subjective and after the fact) and CR3 (“the operator was in control of what OriHime said and did”, asked only in H/HA; its H–HA difference is exactly what the manipulation should produce). The paper therefore cannot say “manipulation check passed”; it can only report the BEL1 distribution and the H–HA difference on CR3 as indirect evidence.</p>
+  </div>
+
+  <h3 id="unit">Unit of analysis</h3>
+  <p>The data have three levels, which must be separated before choosing a method:</p>
+  <ul>
+    <li><b>Participant level (300 rows, one per person):</b> PE, HM, BEL1, the pre-measures, demographics. One number per person, independent of each other (different people).</li>
+    <li><b>Participant × clip level (900 rows, three per person):</b> OH1–3, AU1, CR1–3, R1/R2. <b>A person's three rows are not independent</b>: someone who likes robots rates all three clips high. Treating 900 rows as 900 independent people understates the standard errors and makes p-values too small — this is the fundamental reason for a mixed model rather than a plain t-test or ANOVA.</li>
+    <li><b>Participant × clip × actor level (rankings):</b> each ranking gives 3 or 4 actors a rank, and the ranks constrain each other (if one is first, no other can be). This needs dedicated methods (first the share ranked first, then paired or ranking models).</li>
+  </ul>
+  <p>One more point: clip is a <b>within-subject</b> factor (everyone sees all three), control source and profile are <b>between-subject</b> factors (each person is in one condition). This is a mixed design, with clip-level observations nested in participants.</p>
+</section>
+<section id="vars">
+  <div class="eyebrow">Phase 2 · Variable map</div>
+  <h2>Variable map</h2>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Variable</th><th>Meaning</th><th>Type / level</th><th>Role</th><th>Repeated?</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">condition</th><td>one of 7 conditions (H1…A)</td><td>categorical</td><td>manipulation</td><td>no</td><td>factor for all pairwise comparisons</td></tr>
+      <tr><th scope="row">ctrl</th><td>control source H / HA / A</td><td>categorical</td><td>manipulation · factor 1</td><td>no</td><td>primary contrasts: human vs AI-only; H vs HA</td></tr>
+      <tr><th scope="row">profile</th><td>operator profile 1/2/3 (empty in A)</td><td>categorical</td><td>manipulation · factor 2</td><td>no</td><td>analysed within H+HA only; interaction with ctrl</td></tr>
+      <tr><th scope="row">segment / clip</th><td>clip type REL / ADV / COL</td><td>categorical (within)</td><td>factor 3 / moderator</td><td>yes</td><td>main effect + clip × ctrl interaction</td></tr>
+      <tr><th scope="row">pos, seg_order</th><td>presentation position of the clip; 6 orders</td><td>categorical</td><td>nuisance (balanced by design)</td><td>yes</td><td>control term in the model; check order effects</td></tr>
+      <tr><th scope="row">OH1 / OH2 / OH3</th><td>OriHime trustworthy / useful / I would take part</td><td>7-point Likert single items (ordinal)</td><td>outcome · clip level</td><td>yes (3 clips)</td><td>composite OH (mean of 3, α ≈ .80), items also kept</td></tr>
+      <tr><th scope="row">AU1</th><td>the interaction “felt genuine, rather than like the execution of a program”</td><td>7-point Likert single item</td><td>outcome · clip level</td><td>yes</td><td>single-item analysis; treated as ordinal in robustness checks</td></tr>
+      <tr><th scope="row">CR1 / CR2</th><td>the controller (human or AI) was warm / competent</td><td>7-point Likert single items</td><td>outcome · clip level</td><td>yes</td><td>analysed separately (the two stereotype dimensions)</td></tr>
+      <tr><th scope="row">CR3</th><td>the operator was in control of what OriHime said and did (not asked in A)</td><td>7-point Likert single item</td><td>outcome / indirect manipulation check</td><td>yes</td><td>H vs HA and profile only</td></tr>
+      <tr><th scope="row">R1__*, R2__*</th><td>responsibility / credit rankings: operator, AI, OriHime's provider, the person in the video</td><td>rank 1..n (n = 3 or 4 by condition)</td><td>outcome · attribution</td><td>yes</td><td>share ranked first; paired comparisons; ranking models</td></tr>
+      <tr><th scope="row">PE1–4, HM1–3</th><td>performance expectancy, hedonic motivation (UTAUT2 style)</td><td>7-point Likert, multi-item scales</td><td>outcome · participant level</td><td>no</td><td>composites PE (α .96), HM (α .97)</td></tr>
+      <tr><th scope="row">BEL1</th><td>how much the opening description was believed</td><td>7-point Likert single item (post-treatment)</td><td>manipulation-related / moderator</td><td>no</td><td>never an exclusion criterion; moderator or sensitivity analysis</td></tr>
+      <tr><th scope="row">NARS_*</th><td>negative attitudes to robots (10 items, 3/5/6 reversed)</td><td>multi-item scale</td><td>pre-measure · covariate / moderator</td><td>no</td><td>composite NARS (high = more negative)</td></tr>
+      <tr><th scope="row">GAAIS_*</th><td>attitudes to AI: 5 positive + 4 negative (negative reverse-scored)</td><td>multi-item scale</td><td>pre-measure · covariate / moderator</td><td>no</td><td>two subscales reported separately, as the authors advise</td></tr>
+      <tr><th scope="row">SCM_*</th><td>stereotype content about people with disabilities: competence 5, warmth 4</td><td>multi-item scale</td><td>pre-measure · covariate / moderator (especially relevant to the profile factor)</td><td>no</td><td>composites SCM_comp, SCM_warm</td></tr>
+      <tr><th scope="row">AV1, AT1</th><td>comprehension check (first clip), attention check (second clip)</td><td>binary: pass / fail</td><td>quality flag</td><td>no</td><td>define the analysis sample; not in the models</td></tr>
+      <tr><th scope="row">BG_age, BG_gender, BG_education, BG_income, BG_country</th><td>demographics</td><td>numeric / categorical / ordinal</td><td>sample description; age as a possible covariate</td><td>no</td><td>sample description; balance checks</td></tr>
+      <tr><th scope="row">BG_freq_ai / _robot / _disability</th><td>frequency of using AI, meeting robots, meeting people with disabilities</td><td>6-level ordinal (0–5)</td><td>covariate / moderator</td><td>no</td><td>candidates for exploratory moderation</td></tr>
+      <tr><th scope="row">duration_s, dwell, gate_open, mobile</th><td>total time, page dwell, whether each clip played through, mobile device</td><td>process data</td><td>quality / sensitivity</td><td>partly</td><td>compliance evidence; not in the primary models</td></tr>
+      <tr><th scope="row">FU1</th><td>willing to be contacted for a follow-up interview</td><td>binary</td><td>administrative</td><td>no</td><td>not analysed</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="scales">Scales and reliability</h3>
+  <p>Principle: <b>for a multi-item scale, first check whether the items “say the same thing” (internal consistency), then decide whether they may be averaged; a single Likert item stays a single item</b> and is never silently treated as continuous for convenience. α below is Cronbach's alpha (see the concepts section); ≥ .70 is usually taken as acceptable for a composite.</p>
+  [[T_ALPHA]]
+  <ul>
+    <li><b>The OH composite</b> can be formed (α ≈ .80; .78–.82 within each clip). But OH3 “willing to take part” has a clearly lower mean and a wider spread than OH1/OH2, so the main tables keep the three items as well.</li>
+    <li><b>CR1 and CR2</b> correlate r = .67 and could be combined, but they map onto the theoretically distinct “warmth” and “competence” dimensions (as in the SCM pre-measure), so reporting them separately carries more information. CR3 correlates only .34 with CR2 — it measures something else (control) and is not merged.</li>
+    <li><b>GAAIS</b>: the two subscales correlate .72 and are reported separately as the authors recommend; <b>NARS</b> used only 10 of the 14 items (four attitude-manufacturing items were dropped), which the paper must state as a reduced form. NARS_07 (“the word robot means nothing to me”) barely correlates with the total (.13) and pulls the S1 subscale α down to .70.</li>
+  </ul>
+  <p>Below are the distributions of the clip-level single items. Note the <b>ceiling effects</b>: 36% of CR3 answers are 7, and more than a quarter of CR2 and OH2 answers are 7. Scores piled at the top compress condition differences (there is no room to go higher) and skew the distributions to the left, one reason ordinal models are used later as a robustness check.</p>
+  [[T_ITEMS]]
+</section>
+
+<section id="quality">
+  <div class="eyebrow">Phase 3 · Data quality</div>
+  <h2>Data quality checks</h2>
+  <ul>
+    <li><b>Completeness:</b> 300 completers, no duplicate <code>external_pid</code>; no out-of-range Likert values; ages 18–78; all 1,800 rankings are valid permutations; exactly one AV1 (first clip) and one AT1 (second clip) per person; missingness only by design (CR3 not asked in A, no AI row in H, no operator row in A) plus one missing age.</li>
+    <li><b>Video compliance:</b> all 900 clips opened the answer gate by playing to the end (<code>gate_open</code>); nobody passed by dragging the scrubber; 2 people used the fallback player for one clip; with one exception every page dwell was ≥ the clip length. The player reported 7 errors for 4 people, all recovered.</li>
+    <li><b>Attention check AT1 (instructed to select “Disagree”):</b> [[N_AT1]] / 300 passed. Of the 21 failures, [[N_AT1_NEAR]] chose the adjacent “Strongly disagree” — they read the instruction but not the exact option; the other 10 chose 3–7, more like not reading. Condition A had the most failures (6). Mobile users make up 38% of the failures but only 11% overall.</li>
+    <li><b>Comprehension check AV1 (what happened in the first clip):</b> [[N_AV1]] / 300 passed. With REL first 99/99 were correct, ADV 99/101, COL 94/100 — the COL item (“the air conditioning was set to twenty-two degrees”) is slightly harder. [[N_BOTH]] people passed both checks.</li>
+    <li><b>Response style:</b> [[N_SL3]] people gave the same score to every item on all three clip pages (mostly all 7 or all 6); most of them passed both checks. They are not necessarily careless (someone who genuinely thinks everything is fine would answer this way), but they carry no information about condition differences, so a “does anything change without them” sensitivity analysis is worthwhile.</li>
+    <li><b>Duration:</b> median [[DUR_MED]] min (IQR [[DUR_Q1]]–[[DUR_Q3]]), fastest [[DUR_MIN]], slowest [[DUR_MAX]]. The three clips add up to almost 5 minutes, so 8.5 minutes is still a plausible lower bound; nobody was fast enough to have skipped the clips.</li>
+    <li><b>Device:</b> [[N_MOBILE]] people used a phone.</li>
+  </ul>
+
+  <h3 id="excl">Exclusion rule candidates</h3>
+  <p>The questionnaire README defines the analysis sample as “completed and passed the checks”, so exclusion was planned, just not pinned to specific rules. The consequences of several rules:</p>
+  [[T_EXCL]]
+  <div class="note">
+    <p><b>My recommendation (confirmed by you):</b> primary sample = strict AT1 + AV1 ([[N_BOTH]] people), because these two checks were built into the questionnaire at design time; “all 300” and “additionally dropping the three-page straightliners” as sensitivity analyses. <b>Do not</b> exclude on BEL1 (belief): it is measured after the clips and after every outcome, and “not believing” may be exactly the reaction of someone whose condition description clashed with what the clips made them feel — excluding on it would remove part of the condition effect and create selection bias. BEL1 is better used as a moderator or in a believers-only sensitivity analysis.</p>
+  </div>
+
+  <h3 id="balance">Covariate balance</h3>
+  <p>Participants were randomised, so background variables should be similar in expectation. With finite samples, chance imbalance always occurs. The two clearest cases here: <b>age</b> — HA1 averages 49.7 years, H2 only 35.4; <b>positive attitude to AI</b> — 4.48 in A, 4.8–5.2 in every other condition. The second matters most: GAAIS positive attitude correlates r = .46 with the OH composite, so if A participants disliked AI to begin with, part of A's low scores could be “different people” rather than “different condition”. The remedy is not to drop people but to add these <b>pre-measure</b> variables as covariates in a secondary model and compare conclusions before and after adjustment.</p>
+  [[T_BAL]]
+  <figure><img src="[[FIG5]]" alt="Age and GAAIS positive attitude by condition"><figcaption>Figure 5 · Background differences that survived randomisation: each dot is one participant, black dots are group means, bars are 95% confidence intervals. Age differs by 14 years between H2 and HA1; A is slightly less positive about AI than the other groups.</figcaption></figure>
+
+  <h3>BEL1 belief in the description</h3>
+  <p>[[BEL_HI]]% rated 5 or higher (believed), [[BEL_LO]]% rated 3 or lower (did not). No clear pattern across conditions: H2 lowest (4.74), HA3 and A highest (5.47, 5.43). The “AI only” condition was no harder to believe than “human operator”, which is good news for interpretation.</p>
+  [[T_BEL]]
+  <figure><img src="[[FIG3]]" alt="BEL1 distribution by condition"><figcaption>Figure 3 · Share of each BEL1 score (1–7) within each condition. Darker = higher score.</figcaption></figure>
+</section>
+
+<section id="desc">
+  <div class="eyebrow">Phase 4 · Descriptives</div>
+  <h2>Descriptive statistics</h2>
+  <p>Conventions: parentheses hold the standard deviation SD, square brackets the 95% confidence interval (both explained in the concepts section). Clip-level outcomes are first averaged over each person's three clips so that the 7 conditions can be placed side by side; clip differences are tabulated separately.</p>
+
+  <h3>By condition</h3>
+  [[T_COND]]
+  <figure><img src="[[FIG1]]" alt="Outcome distributions across the seven conditions"><figcaption>Figure 1 · Each dot is one participant (mean over three clips), black dots are condition means, bars are 95% confidence intervals, the number above is the mean. CR3 is not asked in A.</figcaption></figure>
+
+  <h3>By control source (H / HA / A)</h3>
+  [[T_CTRL]]
+
+  <h3>By operator profile (within H + HA only)</h3>
+  [[T_PROF]]
+
+  <h3>Clip × control source</h3>
+  [[T_CLIP]]
+  <figure><img src="[[FIG2]]" alt="Means by clip and control source"><figcaption>Figure 2 · Each point is the mean and 95% CI of all rows for that clip and control source. A has only 44 people, so its intervals are the widest.</figcaption></figure>
+
+  <h3>Presentation position</h3>
+  [[T_POS]]
+
+  <h3>Responsibility and credit rankings</h3>
+  [[T_RANK]]
+  [[T_RANK_PROF]]
+  <figure><img src="[[FIG4]]" alt="Share ranked first by condition"><figcaption>Figure 4 · Who should bear most responsibility for a negative outcome and who should get most credit for a positive one: share of rows placing that actor first. H has no “AI” row, A has no “human operator” row.</figcaption></figure>
+
+  <h3>Correlations of pre-measures with outcomes</h3>
+  <p>This table answers “which background variables relate to the outcomes”; it grounds the later choice of covariates and moderators and is not a result in itself. r is the Pearson correlation (−1 to 1, 0 = no linear relation).</p>
+  [[T_COR]]
+
+  <h3 id="seen">Descriptive patterns (untested)</h3>
+  <ol>
+    <li><b>Control source: A is consistently lower on the items about OriHime and the interaction.</b> OH composite 5.34 vs H 5.61 / HA 5.71; AU1 genuineness 4.83 vs 5.52 / 5.39; CR1 warmth 5.31 vs 5.71 / 5.70. CR2 competence barely differs (5.72 vs 5.81 / 5.94). In other words the “controlled entirely by AI” description lowers trust, genuineness and warmth, not competence. A's confidence intervals are wide because it is small; whether these differences hold is for the tests to say.</li>
+    <li><b>H and HA are almost indistinguishable</b> — except on CR3: H 6.15 vs HA 5.74, in exactly the direction the manipulation should produce (people told “AI suggests” think the operator is in control somewhat less). This is the closest thing we have to a passed manipulation check.</li>
+    <li><b>Operator profile: differences are small.</b> Within H + HA, “no mention” is slightly higher on AU1 (5.63 vs 5.28 / 5.46) and CR1 (5.84 vs 5.62 / 5.66); everything else nearly coincides, with heavily overlapping intervals. In Figure 1 the real differences among H1/H2/H3 and HA1/HA2/HA3 are all inside the point clouds.</li>
+    <li><b>Clips differ more than conditions.</b> ADV (advice) is highest on OH (5.80), REL (chat) lowest (5.44); COL (collaboration) is lowest on AU1. A's “penalty” is largest in REL (OH 4.96 vs 5.47 / 5.57) and smallest in COL — a candidate clip × ctrl interaction. Note that the clips differ in length (70 / 105 / 115 s), so task type and duration are confounded, a design limitation.</li>
+    <li><b>Position effects:</b> AU1 rises from clip 1 to clip 3 (5.15 → 5.38 → 5.57), as does CR1 (5.52 → 5.59 → 5.83). Because order is balanced this does not bias condition comparisons, but it adds noise, so position belongs in the model.</li>
+    <li><b>Attribution:</b> in H, 73% of rows rank the human operator first for responsibility; in HA this drops to 55% while the AI gets only 16% — even with AI involved, the person is still seen as mainly responsible. In A the AI is ranked first in 58% (responsibility) and 63% (credit) of rows, the rest going to OriHime's provider and the person in the video. In HA the operator is ranked first for responsibility (55%) slightly more often than for credit (50%), a possible responsibility &gt; credit asymmetry.</li>
+    <li><b>Pre-measures:</b> attitude to AI, negative attitude to robots and warmth stereotypes about people with disabilities all correlate moderately with the outcomes (|r| .3–.5). This is both a reason to expect covariates to improve precision and a reason to run attitude × condition moderation analyses.</li>
+  </ol>
+  <div class="warn">
+    <p>All of the above are eyeball comparisons of means and proportions; nothing has been tested. Apparent differences (e.g. A lower) may not survive testing, and apparent non-differences (e.g. profile) may hide effects within one clip or one subgroup. The next phase turns these impressions into testable statistical questions one by one.</p>
+  </div>
+</section>
+<section id="rq">
+  <div class="eyebrow">Phase 5 · Research questions mapped to statistical questions</div>
+  <h2>Research questions and statistical questions</h2>
+  <p>You confirmed that these four RQs match the design, that both factors matter, that there are no directional hypotheses and no preregistration. The table stays as the analysis matrix; the contrasts, sample and model actually used are in section 6.</p>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>RQ (reconstructed)</th><th>Outcome</th><th>Predictor / comparison</th><th>Data structure</th><th>Candidate methods</th><th>Preferred primary method and rationale</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">RQ1 Does being told who controls change how OriHime and the controller are perceived</th><td>OH composite (+ three items), AU1, CR1, CR2</td><td>ctrl: human (H, HA) vs AI only; H vs HA</td><td>participant × clip, nested</td><td>ANOVA / t-test on participant means; linear mixed model LMM; ordinal mixed model</td><td>LMM: <code>DV ~ condition + clip + pos + (1 | participant)</code>; the random intercept handles the correlation among a person's three rows; condition as a 7-level factor, then all 21 pairwise comparisons (raw p first)</td></tr>
+      <tr><th scope="row">RQ2 Does disclosing the operator's disability change perception, and does that depend on control source</th><td>as above + CR3</td><td>profile (1/2/3); profile × ctrl (H/HA)</td><td>H + HA subsample, 2 × 3 factorial</td><td>2 × 3 ANOVA (participant means); LMM with interaction</td><td>same LMM framework, <code>ctrl * profile</code> within H+HA; then contrasts 2 vs 1, 3 vs 1, 2 vs 3</td></tr>
+      <tr><th scope="row">RQ3 Does task type moderate these effects</th><td>clip-level DVs</td><td>clip × ctrl, clip × profile</td><td>within × between</td><td>likelihood-ratio tests of LMM interactions; simple effects per clip</td><td>test the interaction as a whole first, then simple effects per clip; report the clip-length confound</td></tr>
+      <tr><th scope="row">RQ4 Who gets responsibility and credit</th><td>R1 / R2 ranks</td><td>ctrl; responsibility vs credit (paired within person)</td><td>participant × clip × actor</td><td>GLMM (logit) on “ranked first”; McNemar paired test; Plackett–Luce ranking model</td><td>shares and paired comparisons first (simple, transparent), ranking models as a supplement</td></tr>
+      <tr><th scope="row">Secondary: general acceptance</th><td>PE, HM</td><td>condition</td><td>participant level</td><td>one-way ANOVA / regression</td><td>ordinary linear model (one number per person, no mixed model needed)</td></tr>
+      <tr><th scope="row">Exploratory: who is affected more</th><td>clip-level DVs</td><td>ctrl × GAAIS / NARS / SCM / BEL1</td><td>participant × clip</td><td>LMM with interaction</td><td>labelled exploratory; rationale stated before running</td></tr>
+    </tbody>
+  </table></div>
+  <div class="teach">
+    <div class="t">Why this step matters</div>
+    <p>“Does condition A lower trust” is not directly testable; “is the expected OH composite under A lower than under H and HA, controlling for clip and position” is. Translating an RQ into a statistical question forces us to say what is compared, at which level, and controlling for what.</p>
+  </div>
+</section>
+
+<section id="framework">
+  <div class="eyebrow">Phase 6 · Primary framework</div>
+  <h2>Primary framework: the linear mixed model</h2>
+  <div class="teach">
+    <div class="t">The model</div>
+    <p><code>DV ~ condition + clip + position + (1 | participant)</code></p>
+    <p><b>In plain words:</b> each person gives one score per clip. Score = the condition's average level + how easy or hard this clip is + which position it was shown in + <b>this person's own baseline</b> + leftover random error. <code>(1 | participant)</code> is “each person's own baseline”; it acknowledges that a person's three scores are correlated. <b>What it estimates:</b> each condition's expected score “for the same clip in the same position”; the differences between conditions are the effects we want.</p>
+  </div>
+  <h3>Candidate methods compared</h3>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Candidate</th><th>How it treats the three clips</th><th>Problem</th><th>Use in this round</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Independent t-test / one-way ANOVA on the 900 rows</th><td>as 900 independent people</td><td>triples the sample size, p-values too small</td><td>not used</td></tr>
+      <tr><th scope="row">Average each person's three clips, then t-test / ANOVA</th><td>one number per person</td><td>legitimate but discards clip information and cannot test clip × condition; the Welch version, which does not assume equal variances, is actually more robust</td><td>robustness check (Welch t, Mann–Whitney)</td></tr>
+      <tr><th scope="row">Repeated-measures ANOVA</th><td>within-subject factor</td><td>requires sphericity; awkward with missingness (A has no CR3) and unbalanced cells; a special case of the mixed model</td><td>not used</td></tr>
+      <tr><th scope="row">Linear mixed model LMM</th><td>random intercept absorbs between-person differences</td><td>assumes equal residual variance and roughly normal residuals; treats 1–7 as equally spaced</td><td><b>primary model</b></td></tr>
+      <tr><th scope="row">Ordinal (proportional-odds) model</th><td>treats 1–7 as ordered categories</td><td>more honest about ceiling effects; the random-effects version is immature in Python, so the GEE version is used</td><td>robustness check (single items)</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Assumption checks</h3>
+  [[T_MODELS]]
+  <ul>
+    <li><b>ICC</b> (intraclass correlation) is .40–.78: more than half of the variation in scores comes from “different people”, not “different clips”. This is the evidence that a mixed model is required, and it explains why condition effects that look obvious in the 900-row plots are not easy to detect.</li>
+    <li><b>Residual skew</b> −0.35 to −1.06: left-skewed (high scores piled at the top), moderate. The mixed model is not very sensitive to this, but ordinal models and the bootstrap are used to double-check.</li>
+    <li><b>Unequal variances:</b> the most important assumption problem found in this round. Between-person spread in A is 1.3–1.5 times that in H/HA (table below, Levene p ≤ .014). The primary model assumes one variance for everyone, so for any contrast involving A the model's standard error may be <b>too small</b> and its p-value optimistic. Remedy: re-check with methods that do not assume equal variances (Welch t, Mann–Whitney, participant bootstrap), see section 13.</li>
+  </ul>
+  [[T_LEV]]
+  <div class="teach">
+    <div class="t">How to read the mixed-model output (OH composite as the example)</div>
+    <p><b>Intercept 5.47:</b> the expected score of the reference cell (H1, clip REL, position 1). <b>condition[A] −0.40, SE 0.22, z −1.81, p = .071:</b> A is 0.40 points below H1; SE is the uncertainty of that estimate; z = estimate ÷ SE; p is “the probability of a z this large if the true difference were zero”. <b>clip[ADV] +0.36, p &lt; .001:</b> the advice clip scores 0.36 above the chat clip, for everyone. <b>Group Var:</b> the variance of the between-person baselines. The paper should report: estimate, SE or CI, test statistic, p, and the variance components or ICC.</p>
+  </div>
+</section>
+
+<section id="pairwise">
+  <div class="eyebrow">Phase 7–8 · Pairwise comparisons</div>
+  <h2>All pairwise comparisons between conditions</h2>
+  <p>Scope: 11 outcomes × all 21 pairs of the 7 conditions (CR3 has only 6 conditions, 15 pairs). Differences come from the primary model (clip level) or an ordinary linear model (participant level); d is standardised on the pooled SD of participant-level means. Each outcome's 21 pairs form one “statistical family”; Holm and BH corrections are applied within the family. <b>Unadjusted raw p first</b>, to see the complete map; but remember: with 225 comparisons and no effects at all, about 11 would still show raw p &lt; .05.</p>
+  [[T_PAIR_SUMMARY]]
+  <figure><img src="[[FIG7]]" alt="Pairwise difference matrices for the four primary outcomes"><figcaption>Figure 7 · All pairwise differences (row condition − column condition) and raw p for the four primary outcomes. Dark violet = raw p &lt; .05, light = p &lt; .10. Only the last row (A minus each human condition) is coloured.</figcaption></figure>
+  <h3>All comparisons with raw p &lt; .05</h3>
+  [[T_PAIR_SIG]]
+  <h3>The three control-source levels</h3>
+  <p>The same model, with the cells pooled: H (3 cells, 118 people), HA (118), A (36). Pooling makes each pair more precise at the cost of hiding the profile.</p>
+  [[T_CTRL3]]
+  <div class="teach">
+    <div class="t">Raw p, Holm p and BH p</div>
+    <p><b>Raw p:</b> the p of this one comparison on its own. <b>Holm:</b> controls the probability of at least one false positive in the family, the strictest; three of AU1's comparisons with A survive Holm, so they stand even under the most conservative standard. <b>BH-FDR:</b> controls the share of false positives among the results called significant; looser than Holm, suited to an exploratory map. All three are kept; the paper states which one the main conclusions rest on.</p>
+  </div>
+</section>
+
+<section id="patterns">
+  <div class="eyebrow">Phase 9 · Pattern mapping</div>
+  <h2>Pattern mapping</h2>
+  <ul>
+    <li><b>Unique condition:</b> of the 84 pairwise comparisons on the four primary outcomes, 10 have raw p &lt; .05, and <b>every one</b> is “some human cell &gt; A”, in the same direction. Of the 60 comparisons among the six human cells, <b>zero</b> are significant. This is neither a gradient nor a cluster structure: A stands alone.</li>
+    <li><b>No profile structure:</b> no pair within H1/H2/H3 or within HA1/HA2/HA3 is significant, and no 1 &gt; 2 &gt; 3 ordering is visible.</li>
+    <li><b>CR3 is a second pattern:</b> H cells above HA cells (4 of the 9 H–HA pairs significant, no differences within H or within HA), evidence that the “AI assistance” sentence was taken in.</li>
+    <li><b>Reading the factor structure:</b> “human vs no human” has a main effect (AU1, CR1, weaker on OH); “H vs HA” has none; “profile” has none, and there are no interactions.</li>
+    <li><b>One cell to watch:</b> HA1 is the highest on many items (HA1 &gt; HA3 on HM is significant). HA1 is also the oldest and most AI-positive group. One or two significant pairs among 21 cells are expected by chance; before treating it as a finding, check whether it survives covariate adjustment (section 13: the C3 difference shrinks after adjustment, consistent with this).</li>
+  </ul>
+  <div class="warn">
+    <p><b>Do not chain p-values:</b> “H3 &gt; A is significant (p &lt; .001) and HA3 &gt; A is not (p = .06)” does not imply “H3 differs from HA3”. The direct comparison of H3 and HA3 gives p = .80, a difference of 0.02 points. One comparison crossing the line and another not is usually a matter of precision (here HA3 − A is 0.55, H3 − A is 1.09, with largely overlapping intervals). To say two effects differ, test the interaction or the “contrast of contrasts”.</p>
+  </div>
+</section>
+
+<section id="contrasts">
+  <div class="eyebrow">Phase 11 · Contrasts</div>
+  <h2>Theory-driven contrasts</h2>
+  <p>Research rationale and statistical definition of each contrast: <b>C1</b> the mean of the six human-involved cells vs A, answering “does telling people a human is involved change perception”; <b>C2</b> the mean of the three H cells vs the three HA cells, answering “does the AI-assistance sentence itself do anything”; <b>C3</b> the mean of H2, H3, HA2, HA3 vs the mean of H1, HA1, answering “does disclosing any disability change perception” — pooling presumes the two disabilities act alike, so <b>C4</b> intellectual vs mobility is tested alongside; <b>C5a/C5b</b> split C3. All contrasts are equal-weight means of cells, so slightly unequal cell sizes do not affect them.</p>
+  <figure><img src="[[FIG6]]" alt="Forest plot of the contrasts"><figcaption>Figure 6 · Estimates and 95% confidence intervals of the four contrasts on each outcome (violet = raw p &lt; .05). The three violet points in the C1 column are the clearest findings of this round; in the C2, C3 and C4 columns almost every interval crosses 0.</figcaption></figure>
+  [[T_CON]]
+  <ul>
+    <li><b>C1 human vs AI-only:</b> AU1 genuineness differs by 0.81 points, d = .62 (medium to large), p = .001, Holm .002; CR1 warmth by 0.50, d = .52, p = .004; the OH composite by 0.40, d = .42, p = .020 (Holm .040, BH .080); CR2 competence by 0.22, p = .135. Reading: being told “controlled entirely by AI” makes the interaction feel <b>more like a program running</b> and the controller <b>less warm</b>, but <b>leaves competence untouched</b>.</li>
+    <li><b>C2 H vs HA:</b> d on the four primary outcomes lies between −.17 and +.13, and the confidence intervals roughly exclude |d| &gt; .35. This is not “failed to detect” but “if there is a difference, it is small”. CR3 is the exception (H higher by 0.40, p = .002), and it is supposed to differ.</li>
+    <li><b>C3 disability disclosed vs no mention:</b> all negative (slightly lower after disclosure) but OH −0.09, AU1 −0.29 (d = −.24, p = .112), CR1 −0.21 (d = −.25, p = .114), CR2 −0.11, none significant. C4 intellectual vs mobility gives d ≤ .17 on every outcome, so pooling is justified and the two disabilities were not treated differently. C5a intellectual vs no mention comes closest on AU1 (−0.39, p = .061).</li>
+    <li><b>Participant level:</b> PE and HM show no significant contrast; HM's C3 −0.40 (p = .076) and C5b −0.45 (p = .079) are the only hints.</li>
+  </ul>
+</section>
+
+<section id="interactions">
+  <div class="eyebrow">Phase 12 · Interactions and simple effects</div>
+  <h2>Interactions and simple effects</h2>
+  <p>Interactions are tested by likelihood-ratio tests (LRT): the model with the interaction is compared with the model without it, asking whether the likelihood improves by more than chance. The table shows p-values.</p>
+  [[T_INT]]
+  <ul>
+    <li><b>Clip × control source:</b> OH composite p = .13, the others larger. The descriptive impression that “A loses most in REL” <b>did not pass the test</b>; all that can be said is that A's penalty varies in size across clips but not in direction.</li>
+    <li><b>Two hints on CR2:</b> clip × human/AI-only p = .051; the simple effects below show the AI rated less competent only in the chat clip (REL; d = .44, p = .078) and not at all in the advice and collaboration clips. Position × condition p = .012 has no theoretical reading; one .012 among 8 outcomes on a 12-df test is unremarkable, so it is logged as an exploratory lead.</li>
+    <li><b>Control source × profile:</b> all p ≥ .18. The (tiny) disclosure effect does not differ between H and HA.</li>
+  </ul>
+  <h3>Simple effects within each clip (exploratory)</h3>
+  [[T_SIMPLE]]
+  <p class="small">Simple effects are row-level Welch t-tests used only to see the shape of the interaction, not as standalone conclusions; the clips differ in length (70/105/115 s), which is confounded with task type, a design limitation.</p>
+</section>
+
+<section id="ranks">
+  <div class="eyebrow">RQ4 · Attribution of responsibility and credit</div>
+  <h2>Attribution of responsibility and credit</h2>
+  <p>Method: whether an actor was ranked first is treated as a binary outcome and modelled by GEE logistic regression (participant clusters, clip as covariate), giving the <b>odds ratio</b> (OR) between conditions. OR = 1 means no difference; 0.5 means “the odds of being ranked first are halved”. The responsibility-vs-credit asymmetry is compared at the participant level (share of a person's three clips in which the actor was ranked first, responsibility minus credit) with the Wilcoxon signed-rank test.</p>
+  [[T_RANKS]]
+  <ul>
+    <li><b>HA vs H:</b> adding “AI assistance” lowers the share ranking the human operator as most responsible from 72% to 55% (OR .47, p = .001) and as most creditable from 71% to 51% (OR .42, p &lt; .001). The share moved away goes mainly to the AI (ranked first in about 15% of HA rows) and to the person in the video.</li>
+    <li><b>Correction for the different option sets (added after the cross-review):</b> H offers 3 rows and HA 4, so the odds of being ranked first fall mechanically when an option is added. On a common anchor — whether the operator is ranked ahead of both “OriHime's provider” and “the person in the video” — responsibility is H 72.3% vs HA 60.7% (OR .59, p = .022) and credit 71.2% vs 60.2% (OR .61, p = .032). The shift is not purely mechanical, but “odds halved” mixes real reallocation with the added option; the paper uses the common-anchor numbers.</li>
+    <li><b>A vs HA:</b> with no human, the share ranking the AI first jumps from 15% to 57% (responsibility) and 60% (credit), OR ≈ 7.8. <b>On the common anchor the jump largely disappears:</b> the AI is ranked ahead of the provider and the interlocutor in HA 52% vs A 57% (responsibility, OR 1.24, p = .47) and 49% vs 60% (credit, OR 1.60, p = .14). The AI's standing relative to the provider and the interlocutor is similar in both groups; the 7.8 mainly reflects that the person is no longer on the list.</li>
+    <li><b>Disability disclosure:</b> OR .89 (responsibility) and .80 (credit), both non-significant: disclosing the operator's disability did not make participants assign the operator more or less responsibility.</li>
+    <li><b>Responsibility &gt; credit asymmetry:</b> only in HA (the operator is ranked first 4.8 points more often for responsibility than for credit, p = .024); not in H, and not for the AI in A. A very small effect, “suggestive”.</li>
+  </ul>
+  [[T_ANCHOR]]
+  <h3>Participant-level outcomes and the credibility check</h3>
+  [[T_PL]]
+  <p>BEL1 does not differ across the 7 conditions (omnibus p = .45; C1 p = .30), so the three descriptions were <b>believed to the same degree</b> — the credibility check passes (it asks about the whole description, not the disability sentence, so it cannot show that the disability label was believed). It does not show that the manipulation worked; the evidence for that is CR3: people told that AI assisted rated the operator as less in control (H 6.14 vs HA 5.73, d = .40, p = .002). The AI-only condition has no direct check; the only indirect evidence is that A participants assign responsibility and credit to the AI.</p>
+</section>
+
+<section id="robust">
+  <div class="eyebrow">Phase 13 · Robustness and sensitivity</div>
+  <h2>Robustness and sensitivity analyses</h2>
+  <p>Each method listed has its own rationale: alternative sample definitions (does the exclusion rule drive the conclusion); pre-measure covariates (GAAIS, NARS, SCM warmth, age — because these are imbalanced by chance after randomisation and correlate .3–.5 with the outcomes); Welch t and Mann–Whitney on participant means (no equal-variance or normality assumption); participant bootstrap (added after Levene's test found larger variance in A, a data-informed robustness check); ordinal GEE (1–7 as ordered categories, answering the ceiling effect; single items only). Cells show the difference (or odds ratio) and p.</p>
+  [[T_ROB]]
+  [[T_ORD]]
+  <ul>
+    <li><b>The C1 effect on AU1 holds under every method</b> (largest p .023): the only perception effect in this round that is significant under every specification.</li>
+    <li><b>The C1 effect on CR1</b> is significant under the model, covariate adjustment, bootstrap and ordinal GEE, and just over the line under Welch t (.052) and Mann–Whitney (.092): the difference is real but the precision limited.</li>
+    <li><b>The C1 effect on the OH composite</b> is significant only under the equal-variance model methods (.019–.039); the variance-robust methods give p = .055–.069. It is driven by OH2 usefulness (ordinal GEE p = .031) and OH3 willingness; OH1 trustworthiness itself is not significant (p = .10–.17). So “AI control lowers trust” is <b>not supported</b>; “lowers usefulness and willingness” is.</li>
+    <li><b>C3 disclosure:</b> negative under every method, p ≈ .06–.07 under the bootstrap and Welch, but <b>after adding covariates the AU1 difference shrinks from −0.29 to −0.10 (p = .57)</b>. Part of this hint is the no-mention group happening to be older and more AI-positive; it cannot be reported as a finding, only as a direction worth replicating.</li>
+    <li>The exclusion rule (272 vs 300 vs 257) changes no conclusion.</li>
+  </ul>
+</section>
+<section id="explore">
+  <div class="eyebrow">Phase 14 · Exploratory analyses E1–E8</div>
+  <h2>Exploratory analyses E1–E8</h2>
+  <p>Bookkeeping first. The table shows how many tests this round ran; in E5 “significant” means “equivalent”, and E7's mean-rank comparisons do not count as findings (see below), so the tests that really need a false-positive check are the few in E1, E2, E6 and E8.</p>
+  [[T_E_BOOK]]
+
+  <h3>E1 · Attitude × control source moderation (post hoc)</h3>
+  <p><b>Why it is legitimate:</b> attitudes were measured before the manipulation, so they are valid moderators; theoretically “controlled entirely by AI” is bad news for AI sceptics and not for AI enthusiasts. <b>Statistics:</b> an LMM with a human × attitude interaction tested by LRT; then the human − AI-only difference at 1 SD below the mean attitude, at the mean, and 1 SD above.</p>
+  [[T_E1]]
+  <figure><img src="[[FIG8]]" alt="Attitude moderation"><figcaption>Figure 8 · Each dot is one participant's mean over three clips; lines are the mixed-model slopes. The AI-only group (green) has a steeper slope than the human-involved group (blue) on all four outcomes: the more negative about AI, the lower the rating of the AI-controlled OriHime; for AI-positive people the two groups almost coincide.</figcaption></figure>
+  <ul>
+    <li>The GAAIS positive attitude × human/AI-only interaction is significant on OH (p = .019) and CR2 (p = .003), with AU1 (.083) and CR1 (.093) in the same direction. In the three-level test HA's slope (.30) is almost identical to H's (.26), while A's is .50: AI assistance does not trigger attitude-dependence, only “entirely AI” does.</li>
+    <li>For participants 1 SD below the mean attitude, the AI-only penalty is OH 0.44, AU1 0.91, CR1 0.62, CR2 0.42 points, all p ≤ .015; for participants 1 SD above, the differences lie between −0.36 and +0.20, none significant. <b>Note:</b> the reversed difference “AI-positive people rate the AI-controlled OriHime higher” is not itself significant and must not be written that way.</li>
+    <li>This also explains the unequal variances found in section 6: A's larger spread arises because attitude matters more in A.</li>
+    <li><b>Status:</b> post hoc (it was seen once in the 09-02 report); 3 of 14 tests significant; reportable only as an exploratory finding in need of replication.</li>
+  </ul>
+
+  <h3>E2 · BEL1 sensitivity analysis</h3>
+  <p><b>Why it is legitimate:</b> if the condition effect really comes from the description, it should hold among people who believed the description. <b>Limitation:</b> BEL1 is measured after the manipulation and may itself be a reaction to the condition.</p>
+  [[T_E2B]]
+  <ul>
+    <li>Believers only (BEL1 ≥ 5, 206 people): C1 on OH (p = .025), AU1 (.001) and CR1 (.006) is almost identical to the primary sample; C3 remains non-significant. <b>The conclusion is insensitive to belief.</b></li>
+    <li>Among believers AU1's H vs HA comes out at +0.39 (p = .037): one of 28 tests, .38 in the primary sample, and in the opposite direction to the “AI assistance penalises” intuition; logged, not reported.</li>
+    <li>The human × BEL1 interaction is negative on all four outcomes (CR1 p = .036, CR2 p = .009), literally “disbelievers are penalised more”. But only 3 people in A disbelieved the description, so the interaction rests on 3 people and is <b>uninterpretable</b>.</li>
+  </ul>
+  [[T_E2I]]
+
+  <h3>E3 · OH single items</h3>
+  [[T_E3]]
+  <p>Under the participant bootstrap only OH2 usefulness is significant (p = .036); OH3 willingness .085, OH1 trustworthiness .146. Consistent with the ordinal GEE in section 13. The wording should be “AI-only control lowered the rated usefulness of OriHime; no detectable difference in trustworthiness”.</p>
+
+  <h3>E4 · Moderators of the disability disclosure</h3>
+  <p><b>Why it is legitimate:</b> a disclosure effect might appear only in specific tasks or people; contact with people with disabilities (the contact hypothesis) and stereotype content (SCM) are the most direct theoretical moderators, both measured before the manipulation.</p>
+  [[T_E4]]
+  <ul>
+    <li>20 tests, 0 significant. Disclosure × clip comes close on CR1 (.068) and CR2 (.080); simple effects show disclosure lowering warmth by 0.33 in the collaboration clip (p = .014) and not in the advice clip, but the overall interaction is not significant, so “only in the collaboration task” cannot be claimed.</li>
+    <li>Disclosure × contact frequency: all p ≥ .36; disclosure × SCM warmth on AU1: people with colder stereotypes drop 0.43 after disclosure (p = .054), warmer ones −0.08, a sensible direction but the interaction itself is p = .27.</li>
+    <li><b>Conclusion:</b> the disclosure has no main effect in these data and no detectable conditional effect either.</li>
+  </ul>
+
+  <h3>E5 · Equivalence tests (TOST)</h3>
+  <p><b>Why it is legitimate:</b> “p &gt; .05” is not “the same”. TOST (two one-sided tests) asks the reverse question: is the difference small enough to fall inside a pre-specified “negligible” interval? Bounds are ±0.35 SD (the smallest effect this sample detects reliably) and ±0.50 SD (a medium effect). TOST p &lt; .05 means “equivalence can be claimed”.</p>
+  [[T_E5]]
+  <ul>
+    <li><b>H vs HA:</b> passes the ±0.35 SD equivalence test on OH, AU1, CR1 and HM, and ±0.50 SD on every outcome; CR3 is not equivalent (it is supposed to differ). The ±0.35 bound comes from this design's detectable effect, not a domain-defined smallest important difference; “the difference is bounded within ±0.35 SD” is safer wording than “statistically equivalent”.</li>
+    <li><b>Disability disclosed vs no mention:</b> OH is equivalent within ±0.35; AU1, CR1 and HM have 90% CI lower bounds down to −0.47 and can only be called equivalent within ±0.50. Wording: “if an effect exists, it is smaller than medium (|d| &lt; 0.5)”.</li>
+    <li><b>Intellectual vs mobility:</b> equivalent within ±0.35 on everything except AU1.</li>
+  </ul>
+
+  <h3>E6 · Two interaction leads on CR2</h3>
+  <p><b>The REL-specific competence penalty:</b> tested with the one-degree-of-freedom contrast “human × is this the chat clip”, interaction = 0.33, p = .037; but within the chat clip the ordinal model's human vs AI-only odds ratio is 1.78, p = .108. That is, the <b>difference</b> “AI looks less competent in the chat and not in the task clips” is barely significant, while the penalty within the chat clip is not. Status: post hoc lead.</p>
+  [[T_E6A]]
+  <p><b>Position × condition (round-1 p = .012):</b> decomposed, human × position p = .51, control source × position p = .62, profile × position p = .061. The original .012 comes from irregular ups and downs in individual cells (H1 at position 3: 6.13, H3 at position 3: 5.52) and matches no theoretical line. Dropped.</p>
+  [[T_E6B]]
+
+  <h3>E7 · Ranking models</h3>
+  <p><b>Why it is legitimate:</b> round 1 used only “who is first” and discarded second and third places. The Plackett–Luce model treats a ranking as successive choices and estimates each actor's “worth” (summing to 1 within a condition).</p>
+  [[T_E7C]]
+  <figure><img src="[[FIG9]]" alt="Plackett-Luce worths"><figcaption>Figure 9 · Each actor's worth with participant-bootstrap 95% intervals. From H to HA the human operator loses about 0.23 of worth, almost all of it flowing to the AI (0.28); OriHime's provider is unchanged (0.18–0.19) and the person in the video actually loses (0.13 → 0.09). In A the AI takes 0.55, still below the operator's 0.68 in H; the gap goes to the provider (0.30).</figcaption></figure>
+  [[T_E7D]]
+  <p>In HA, when the operator is ranked first, second place goes to the AI 64–67% of the time, to the provider 21–25%, and to the person in the video only 11–12%: the AI is already seen as the next responsible party.</p>
+  [[T_E7A]]
+  <p>The responsibility &gt; credit asymmetry points the same way in all three clips (3–6 points each), is not significant in any single clip, and the pooled GEE odds ratio is 1.21 (p = .032) with no clip interaction (p = .89). A stable but very small effect.</p>
+  <p class="small">E7b's “mean rank” comparisons (H vs HA, HA vs A, all p &lt; .001) <b>cannot</b> count as findings: H offers 3 options and HA 4, so mean ranks change mechanically with the number of options. Removed from the bookkeeping table, kept in the CSV for verification.</p>
+
+  <h3>E8 · HM and the disability disclosure</h3>
+  [[T_E8]]
+  <p>“Significant” only when compared within HA (−0.69, p = .022), −0.11 within H (p = .69); after covariate adjustment it shrinks to −0.21 (p = .26). The HM means of the six human cells are H1 5.16, H2 5.09, H3 5.02, HA1 5.61, HA2 5.00, HA3 4.85 — only HA1 is high, the other five are almost identical. This is the oldest, most AI-positive cell speaking, not the disclosure.</p>
+</section>
+
+<section id="grading">
+  <div class="eyebrow">Grading of findings</div>
+  <h2>Grading of findings</h2>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Grade</th><th>Finding</th><th>Basis</th><th>Nature</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Strong</th><td>Told that OriHime was “controlled entirely by AI”, participants found the interaction less genuine (AU1)</td><td>d = .62 [.26, 1.02]; LMM p = .001, Holm .002; p ≤ .023 under eight specifications; believers-only p = .001</td><td>pre-specified primary contrast C1 (not preregistered)</td></tr>
+      <tr><th scope="row">Strong</th><td>AI involvement moves about half of responsibility and credit away from the human operator towards the AI; with no human the AI takes most of it</td><td>OR .47 / .42 (p ≤ .001); Plackett–Luce worth .68 → .45, AI .28; AI .55 in A</td><td>pre-specified (RQ4); common-anchor OR .59 / .61</td></tr>
+      <tr><th scope="row">Strong</th><td>The “AI assistance” description was taken in: HA rated the operator as less in control</td><td>CR3 d = .40, p = .002</td><td>manipulation evidence</td></tr>
+      <tr><th scope="row">Strong (bounded)</th><td>The perceptual difference between human and human-with-AI operation is bounded within ±0.35 SD (OH, AU1, CR1, HM) or ±0.50 SD (all)</td><td>TOST; the bounds are this design's detectable effect, not a domain-defined smallest important difference</td><td>pre-specified (C2)</td></tr>
+      <tr><th scope="row">Suggestive</th><td>The controller is rated less warm under AI-only control (CR1)</td><td>d = .52; model p = .004, bootstrap .031, ordinal GEE .030; Welch .052, Mann–Whitney .092</td><td>pre-specified contrast, limited precision</td></tr>
+      <tr><th scope="row">Suggestive</th><td>AI-only control lowers rated usefulness and willingness to take part, not trustworthiness</td><td>OH2 bootstrap p = .036, ordinal GEE .031; OH1 p = .10–.17</td><td>item-level decomposition of a pre-specified contrast</td></tr>
+      <tr><th scope="row">Suggestive</th><td>In HA the human operator is blamed more often than credited</td><td>OR 1.21, p = .032; same direction in all three clips, none significant alone</td><td>secondary</td></tr>
+      <tr><th scope="row">Exploratory · worth reporting</th><td>Prior attitude to AI moderates the AI-only penalty: the penalty is concentrated among AI sceptics</td><td>interaction OH p = .019, CR2 .003, AU1 .083, CR1 .093, consistent direction; HA's slope equals H's</td><td>post hoc, needs replication</td></tr>
+      <tr><th scope="row">Exploratory · lead</th><td>The AI competence penalty appears only in the chat clip</td><td>contrast of contrasts p = .037; within the chat clip OR 1.78, p = .108</td><td>post hoc</td></tr>
+      <tr><th scope="row">Null (bounded, corrected after the cross-review)</th><td>Explicitly disclosing the operator's disability (vs no mention) has no detectable average effect; the two disabilities do not differ; no moderator found; attribution unchanged</td><td>C3 LMM p ≥ .112 on the four primary outcomes; all point estimates negative, genuineness and warmth d ≈ −.24 / −.25 with 95% CI to −.51 / −.52, participant-level p .06–.09; TOST excludes only |d| &gt; .5; participant-unit BF01 3–12; E4 0 of 20 tests significant; attribution OR .80–.89; 41% power at d = .24</td><td>pre-specified + exploratory; conclusion limited to the one-sentence disclosure in this material</td></tr>
+      <tr><th scope="row">Null</th><td>No control source × profile interaction; PE, HM and BEL1 do not vary by condition; no clip × control source interaction</td><td>p ≥ .18; p ≥ .40; p ≥ .13</td><td>pre-specified</td></tr>
+      <tr><th scope="row">Dropped</th><td>The HM disclosure hint; the CR2 position × condition interaction; the BEL1 × human interaction</td><td>single cell HA1; no structure after decomposition; only 3 disbelievers in A</td><td>refuted by exploration</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="paper">
+  <div class="eyebrow">Phases 15–21 · Paper outputs</div>
+  <h2>Trial storyline and paper drafts</h2>
+  <div class="warn">
+    <p><b>TRIAL.</b> This storyline was chosen on 2026-09-04 as a working frame, not a decision. Every draft opens with a TRIAL marker and every conclusion carries an evidence-level tag (pre-specified / bounded / secondary / exploratory); keep the tags when editing.</p>
+  </div>
+  <h3>Storyline summary</h3>
+  <ol>
+    <li><b>Setup.</b> The clips are identical for everyone; the only variable is one page of text: who controls, and who the operator is. Condition differences can only come from prior attribution.</li>
+    <li><b>What human presence changes.</b> People told “controlled entirely by AI” found the interaction less genuine (d .62, holds under every method), the controller less warm (d .52, suggestive), and OriHime less useful and less worth taking part in (suggestive); competence and trustworthiness unchanged.</li>
+    <li><b>What does not change.</b> The difference between human and human-with-AI operation is bounded within ±0.35 SD (OH, genuineness, warmth, hedonic motivation) or ±0.50 SD (all); explicit disability disclosure has no detectable average effect, point estimates small and negative, effects beyond half an SD excluded, no moderator found; but “AI assistance” did reduce perceived operator control (d .40), so the text was taken in.</li>
+    <li><b>The cost lands on attribution.</b> AI assistance lowers the odds that the operator is ranked first (raw OR .47 / .42, common-anchor OR .59 / .61); the lost share goes almost entirely to the AI (Plackett–Luce .68 → .45, AI .28); with no human the AI takes .55; in HA the operator is blamed slightly more than credited.</li>
+    <li><b>Coda (exploratory).</b> The AI-only penalty is concentrated among participants less positive about AI; HA's slope equals H's, so only the absence of a human triggers attitude-dependence.</li>
+  </ol>
+  <h3>Conclusions the data do not support</h3>
+  <ul>
+    <li>“AI-controlled robots are trusted less” — the trustworthiness item shows no difference.</li>
+    <li>“Disclosing a disability changes how the operator is judged” — not detected in this material; effects beyond half an SD are excluded but small-to-moderate negative effects are not; the two disabilities do not differ.</li>
+    <li>“AI assistance undermines the operator's standing” — perception is equivalent; only attribution shifts.</li>
+    <li>“The disability effect appears in particular tasks or people” — all 20 moderator tests non-significant.</li>
+    <li>“People who like AI prefer AI control” — the reversed difference at +1 SD is not significant.</li>
+  </ul>
+  <h3>Publication figures (PNG 300 dpi and PDF in <code>paper/figures/</code>)</h3>
+  <figure><img src="[[PFIG1]]" alt="Figure 1"><figcaption>Figure 1 · Condition means with 95% CIs for the four primary outcomes and operator control (participant-level means, n = 272).</figcaption></figure>
+  <figure><img src="[[PFIG2]]" alt="Figure 2"><figcaption>Figure 2 · Pre-specified contrasts C1–C3 across outcomes (mixed-model estimates, 95% CIs; violet = p &lt; .05).</figcaption></figure>
+  <figure><img src="[[PFIG3]]" alt="Figure 3"><figcaption>Figure 3 · Clip × control source (row-level means, 95% CIs); no clip × control interaction on the primary outcomes.</figcaption></figure>
+  <figure><img src="[[PFIG4]]" alt="Figure 4"><figcaption>Figure 4 · Plackett–Luce worths for responsibility and credit by control source (participant-bootstrap 95% intervals).</figcaption></figure>
+  <figure><img src="[[PFIG5]]" alt="Figure 5"><figcaption>Figure 5 · Exploratory: prior attitude to AI moderates the AI-only penalty (mixed-model slopes; post hoc).</figcaption></figure>
+  <h3>Full drafts (English)</h3>
+  <p>Files in <code>paper/</code>: <code>story.md</code>, <code>methods.md</code>, <code>results.md</code>, <code>limitations.md</code> (including the reviewer-facing rationale), <code>tables.md</code>, <code>numbers_sheet.md</code>. Expand to read.</p>
+  <details><summary><b>story.md · Trial storyline</b></summary><div class="doc">[[DOC_STORY]]</div></details>
+  <details><summary><b>methods.md · Statistical Methods (draft)</b></summary><div class="doc">[[DOC_METHODS]]</div></details>
+  <details><summary><b>results.md · Results (draft)</b></summary><div class="doc">[[DOC_RESULTS]]</div></details>
+  <details><summary><b>limitations.md · Limitations and reviewer-facing rationale (draft)</b></summary><div class="doc">[[DOC_LIMITS]]</div></details>
+  <details><summary><b>tables.md · Tables 1–8</b></summary><div class="doc">[[DOC_TABLES]]</div></details>
+  <h3>Reproducibility</h3>
+  <p><code>analysis/README.md</code> describes the pipeline; <code>run_all.sh</code> re-runs everything from the raw export to the workbook (about 5 minutes). Supplementary tables S1 (225 pairwise comparisons) and S2 (113 exploratory tests) are <code>results/pairwise_all.csv</code> and <code>results/phase14_test_log.csv</code>. The code is on the branch <code>study1-analysis</code>.</p>
+</section>
+<section id="disab">
+  <div class="eyebrow">Appendix A · Supplementary sweep of the disability factor</div>
+  <h2>Supplementary sweep of the disability factor</h2>
+  <h3>Corrections after the cross-review</h3>
+  <p>On 2026-09-04 an independent cross-review (<code>analysis/study1-20260902-cross-review/workbook_cross_review.html</code>) recomputed every number in this appendix — all matched — but found the narration too strong. The appendix has been revised accordingly; corrected points are marked “cross-review” in each subsection. Key points: Bayes factors are now computed on participant units; “was read” and “was believed” are stated separately; D1 and D2 cannot exclude the label being overridden within the first clip; the conclusion is limited to “the incremental effect of an explicit one-sentence disclosure”; the stereotype pre-measure, the equal-training assurance and the competent clips all weaken a label and count as boundary conditions.</p>
+  <h3>Answers to the four questions</h3>
+  <div class="q"><p><span class="n">Q1</span><b>Is there really nothing left to find?</b> In these data and this material, no significant effect can be found. Eight further analyses targeted the disability factor: 31 tests, 3 with p &lt; .05 against 1.6 expected by chance, and none of the 3 is “disclosure has an effect”. Bayes factors on participant units: OH 11.7, competence 9.2, performance expectancy 9.6, operator control 7.6 favour the null; genuineness 3.5 and warmth 3.2 are only weak-to-moderate; hedonic motivation 2.8. All four primary point estimates are negative, genuineness and warmth d ≈ −.24 with 95% intervals reaching −.5 and participant-level p .06–.09. The correct statement: not detected, large effects excluded, small-to-moderate negative effects not excluded. (Corrected after the 2026-09-04 cross-review: the earlier “20 to 1 for the null” used the wrong information unit.)</p></div>
+  <div class="q"><p><span class="n">Q2</span><b>What would more participants do to the p-values?</b> If the effect size stays the same, z grows with the square root of the sample size. Genuineness and warmth currently have d ≈ −.24, p .11: doubling the human cells would bring p to about .025; the smallest effect this design detects reliably for C3 is d = .39, power at d = .24 is only 41%, and 80% power would need about 610 people against the current 236. Three reasons not to do it: after adding pre-measure covariates the estimates shrink to −.10 and −.18, so part of the −.24 may come from the no-mention group happening to be older (46.1 vs 38.8 years) and more AI-positive — though that is a post hoc sensitivity analysis and cannot adjudicate alone; deciding to add people after seeing p = .11 is “optional stopping”, which inflates the false-positive rate and must be declared; and even if significant, 0.3 points on a 7-point scale cannot carry a story. If it must be tested, open a preregistered replication cell with a stronger disclosure and a fixed sample size and analysis.</p></div>
+  <div class="q"><p><span class="n">Q3</span><b>Could the clips be non-neutral?</b> The suspicion is reasonable: competence ratings in the human conditions average 5.86 and 73% are ≥ 6; participants watched a fluent, competent operator, which leaves the “intellectual disability” label little room to act. Two more features of the material weaken the label: nine stereotype items about people with disabilities were answered before the disclosure, and the disclosure sentence was followed immediately by the assurance that all operators complete the same training and meet the same standard. The data can say only so much: there is evidence the sentence was read (the disclosure cells dwelt 5.5 s longer on the page, p .023, consistent with reading one sentence), but whether it was remembered or believed was not measured directly — BEL1 asks about the whole description; after the first clip there is no difference between disclosure and no mention (D2), but with no pre-clip baseline the label could have acted and been overridden by behavioural evidence within the first clip, so “the clip overrides the label” is neither supported nor excluded. The default impression the clips give can be tested directly in Study 2: a new sample with no description answers “does this person have a disability”; if most say “no” or “can't tell”, the clips carry a “no disability” signal that conflicts with the H2/H3 descriptions — but that cannot retroactively show that Study 1's participants read or believed the sentence.</p></div>
+  <div class="q"><p><span class="n">Q4</span><b>Can disability still open the story?</b> Yes, but only as a “bounded null” story: open with OriHime being operated by people with disabilities, ask “does knowing the operator has a disability change how the interaction is judged”, and answer “not detectably in this material: effects beyond half an SD are excluded, participant-unit Bayes factors of 3–12 favour the null, evaluations and attribution show no detectable change, and the only thing that changed evaluations was whether a human was present at all”. The price is answering three objections head-on: the one-sentence disclosure is weak, the competence assurance that follows it neutralises the stereotype, and whether the label was believed was not measured. Available answers are the dwell time, Study 2's default impression and the TOST bounds, with visible or repeated disclosure and a disability-specific recall item listed as future work. The data support neither “disclosure changed evaluations” nor the general claim “disability status itself has no effect”.</p></div>
+  <h3>Checklist of tests</h3>
+  <p>Already tested before this sweep: the pooled contrast C3 and its parts C4, C5a, C5b (all outcomes); control source × profile interaction; profile × clip; three moderators (contact frequency, SCM warmth, SCM competence); attribution rankings; PE, HM, BEL1; equivalence tests. None significant. The eight new analyses below add 31 tests, 3 with p &lt; .05 against about 1.6 expected.</p>
+  [[T_D_BOOK]]
+  <h3>D1 · Disclosure effect × presentation position</h3>
+  <p><b>Why it is legitimate:</b> if fluent, competent behaviour in the clips overrides the “has a disability” label, the disclosure effect should be largest on the first clip and fade afterwards. <b>Result:</b> after the first clip the disclosure effect is near zero (differences of −0.03 to −0.15 on the five outcomes); on the third clip a consistent −0.26 to −0.37 appears (p .03–.056), with significant interactions on OH (p = .026) and CR2 (p = .033).</p>
+  [[T_D1]]
+  [[T_D1M]]
+  <p>Reading: the no-mention group's ratings rise with position (the general position effect), the disclosure group's do not. This is not “the label washed out by the clips”; it looks more like “the label's influence accumulating”, or simply noise: it is post hoc, 2 of 5 interactions are significant, and the outcomes are correlated, so it is a lead, not a finding. <b>It cannot refute “fast override”:</b> the first measurement comes after 70–115 s of video, there is no post-disclosure, pre-clip baseline, and the label may have acted and been overridden within the first clip (pointed out by the 2026-09-04 cross-review).</p>
+  <h3>D2 · First clip only</h3>
+  <p>Right after reading the description and watching one clip, disclosure and no-mention ratings are almost identical (d between −.04 and −.10, p ≥ .41). That is, no detectable difference after the first clip; with no pre-clip measurement, this does not mean the label never acted immediately.</p>
+  [[T_D2]]
+  <h3>D3 · The warmth-minus-competence stereotype pattern</h3>
+  <p>The stereotype content model predicts a paternalistic “high warmth, low competence” pattern for disability, i.e. a wider warmth-minus-competence gap after disclosure. The gap actually narrows slightly (−0.10, p = .18; intellectual disability −0.13, p = .076): no paternalistic pattern.</p>
+  <h3>D4 · Attribution within each control source</h3>
+  [[T_D4]]
+  <p>All 14 tests non-significant. The closest: within HA, after disclosure the share ranking “the person in the video” first for credit rises from 16% to 28% (OR 1.87, p = .13), and in HA3 the operator is ranked first for credit only 45% of the time. Interesting direction, insufficient evidence.</p>
+  <h3>D5 · Belief by profile</h3>
+  <p>The two intellectual-disability cells average BEL1 4.96 against 5.27 in the other human cells (p = .17); H2 is lowest at 4.85 with 23% disbelievers against 15% in H1. Directionally, “a human operator with an intellectual disability” is the hardest of the six descriptions to believe, but the difference is not significant.</p>
+  <h3>D6 · Dwell time on the disclosure page</h3>
+  <p>Participants told of a disability spent a median 45.7 s on the description page against 40.2 s for no mention (Mann–Whitney p = .023; medians 57 and 52 s in HA2 and HA3). There is evidence the extra sentence was read: 5.5 s matches the reading time of a sentence of a dozen words. Whether it was remembered or believed was not measured directly; BEL1 asks about the whole description. Dwell time does not moderate the disclosure effect (p ≥ .49). This can go in the paper to answer “was it even read”, not “was it believed”.</p>
+  <h3>D7 · Bayes factors</h3>
+  [[T_D7]]
+  <p>BF01 is the evidence for “no disclosure effect” relative to “some effect”. <b>Corrected after the 2026-09-04 cross-review:</b> disability is a between-participant variable, so the independent information units are the 236 participants, not the 708 clip rows; the earlier clip-row BIC overstated the evidence by about 1.7×. Recomputed on participant means: OH 11.7 is strong, CR2 9.2, PE 9.6 and CR3 7.6 moderate, AU1 3.5 and CR1 3.2 weak-to-moderate, HM 2.8 weak. All favour the null, but for genuineness and warmth the evidence is not enough to write “the data support no effect”; and the BIC approximation depends on a unit-information prior, which the paper must state.</p>
+  <h3>D8 · Sample-size projections</h3>
+  <p>How p changes with sample size: if <b>the effect size stays the same</b>, z scales with √(multiplier). AU1 and CR1 currently have d ≈ −.24: adding as many people again to the human cells (236 → 472) would bring p to about .025, and 610 people would give 80% power to detect d = .24. Three things make this route unattractive: after covariate adjustment the estimates shrink to −.10 and −.18, so part of the −.24 is the no-mention group being older and more AI-positive by chance; deciding to add people after seeing p = .11 and testing again is “optional stopping”, which inflates the false-positive rate, must be declared in the paper and will be questioned by reviewers; and even if significant, a 0.3-point difference on a 7-point scale is small and cannot carry the story. <b>If more data are collected, the right way is a separate preregistered replication cell</b> with a stronger disclosure (repeated, visible cues), not topping up the current cells.</p>
+  [[T_D8]]
+  <h3>Neutrality of the clips</h3>
+  <ul>
+    <li>The operator in the clips performs fluently; competence ratings in the human conditions average 5.86 with 72% of ratings ≥ 6. Participants saw competent performance, which does compress the room for an “intellectual disability” label to act. But this is part of the design: every condition watches the same clips, which is what isolates the effect as prior attribution.</li>
+    <li>What the data can say: there is evidence the label was read (D6), but remembering and believing were not measured directly; no difference after the first clip (D2), but with no pre-clip baseline a fast override cannot be excluded (D1). So “the clip overrides the label” is neither directly supported nor excluded in these data; the more accurate statement is “given observed competent performance, a one-off textual disclosure does not change evaluations”.</li>
+    <li><b>The data that can test the clips' neutrality directly are Study 2's.</b> Study 2 asks a new sample, with no description, “who is controlling” and “does the person have a disability”. If most answer “no disability” or “can't tell”, the clips carry a “no disability” signal that conflicts with the H2/H3 descriptions, the strongest available explanation of this study's null; if answers are spread out, the clips are neutral and the null is more likely genuine. This step is far cheaper than adding participants.</li>
+  </ul>
+  <h3>Feasibility of opening the story with disability</h3>
+  <p>Yes, but only as a bounded story: open with OriHime being operated by people with disabilities, ask “does knowing the operator has a disability change how people judge the interaction”, and answer “not detectably in this material: there is evidence the label was read, evaluations and attribution show no detectable change (effects beyond half an SD excluded, participant-unit BF01 3–12), and the only thing that changed evaluations was whether a human was present”. This is a conclusion with positive implications for inclusive remote work. Its price is facing the objection that a one-sentence disclosure is too weak — answered with D6, Study 2 and the TOST bounds — while acknowledging that BEL1 is not disability-specific and that the “same training” assurance in the material weakens the label, and listing visible or repeated disclosure and a disability-specific recall item as future work. What the data do not support is any claim that “disclosing a disability changed evaluations”.</p>
+</section>
+
+<section id="study2">
+  <div class="eyebrow">Appendix B · Study 2 plan (draft, 2026-09-04)</div>
+  <h2>Study 2 plan</h2>
+  <h3>Current design</h3>
+  <p>A fresh sample, no disclosure at all. Page one explains that OriHime can be controlled in three ways (human, human + AI assistance, AI only) without saying which applies. The three clips are the same as in Study 1, in the six balanced orders. After each clip, three items: <code>IMP</code>, an open description (“what does the interaction look like to you”, at least 10 characters); after a reminder of the three methods, <code>WHO</code> (human / human + AI / AI / can't tell); <code>DIS</code> (if a person is involved, does that person have a disability: yes / no / can't tell / I don't think a person is involved). No demographics, attitudes, belief or evaluation items, and no attention check. Study 1 participants are refused by the server.</p>
+  <h3>Questions Study 2 can answer</h3>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Question</th><th>Outcome</th><th>Analysis</th><th>Meaning for Study 1</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">S2-Q1 Without disclosure, who do viewers assume is in control</th><td>WHO, per clip</td><td>option shares with Wilson intervals; departure from uniform across the three methods; share of “can't tell”</td><td>if Study 1's “AI only” description conflicts with viewers' default impression, the AI-condition penalty contains a “label vs impression conflict” component</td></tr>
+      <tr><th scope="row">S2-Q2 Without disclosure, do viewers infer a disability</th><td>DIS, per clip (among WHO answers that include a person)</td><td>shares of yes / no / can't tell; whether “no” is the majority</td><td>a direct test of “the clips carry a no-disability signal”. “No” majority → Study 1's disclosure conflicted with observation; “can't tell” majority → the clips are neutral and Study 1's null is more likely genuine</td></tr>
+      <tr><th scope="row">S2-Q3 Does the inference vary by clip type</th><td>WHO, DIS × clip</td><td>within-person comparisons (Cochran's Q / multinomial GEE), position and order effects</td><td>if the chat clip reads as human and the task clips as AI, this matches Study 1's lead that “the AI competence penalty appears only in the chat clip”</td></tr>
+      <tr><th scope="row">S2-Q4 Which cues do viewers use</th><td>IMP open descriptions; reasons for WHO (if added)</td><td>coding: speech fluency, response latency, content, gestures, reference terms (it / she / the operator), mentions of AI or disability; double-coder agreement</td><td>explains Study 1's mechanism: which cues “genuineness” hangs on</td></tr>
+      <tr><th scope="row">S2-Q5 Is a person's judgement consistent across the three clips</th><td>within-person consistency of WHO</td><td>share giving the same answer on all three; anchoring on the first clip by order</td><td>distinguishes “a person's prior” from “clip-driven inference”</td></tr>
+      <tr><th scope="row">S2-Q6 Internal consistency check</th><td>WHO = AI but DIS ≠ “no person involved”</td><td>share of contradictory answers as a quality indicator</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Link to Study 1</h3>
+  <ul>
+    <li>Study 1 measured what an <i>imposed</i> attribution changes; Study 2 measures what the <i>spontaneous</i> attribution is. Only together can they say whether a disclosure failed (disability) or worked (AI only) because it agreed with or conflicted with viewers' own impression.</li>
+    <li>The DIS result decides how Study 1's disability null is written. “No” majority: “a one-sentence label overridden by observed competent performance”. “Can't tell” majority: “even with nothing to contradict it, the label does not change evaluations”.</li>
+    <li>The WHO result decides how deep the “AI-only penalty” interpretation can go. If most assume a human, part of A's penalty comes from “told one thing, saw another”; if “can't tell” dominates, the penalty is the label itself.</li>
+  </ul>
+  <h3>Recommended changes before launch (by value; each needs a code change and a deploy; item ids freeze once collection starts)</h3>
+  <ol>
+    <li><b>Confidence in WHO (1 item per clip):</b> “how confident are you in this judgement”, 1–7. Separates confident judgements from guesses and allows weighted analyses. Lowest cost, highest value.</li>
+    <li><b>Evaluation items comparable with Study 1 (2 per clip):</b> AU1 “this interaction felt genuine, rather than like the execution of a program” and OH2 “OriHime was useful for this task”. Placed after IMP and before the reminder of the three methods, so the option list does not steer them. With these, “do people who spontaneously judge the controller to be an AI also find it less genuine” can be tested, replicating Study 1's strongest finding without disclosure.</li>
+    <li><b>Follow-up to DIS (optional, not required):</b> if “yes”, ask “what kind of disability” (open); shows whether “intellectual disability” is ever inferred spontaneously (it was the least believed description in Study 1).</li>
+    <li><b>Reason for WHO (optional short answer):</b> “what made you think so?” collects cues more directly than IMP.</li>
+    <li><b>Background block at the end:</b> age, gender, AI-use frequency, contact with people with disabilities, plus the 5 GAAIS positive items. Study 1 found attitude moderating the AI-only penalty; in Study 2 attitude probably predicts the tendency to infer AI. At the end, it cannot affect the judgements.</li>
+    <li><b>Quality control:</b> raise the IMP minimum from 10 to 30 characters; add an instructed-response attention check on the second clip (as in Study 1), otherwise quality can only be judged from text quality and playback telemetry.</li>
+    <li><b>One closing item (optional):</b> “was OriHime controlled the same way in all three clips”, helps interpret within-person consistency.</li>
+  </ol>
+  <h3>Sample size</h3>
+  <p>The core quantities are option shares per clip. At n = 200 a share's 95% interval is about ±7 points, at n = 300 about ±5.5, at n = 385 about ±5. Within-person comparisons between clips detect a 10-point difference reliably at n = 200. Recommendation: 250–300 people, 10–15 minutes each, far cheaper than topping up Study 1.</p>
+  <h3>Scenario analysis: non-neutral clips</h3>
+  <p>Premise: non-neutrality does not invalidate Study 1's comparisons. The clips are a constant across conditions, and randomisation guarantees an unbiased estimate of condition differences for these clips. What non-neutrality changes is the mechanism (does a label fill a vacuum or conflict with an impression), the meaning of the nulls, and the range of generalisation. The scenarios Study 2 might produce are worked through below.</p>
+  <h4>Dimension one: whom most viewers assume to be in control (WHO)</h4>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Scenario</th><th>Which Study 1 descriptions match the default</th><th>Reading of the AI-only penalty (C1)</th><th>Reading of H = HA (C2)</th><th>Write-up and risk</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">W1 Majority “human”</th><td>H, HA match; A conflicts</td><td>penalty = label content + conflict with the impression, inseparable within Study 1. Side evidence favours label content: A's belief equals the other groups'; the penalty varies with attitude to AI, whereas pure conflict should hit everyone</td><td>both match the default; the label has no room to add, so equivalence is partly a ceiling</td><td>“even when the clips read as human-controlled by default, being told AI-only still lowers genuineness”, i.e. the label overrides the impression. The Discussion must acknowledge the conflict component</td></tr>
+      <tr><th scope="row">W2 Majority “AI”</th><td>A matches; H, HA conflict</td><td>the same difference becomes a “human label bonus”; the title holds literally</td><td>both conflict with the same effect, so what matters is “a human is present”, not “purely human”</td><td>most favourable for the paper. H2 and H3 stack a disability label on top of an AI default, a double conflict, so the disability null needs one more sentence</td></tr>
+      <tr><th scope="row">W3 Majority “human + AI”</th><td>HA matches; H and A deviate in opposite directions</td><td>deviating towards “pure AI” costs</td><td>deviating towards “pure human” adds nothing; an asymmetric effect</td><td>“AI assistance is the default assumption; only removing the human costs”</td></tr>
+      <tr><th scope="row">W4 Majority “can't tell” or a flat distribution</th><td>nothing conflicts</td><td>a pure label effect, the cleanest case</td><td>a pure label effect</td><td>all conclusions as currently written; A's larger variance attributed to attitude, not conflict</td></tr>
+      <tr><th scope="row">W5 Varies by clip</th><td>differs per clip</td><td>A's penalty should be largest where the default is most “human”. In Study 1 the OH penalty is largest in the chat clip (d .51 vs .34, .25), interaction p .13: direction matches, evidence weak</td><td>as above</td><td>clip differences could be promoted from “nuisance” to “moderation by the default impression”, but only with a significant interaction</td></tr>
+    </tbody>
+  </table></div>
+  <h4>Dimension two: whether most viewers assume a disability (DIS)</h4>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Scenario</th><th>What the control cells H1, HA1 actually are</th><th>Meaning of the disability null (C3)</th><th>Write-up and risk</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Da Majority “no”</th><td>default: no disability</td><td>C3 is a clean “told yes vs assumed no” contrast. The null means a one-sentence label did not change evaluations even against observation; believed but not absorbed into the evaluation</td><td>“observation overrides a one-sentence label”. Limitation: does not generalise to a visible disability</td></tr>
+      <tr><th scope="row">Db Majority “yes”</th><td>a disability is already assumed</td><td>the worst case. Both groups assume a disability, C3 becomes “told vs assumed”, and the null says nothing about a disability label; Study 1 has no “assumed no disability” cell to compare</td><td>the disability part can only be written as “explicit disclosure has no incremental effect”. A real test needs a new condition: clips with a different operator, or an explicit “no disability” description (deliberately avoided in the design)</td></tr>
+      <tr><th scope="row">Dc Majority “can't tell”</th><td>a genuine blank</td><td>the label is the only source of information; the null is the strongest “the label does not matter”</td><td>most favourable for a disability-equivalence story</td></tr>
+      <tr><th scope="row">Dd Split (e.g. 40 / 40 / 20)</th><td>heterogeneous</td><td>Study 1's null is an average over heterogeneous effects. The two studies are different samples and cannot be linked at the individual level, only at the clip level</td><td>needs the WHO and DIS confidence items to judge how strong the default is</td></tr>
+      <tr><th scope="row">De Depends on WHO</th><td>those who think AI answer “no person involved”</td><td>analysis restricted to answers that include a person (already in the plan)</td><td>also yields the share who think a person is involved</td></tr>
+    </tbody>
+  </table></div>
+  <h4>Combinations</h4>
+  <ul>
+    <li><b>Best:</b> W4 plus Dc, both near neutral, all conclusions as currently written.</li>
+    <li><b>Most favourable for the title:</b> W2 plus Da or Dc, the human label is a bonus and the disability label does not change evaluations.</li>
+    <li><b>Most rewriting:</b> Db. The disability null loses its meaning, is downgraded to “explicit disclosure has no incremental effect”, and a new condition becomes future work.</li>
+    <li><b>Most to defend in the Discussion:</b> W1 plus Da, the AI-only penalty is mixed with conflict, argued with the two side findings “equal belief” and “attitude moderation”.</li>
+  </ul>
+  <h4>Decision rules fixed in advance</h4>
+  <ul>
+    <li>“Majority”: share &gt; 50% with the lower bound of the 95% interval &gt; 50%.</li>
+    <li>“Neutral”: no option above 40%, or “can't tell” ≥ 40%.</li>
+    <li>“Varies by clip”: Cochran's Q p &lt; .05 and at least one clip with a different majority option.</li>
+    <li>Confidence items separate “weak default” from “strong default”; a weak default is treated as near neutral.</li>
+    <li>When Study 2 data arrive, first classify the scenario by these rules, then revise Study 1's write-up; the classification goes into the Analysis Log.</li>
+  </ul>
+  <h3>Analysis plan (fixed before the data arrive)</h3>
+  <ul>
+    <li>Primary: shares of WHO and DIS per clip with Wilson intervals; DIS computed among answers that include a person, with the share of “I don't think a person is involved” reported separately.</li>
+    <li>Clip differences: Cochran's Q (after dichotomising) and multinomial GEE logit (participant clusters), controlling for presentation position.</li>
+    <li>Within-person consistency: share with the same WHO on all three clips against the expectation under random answering; the first answer predicting the next two.</li>
+    <li>Open descriptions: build a cue coding scheme first (voice, latency, fluency, content relevance, gestures, reference terms, AI words, disability words); two coders code 20% independently for agreement; the rest may be model-assisted and then checked; cue rates compared by WHO group.</li>
+    <li>Link to Study 1: if AU1/OH2 are added, compare AU1 by WHO (spontaneous AI vs human) alongside Study 1's C1 effect size.</li>
+    <li>Quality: share of contradictory answers, IMP length, playback telemetry; exclusion rules stated in advance.</li>
+  </ul>
+</section>
+<section id="roadmap">
+  <div class="eyebrow">Analysis Roadmap</div>
+  <h2>Analysis Roadmap</h2>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Step</th><th>What</th><th>Why</th><th>Input</th><th>Output</th><th>How the output shapes the next step</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">0</th><td>Reconstruct the design and the unit of analysis</td><td>the method must follow the design; one row ≠ one independent observation</td><td>questionnaire code, export</td><td>section 1</td><td>settled the mixed model; settled that A is a reference cell, not a fourth profile level</td><td><span class="st ok">done</span></td></tr>
+      <tr><th scope="row">1</th><td>Variable map, scale scoring, reliability</td><td>know how each variable can be used and whether scales may be composited</td><td>codebook, raw answers</td><td>section 2; <code>participants_clean.csv</code>, <code>long_segments.csv</code></td><td>OH can be composited; single items stay single; GAAIS split into two subscales</td><td><span class="st ok">done</span></td></tr>
+      <tr><th scope="row">2</th><td>Data quality checks</td><td>rule out problems with the data before talking about effects</td><td>all export files</td><td>section 3; <code>quality_report.txt</code></td><td>no structural problems; exclusion rule for you to decide; covariate imbalance calls for an adjusted model</td><td><span class="st ok">done · primary sample 272</span></td></tr>
+      <tr><th scope="row">3</th><td>Descriptives and figures</td><td>raw differences before p-values</td><td>cleaned data</td><td>section 4; figures 1–5</td><td>candidate patterns: A lower, H ≈ HA, small profile differences, large clip differences, position effects</td><td><span class="st ok">done</span></td></tr>
+      <tr><th scope="row">4</th><td>RQs / hypotheses → statistical questions</td><td>each question must say what is compared and at which level</td><td>your RQs, hypotheses, preregistration (if any)</td><td>analysis matrix (finalised in section 5)</td><td>decides the primary outcomes, primary contrasts and statistical families</td><td><span class="st ok">done</span></td></tr>
+      <tr><th scope="row">5</th><td>Choose the primary framework and check assumptions</td><td>clip-level data nested in people; scores left-skewed with a ceiling</td><td>the matrix from step 4</td><td>model specification; residual and random-effect diagnostics</td><td>if residuals are badly non-normal or the ceiling dominates → ordinal mixed model primary, LMM secondary</td><td><span class="st ok">done · larger variance in A found</span></td></tr>
+      <tr><th scope="row">6</th><td>All pairwise comparisons of the 7 conditions (21 per DV) + the 3 ctrl-level pairs</td><td>see the whole map first; do not pick pairs</td><td>primary model</td><td>full table of differences, effect sizes, 95% CIs, raw p</td><td>into pattern mapping; flag pairs with raw p &lt; .05</td><td><span class="st ok">done</span></td></tr>
+      <tr><th scope="row">7</th><td>Pattern mapping and multiplicity correction</td><td>look for gradients / clusters / unique conditions / factor structure; compute Holm and FDR alongside and see whether conclusions change</td><td>the table from step 6</td><td>pattern summary; raw and adjusted p side by side</td><td>decides which comparisons deserve formal theory-driven contrasts</td><td><span class="st ok">done</span></td></tr>
+      <tr><th scope="row">8</th><td>Theory-driven contrasts and interactions</td><td>human vs AI-only; H vs HA; profile 2/3 vs 1; ctrl × profile; clip × ctrl; position</td><td>primary model + contrast matrix</td><td>contrast estimates with CIs; likelihood-ratio tests of interactions</td><td>non-significant → step 9; significant → step 10 robustness</td><td><span class="st ok">done</span></td></tr>
+      <tr><th scope="row">9</th><td>Defensible alternatives after null results</td><td>motivation may come from a null, rationale must come from statistics or design: ordinal models (ceiling), covariate adjustment (GAAIS imbalance), per-clip analyses (interaction), items vs composite, non-parametric, BEL1 moderation, attitude × condition</td><td>results of step 8</td><td>for each alternative: why it is legitimate, which assumption it changes, why the result changes</td><td>when A is null and B significant, compare assumptions and estimates to judge whether the method is better or the result specification-sensitive</td><td><span class="st ok">done · E1–E8</span></td></tr>
+      <tr><th scope="row">10</th><td>Robustness / sensitivity</td><td>does an important finding hold only under one specification</td><td>sample definitions × model specifications × corrections</td><td>robustness matrix</td><td>grade findings as strong / suggestive / null / exploratory</td><td><span class="st ok">done · grading updated</span></td></tr>
+      <tr><th scope="row">11</th><td>Integrate into a research story</td><td>answer “what do these data say as a whole”</td><td>all results</td><td>main finding, secondary findings, mechanism, null results, exploratory findings</td><td>decides the structure of the Results</td><td><span class="st ok">done · trial storyline</span></td></tr>
+      <tr><th scope="row">12</th><td>Paper outputs</td><td>reproducible code, figures, Methods, Results, Limitations, reviewer-facing rationale</td><td>step 11</td><td>drafts and figures</td><td>—</td><td><span class="st ok">done · drafts (trial)</span></td></tr>
+    </tbody>
+  </table></div>
+  <h3>Changes to the plan</h3>
+  <ul>
+    <li><b>2026-09-04 · Added the pooled contrast C3 “disability disclosed vs no mention” and C4 “intellectual vs mobility”.</b> Reason: research question (you asked whether any disclosure has an effect). Added before any p-value was seen, so it counts as a primary contrast.</li>
+    <li><b>2026-09-04 · Added the participant bootstrap as a robustness check.</b> Reason: model assumption — Levene's test found clearly larger variance in A, so the primary model's equal-variance assumption fails and contrasts involving A need a check that does not depend on it.</li>
+    <li><b>2026-09-04 · Ordinal GEE for CR1, CR2, OH1–3 switched to an independence working correlation with robust standard errors.</b> Reason: numerical — the global-odds-ratio structure did not converge on these items.</li>
+    <li><b>2026-09-04 · BEL1 renamed from “manipulation check” to “credibility check”.</b> Reason: research logic — it shows the description was believed, not that it changed perception; the latter is evidenced by CR3.</li>
+    <li><b>2026-09-04 · No top-up of cell A.</b> Reason: time. Consequence: the precision of contrasts involving A is fixed at a detectable d ≈ .50 (primary sample 236 vs 36).</li>
+    <li><b>2026-09-04 · Exploration E1–E8 run as listed, all eight approved by you.</b> Equivalence tests (E5) added as the formal way to report null results; E7b's mean-rank comparisons voided because the option sets differ.</li>
+    <li><b>2026-09-04 · Paper drafts generated under the trial storyline “bringing the human back”.</b> Reason: your instruction (“try this storyline, but only as a trial”). All outputs carry a TRIAL marker; the storyline changes no analysis, only the order of the Results.</li>
+    <li><b>2026-09-04 · Final sweep of the disability factor D1–D8 added at your request.</b> Reason: research question (you originally wanted to open with disability). 31 tests, all labelled diagnostic/exploratory; conclusions unchanged.</li>
+    <li><b>2026-09-04 · Adopted the independent cross-review (<code>analysis/study1-20260902-cross-review/</code>).</b> All numbers reproduced; the narration was corrected: Bayes factors computed on participant units (genuineness and warmth from 6 / 5.5 down to 3.5 / 3.2); the detectable effect for C1 changed to .50 for the primary sample; “confirmatory” changed to “pre-specified (not preregistered)”; “statistically equivalent” changed to “bounded within the interval” with the bounds' origin stated; “read and believed” changed to “evidence of reading, belief not measured directly”; D1/D2 no longer used to refute fast override; common-anchor attribution analysis added; Limitations gained three boundary conditions: SCM priming before the disclosure, the equal-training assurance after it, and the AU1 wording's closeness to the manipulation.</li>
+    <li><b>2026-09-04 · Correction:</b> section 9 once said “14 of the 84 pairwise comparisons on the four primary outcomes were significant”; the correct number is 10 (OH 2, AU1 4, CR1 4, CR2 0); conclusions unchanged.</li>
+  </ul>
+</section>
+
+<section id="log">
+  <div class="eyebrow">Analysis Log</div>
+  <h2>Analysis Log</h2>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>ID</th><th>Analysis</th><th>Why tried</th><th>Statistical rationale</th><th>Status</th><th>Result</th><th>Raw p</th><th>Adj. p</th><th>Effect size</th><th>Decision</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">L0</th><td>Data preparation (<code>prep.py</code>): reverse scoring, composites, quality flags, long table</td><td>planned</td><td>turn the export into two tables with the right units of analysis</td><td>Planned</td><td>300 people / 900 rows / 6,168 rank rows</td><td>—</td><td>—</td><td>—</td><td>input for everything that follows</td></tr>
+      <tr><th scope="row">L1</th><td>Data quality checks (<code>quality.py</code>)</td><td>planned</td><td>missingness, duplicates, ranges, compliance, response style, balance, reliability</td><td>Planned</td><td>no structural problems; AT1 279, AV1 292; 19 three-page straightliners; chance imbalance in age and GAAIS</td><td>—</td><td>—</td><td>—</td><td>exclusion rule left to you; GAAIS/NARS/SCM listed as covariate candidates</td></tr>
+      <tr><th scope="row">L2</th><td>Descriptives and figures (<code>descriptives.py</code>, <code>figures_descriptive.py</code>)</td><td>planned</td><td>raw distributions and differences first, no tests</td><td>Planned</td><td>see section 4</td><td>—</td><td>—</td><td>—</td><td>list of patterns to test</td></tr>
+      <tr><th scope="row">L3</th><td>Primary LMMs, 8 clip-level DVs (<code>inferential_primary.py</code>)</td><td>planned</td><td>the standard model for nested data; REML estimates, ML for LRTs</td><td>Primary</td><td>ICC .40–.78; omnibus condition effect significant for AU1 and CR3, marginal for CR1</td><td>AU1 .004; CR3 .041; CR1 .075; OH .33; CR2 .57</td><td>—</td><td>—</td><td>into pairwise comparisons and contrasts</td></tr>
+      <tr><th scope="row">L4</th><td>All pairwise comparisons, 11 DVs, 225 pairs</td><td>planned</td><td>contrast vectors within the model, raw p first, Holm/BH within families</td><td>Primary map</td><td>21 pairs with raw p &lt; .05 (11 expected by chance); on the primary DVs every significant pair is “human cell &gt; A”</td><td>see sections 7–8</td><td>AU1 3 pairs survive Holm, CR3 1</td><td>d .39–.74</td><td>pattern: A unique, no differences among human cells</td></tr>
+      <tr><th scope="row">L5</th><td>Pairwise comparisons of the three control-source levels</td><td>planned</td><td>same model, equal-weight pooling of cells</td><td>Primary</td><td>H and HA each &gt; A (AU1, CR1, OH); H = HA</td><td>AU1 &lt;.001/.003; CR1 .006/.007; OH .048/.017</td><td>AU1 and CR1 still significant after Holm</td><td>d .35–.64</td><td>into the grading</td></tr>
+      <tr><th scope="row">L6</th><td>Theory contrasts C1–C5 (including your pooled C3)</td><td>planned + your question</td><td>equal-weight linear contrasts of cells; C4 tests the pooling assumption</td><td>Primary (C1–C3) / Secondary</td><td>C1 significant on AU1, CR1, OH; C2 nothing; C3 negative but non-significant; C4 no difference</td><td>see section 11</td><td>C1: AU1 .002, CR1 .011, OH .040 (Holm)</td><td>C1 d .42–.62; C3 d ≈ −.24</td><td>C3 into “awaiting replication”</td></tr>
+      <tr><th scope="row">L7</th><td>Interactions: clip × control source, clip × human/AI, position × condition, control source × profile, clip × profile</td><td>planned</td><td>likelihood-ratio tests on ML fits</td><td>Primary / Secondary</td><td>no stable interaction; two hints on CR2</td><td>CR2 position × condition .012; clip × human/AI .051</td><td>—</td><td>—</td><td>hints into the exploration menu</td></tr>
+      <tr><th scope="row">L8</th><td>Simple effects of human vs AI within each clip</td><td>follow-up after the interaction hints</td><td>row-level Welch t, only to describe the interaction's shape</td><td>Exploratory</td><td>OH penalty largest in REL; CR2 penalty only in REL</td><td>OH REL .029; CR2 REL .078</td><td>—</td><td>d .25–.62</td><td>no standalone conclusion</td></tr>
+      <tr><th scope="row">L9</th><td>Attribution rankings: GEE logistic regression + participant-level Wilcoxon</td><td>planned</td><td>binary “ranked first”, participant clusters; paired asymmetry at the person level</td><td>Primary (RQ4)</td><td>HA lowers the odds of the person being ranked first; in A the AI takes over; disability no effect; responsibility &gt; credit within HA</td><td>≤ .001; ≤ .001; .32–.62; .024</td><td>—</td><td>OR .47 / .42 / 7.8</td><td>into the grading</td></tr>
+      <tr><th scope="row">L10</th><td>Participant-level PE, HM, BEL1: 7-condition ANOVA and 2 × 3 within H/HA</td><td>planned</td><td>one number per person, ordinary linear model</td><td>Secondary</td><td>all non-significant; BEL1 equal across conditions (credibility check passes)</td><td>PE .61; HM .40; BEL1 .45</td><td>—</td><td>—</td><td>HM's C3 hint (.076) into the exploration menu</td></tr>
+      <tr><th scope="row">L11</th><td>Robustness: 3 samples × covariate adjustment × Welch × Mann–Whitney × ordinal GEE × bootstrap</td><td>planned; bootstrap added after the Levene result</td><td>each relaxes one assumption of the primary model</td><td>Robustness / Sensitivity</td><td>AU1 C1 holds everywhere; CR1 mostly; OH model methods only; C3 shrinks after covariate adjustment</td><td>see section 13</td><td>—</td><td>—</td><td>decides the grading</td></tr>
+      <tr><th scope="row">L12</th><td>E1 attitude × human/AI-only moderation (GAAIS positive, negative, NARS)</td><td>large variance in A; seen once in the 09-02 report</td><td>pre-measure moderators; LMM interaction LRT; simple slopes</td><td>Post hoc</td><td>penalty concentrated among AI sceptics; HA's slope equals H's</td><td>OH .019; CR2 .003; AU1 .083; CR1 .093</td><td>—</td><td>interaction −.18 to −.27 points per SD</td><td>into the grading: exploratory, worth reporting</td></tr>
+      <tr><th scope="row">L13</th><td>E2 BEL1 interaction and subsamples (believers, disbelievers)</td><td>test whether the effect is concentrated among believers</td><td>BEL1 is post-treatment, sensitivity only</td><td>Sensitivity</td><td>C1 unchanged among believers; the interaction rests on 3 people</td><td>C1 believers .025/.001/.006</td><td>—</td><td>—</td><td>conclusion insensitive to belief; interaction not reported</td></tr>
+      <tr><th scope="row">L14</th><td>E3 OH items, bootstrap</td><td>which item carries the composite's effect</td><td>variance-robust</td><td>Secondary</td><td>OH2 usefulness significant, OH1 trustworthiness not</td><td>.036 / .085 / .146</td><td>—</td><td>+.38 / +.56 / +.25</td><td>wording changed to “usefulness”</td></tr>
+      <tr><th scope="row">L15</th><td>E4 disclosure × clip, × contact frequency, × SCM</td><td>C3 non-significant; look for conditional effects</td><td>pre-measure moderators; LRT</td><td>Exploratory</td><td>0 of 20 tests significant</td><td>smallest .068</td><td>—</td><td>—</td><td>disclosure recorded as a bounded null</td></tr>
+      <tr><th scope="row">L16</th><td>E5 TOST equivalence (C2, C3, C4)</td><td>calling a null “equivalent” needs a formal test</td><td>bounds ±0.35 / ±0.50 SD, Welch TOST</td><td>Secondary</td><td>H = HA within ±0.35 on 4 DVs; C3 within ±0.50</td><td>see section 14</td><td>—</td><td>d with 90% CI</td><td>into the grading</td></tr>
+      <tr><th scope="row">L17</th><td>E6 CR2: REL-specific contrast; position × condition decomposition</td><td>two round-1 hints</td><td>1-df interaction contrast; ordinal logit; decomposition LRTs</td><td>Post hoc</td><td>REL contrast p = .037, not significant within the clip; the position interaction vanishes on decomposition</td><td>.037; .108; .51/.62/.061</td><td>—</td><td>OR 1.78</td><td>the former kept as a lead, the latter dropped</td></tr>
+      <tr><th scope="row">L18</th><td>E7 rankings: GEE responsibility vs credit × clip; mean ranks; Plackett–Luce; second place</td><td>use the full ranking information</td><td>MM estimation of PL + participant bootstrap</td><td>Secondary / descriptive</td><td>operator worth .68 → .45, AI .28; second place is the AI two thirds of the time</td><td>responsibility vs credit .032, × clip .89</td><td>—</td><td>—</td><td>mean-rank comparisons voided (different option counts)</td></tr>
+      <tr><th scope="row">L19</th><td>E8 source of the HM disclosure hint</td><td>the only near-significant participant-level contrast</td><td>covariate adjustment, split by control source, bootstrap</td><td>Exploratory</td><td>caused by the single cell HA1</td><td>.068 → .26; within H .69, within HA .022</td><td>—</td><td>—</td><td>dropped</td></tr>
+      <tr><th scope="row">L20</th><td>Paper numbers sheet and Tables 1–6 (<code>paper_numbers.py</code>)</td><td>Phase 21</td><td>all generated from the result CSVs, nothing retyped</td><td>Reporting</td><td><code>paper/numbers_sheet.md</code>, <code>tables.md</code></td><td>—</td><td>—</td><td>—</td><td>cited by the drafts</td></tr>
+      <tr><th scope="row">L21</th><td>Publication figures Fig 1–5 (<code>figures_paper.py</code>)</td><td>Phase 21</td><td>PNG 300 dpi + PDF, titles left to the captions</td><td>Reporting</td><td><code>paper/figures/</code></td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><th scope="row">L22</th><td>Drafts of Methods, Results, Limitations and reviewer rationale (trial storyline)</td><td>Phase 21</td><td>every conclusion tagged with its evidence level</td><td>Reporting (TRIAL)</td><td><code>paper/*.md</code></td><td>—</td><td>—</td><td>—</td><td>awaiting your storyline decision</td></tr>
+      <tr><th scope="row">L23</th><td>D1 disclosure × presentation position</td><td>your question: do the clips override the label</td><td>LMM interaction LRT; conditional effects per position</td><td>Exploratory</td><td>no effect on the first clip, −.26 to −.37 on the third; opposite to the “clip overrides label” direction</td><td>OH .026; CR2 .033; others ≥ .07</td><td>—</td><td>—</td><td>a lead, not a finding</td></tr>
+      <tr><th scope="row">L24</th><td>D2 first clip only</td><td>as above</td><td>one row per person, OLS HC3 and Welch</td><td>Exploratory</td><td>d −.04 to −.10, none significant</td><td>≥ .41</td><td>—</td><td>—</td><td>no difference after the first clip; no pre-clip baseline, fast override not excluded</td></tr>
+      <tr><th scope="row">L25</th><td>D3 warmth-minus-competence gap</td><td>test of the SCM paternalistic pattern</td><td>LMM</td><td>Exploratory</td><td>gap narrows slightly, no paternalistic pattern</td><td>.18</td><td>—</td><td>−.10</td><td>null</td></tr>
+      <tr><th scope="row">L26</th><td>D4 attribution within HA and within H separately</td><td>pooling might hide effects within a control source</td><td>GEE logit</td><td>Exploratory</td><td>0 of 14 tests significant; the closest is more credit to “the person in the video” within HA</td><td>smallest .13</td><td>—</td><td>OR 1.87</td><td>null</td></tr>
+      <tr><th scope="row">L27</th><td>D5 belief by profile</td><td>is intellectual disability harder to believe</td><td>ANOVA, Welch</td><td>Diagnostic</td><td>intellectual-disability cells 4.96 vs 5.27, not significant</td><td>.17</td><td>—</td><td>—</td><td>into Limitations</td></tr>
+      <tr><th scope="row">L28</th><td>D6 dwell time on the disclosure page</td><td>was the sentence read</td><td>Kruskal–Wallis, Mann–Whitney; dwell × disclosure interaction</td><td>Diagnostic</td><td>disclosure cells dwell 5.5 s longer (significant); no moderation</td><td>.023; interaction ≥ .49</td><td>—</td><td>—</td><td>into Methods as evidence of reading, not of belief</td></tr>
+      <tr><th scope="row">L29</th><td>D7 Bayes factors BF01</td><td>quantify “non-significant” as “support for the null”</td><td>BIC approximation</td><td>Secondary</td><td>recomputed on participant units: OH 11.7, CR2 9.2, PE 9.6, CR3 7.6, AU1 3.5, CR1 3.2, HM 2.8 (the clip-row 20 / 16 / 13 / 6 / 5.5 superseded)</td><td>—</td><td>—</td><td>—</td><td>into Results 4.3 with the unit and prior stated</td></tr>
+      <tr><th scope="row">L30</th><td>D8 sample-size projections</td><td>your question</td><td>z ∝ √n; power with 2:1 allocation</td><td>Planning</td><td>with the effect unchanged, doubling gives p ≈ .025; 80% power needs 610; the estimate may shrink; optional stopping</td><td>—</td><td>—</td><td>—</td><td>recommend a preregistered replication cell instead</td></tr>
+      <tr><th scope="row">L31</th><td>Adoption of the cross-review (<code>analysis/study1-20260902-cross-review/</code>)</td><td>an independent review found the narration too strong</td><td>BF information units, MDE sample sizes, label wording, material boundary conditions</td><td>Correction</td><td>all numbers reproduced; corrected the BF units, the C1 MDE, the D1/D2/D6 wording, the equivalence and pre-specified wording</td><td>—</td><td>—</td><td>—</td><td>workbook and drafts revised together</td></tr>
+      <tr><th scope="row">L32</th><td>Common-anchor attribution analysis (<code>attribution_common_anchor.py</code>)</td><td>the option set varies by condition</td><td>whether the operator is ranked ahead of the two common actors; GEE logit</td><td>Secondary</td><td>H 72.3% → HA 60.7% (responsibility), 71.2% → 60.2% (credit); the same computed for the AI, HA → A</td><td>.022 / .032</td><td>—</td><td>OR .59 / .61</td><td>Results 4.4 uses these numbers</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">Note: a quick exploratory report was produced on 2026-09-02 (a separate Artifact) with some uncorrected tests. This workbook started from scratch and does not treat those results as known; the two will be reconciled once the primary framework is settled.</p>
+</section>
+
+<section id="teach">
+  <div class="eyebrow">Statistical concepts</div>
+  <h2>Statistical concepts</h2>
+  <div class="teach">
+    <div class="t">Mean and standard deviation SD</div>
+    <p><b>Plainly:</b> the mean is the average level; the SD is how spread out people are. An SD of 1.0 on a 7-point scale means most people fall within 1 point of the mean; an SD of 1.8 (A's AU1) means large disagreement. <b>Why now:</b> when comparing two groups the difference has to be read against the spread — a 0.3-point difference is medium when the SD is 1.0 and almost invisible when it is 1.8. <b>Common mistake:</b> reading means without the SD and n.</p>
+  </div>
+  <div class="teach">
+    <div class="t">95% confidence interval CI</div>
+    <p><b>Plainly:</b> the sample mean is one estimate of the “true mean”; the CI gives a range showing how precise that estimate is. More people and a smaller SD give a narrower interval. <b>Formal definition:</b> if the same study were repeated many times and an interval computed each time, about 95% of those intervals would contain the true value. <b>How to read it:</b> A's OH interval [4.99, 5.68] is twice as wide as H's [5.44, 5.78] because A has only 44 people. <b>Common mistakes:</b> overlapping intervals do not mean “no significant difference” (a slight overlap can still be significant); and one cannot say “there is a 95% probability the true value is in this interval”.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Cronbach's α (internal consistency)</div>
+    <p><b>Plainly:</b> if several items measure the same thing, their answers should rise and fall together; α measures that agreement (0–1). <b>Why now:</b> to decide whether OH1–3 may be averaged into one OH score. <b>Rules of thumb:</b> ≥ .70 acceptable, ≥ .80 good; but a very high α may only mean the items repeat each other (PE's .96 has that flavour), and α does not prove the items measure a single dimension. <b>Common mistake:</b> treating a low α as a broken scale — with few items α is naturally lower.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Floor and ceiling effects</div>
+    <p><b>Plainly:</b> when many people give the top score (7), there is no room to go higher. <b>Consequence:</b> real differences are compressed, the distribution skews left, and means and SDs describe it poorly. <b>What to do:</b> report the share choosing 7, and use ordinal models for robustness (1–7 as ordered categories rather than equally spaced numbers).</p>
+  </div>
+  <div class="teach">
+    <div class="t">Unit of analysis, repeated measures and nesting</div>
+    <p><b>Plainly:</b> one person answered three clips, and the three answers resemble each other because they come from the same person. Treating them as three independent people triples the sample size. <b>The mixed model</b> gives each person their own baseline (a random intercept) and estimates condition effects on top of it. That is what the <code>(1 | participant)</code> term means.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Randomisation and covariate balance</div>
+    <p><b>Plainly:</b> random assignment makes groups the same “on average”, but any one sample can be imbalanced by chance (age and GAAIS here). <b>Handling:</b> no deletions, no regrouping; add the pre-measures as covariates in a secondary model and see whether conclusions change. <b>Note:</b> only variables measured <b>before</b> the manipulation may be used this way; BEL1, measured after, may not.</p>
+  </div>
+  <div class="teach">
+    <div class="t">p-values and “significance”</div>
+    <p><b>Plainly:</b> the p-value answers “if the true difference were zero, how likely is a difference at least this large by luck alone”. p = .004 means such luck occurs about four times in a thousand. <b>α = .05</b> is a convention, not a law of nature: p = .051 and p = .049 provide almost the same evidence. <b>It does not answer:</b> how large the difference is (see d) or “the probability the hypothesis is true”. <b>Common mistake:</b> reading p &gt; .05 as “no effect” — it only means “these data cannot separate it from zero”.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Effect size Cohen's d</div>
+    <p><b>Plainly:</b> how many standard deviations apart two group means are. 0.2 small, 0.5 medium, 0.8 large is only a rough yardstick. The C1 effect on AU1, d = .62: a typical A participant is 0.6 SD below a typical human-condition participant, about 0.8 points on the 1–7 scale. The confidence interval of d, [.26, 1.02], shows how imprecise the estimate is — A has only 36 people, so the interval is wide.</p>
+  </div>
+  <div class="teach">
+    <div class="t">ICC and the likelihood-ratio test LRT</div>
+    <p><b>ICC:</b> the share of total variance that lies “between people”. An ICC of .66 means knowing who answered explains two thirds of the differences in scores. <b>LRT:</b> compares the log-likelihoods of two nested models (one with an extra set of parameters); twice the difference approximately follows a chi-square distribution with degrees of freedom equal to the number of extra parameters. It answers “is this set of parameters useful as a whole”, e.g. “does the condition factor have any effect”, “does the interaction have any effect”.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Contrasts and interactions</div>
+    <p><b>Contrast:</b> one number formed by adding and subtracting cell means with weights, e.g. C1 = mean of the six human cells − A. Its test asks “is this number zero”. Contrasts are more powerful than pairwise comparisons because they pool related cells. <b>Interaction:</b> whether one factor's effect changes with another, e.g. “does A's penalty differ across the three clips”. <b>Simple effect:</b> the interaction taken apart, the effect within each clip. Only when the interaction test is significant may simple effects be called “different”.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Unequal variances, the bootstrap and odds ratios</div>
+    <p><b>Unequal variances:</b> groups differ in spread. A's participants disagree more; a standard model treats everyone as equally spread and understates the uncertainty of A's mean. <b>Bootstrap:</b> resample participants with replacement within each condition thousands of times, recompute the contrast each time, and look at its distribution — no equal-variance or normality assumption. <b>Odds ratio OR:</b> the effect size of logistic regression, the ratio of the odds of an event between two groups; OR .47 means the odds of the human operator being ranked first in HA are 47% of those in H.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Manipulation checks, credibility checks, and HARKing</div>
+    <p><b>Credibility check</b> (BEL1): did participants believe the description — it passes when belief is equal across conditions. <b>Manipulation check:</b> did the description change the perception it was meant to change — here carried by CR3 (HA sees the operator as less in control). <b>Directional hypothesis:</b> predicts the direction of a difference and decides between one- and two-tailed tests; we use two-tailed throughout. <b>Preregistration:</b> publicly registering hypotheses and analyses before seeing the data; without it, the substitute is what this workbook does — writing down the primary sample, outcomes, model and contrasts before any p-value is seen, and labelling everything later as exploratory. <b>HARKing:</b> presenting hypotheses formed after seeing the results as if they had existed beforehand; the only difference from exploratory analysis is honest labelling.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Moderation and simple slopes</div>
+    <p><b>Plainly:</b> “does the effect differ between people”. A product term “human × attitude” is added to the model; its coefficient is the difference between the two groups' slopes, and significance means the slopes differ. <b>Simple slopes / conditional effects:</b> the group difference at a given attitude value (e.g. 1 SD below and above the mean). <b>Common mistake:</b> concluding from a significant interaction that “AI-positive people prefer AI” — that needs the difference at +1 SD itself to be significant, and here it is not.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Post-treatment variables are not ordinary moderators</div>
+    <p>BEL1 is measured after the manipulation and may be a result of the condition: someone in A who found the interaction genuine may for that very reason disbelieve that “the AI is in control”. Grouping on it uses part of the outcome as a grouping variable. So it can only serve sensitivity analyses (does the conclusion hold among believers), not causal claims like “the effect is concentrated among believers”.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Equivalence tests TOST</div>
+    <p>Ordinary tests ask “is the difference zero” and cannot “prove sameness”. TOST first fixes a bound for “small enough not to matter” (here ±0.35 or ±0.50 SD), then runs two one-sided tests: is the difference significantly above the lower bound and significantly below the upper one. If both are significant, equivalence can be claimed — equivalently, the 90% confidence interval lies entirely inside the bounds. The bounds must be set before looking at the data; we used the smallest detectable effect from the sensitivity analysis.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Ranking data: why mean ranks mislead, and what Plackett–Luce computes</div>
+    <p>H has 3 options and HA 4: the same actor's mean rank is naturally larger in HA, so comparing mean ranks across conditions is invalid. Plackett–Luce treats a ranking as “pick the first from all actors, then the second from the rest…” and estimates each actor's “worth”, summing to 1 within a condition, so 3-option and 4-option conditions can be compared on the same scale.</p>
+  </div>
+  <div class="teach">
+    <div class="t">Bookkeeping of exploratory tests</div>
+    <p>The exploration phase ran 113 tests. At a 5% false-positive rate, about 6 would show p &lt; .05 even with no effects at all. So an exploratory finding is judged not only by its p but by whether the direction is consistent across related outcomes (E1 yes), whether one cell drives it (E8 yes, dropped), and whether it survives a change of method (E6's position interaction did not, dropped). All tests are kept in CSV and belong in the paper's supplement.</p>
+  </div>
+  <div class="teach">
+    <div class="t">How large an effect this sample can see (sensitivity)</div>
+    <p><b>Plainly:</b> sample size decides how small a difference can be found reliably. In Cohen's d (difference divided by SD; 0.2 small, 0.5 medium, 0.8 large), with 80% power and α = .05: “human vs AI-only” (primary sample 236 vs 36) detects d ≥ 0.50, H vs HA (118 vs 118) detects d ≥ 0.36, disability disclosed vs no mention (159 vs 77) detects d ≥ 0.39, two profile levels (about 78 vs 80) detect d ≥ 0.44, and <b>one condition vs one condition</b> (43 vs 43) needs d ≥ 0.60. So among the 21 pairwise comparisons many real small differences will be “non-significant” — non-significant is not no effect, the keynote of the interpretation.</p>
+  </div>
+</section>
+
+<section id="questions">
+  <div class="eyebrow">Open decisions</div>
+  <h2>Open decisions</h2>
+  <div class="q"><p><span class="n">1</span><b>Storyline.</b> Two options: (a) the trial storyline “bringing the human back”; (b) an equivalence story opening with disability (see the last paragraph of Appendix A). Both use the same analyses; they differ in the order of the Results and the emphasis of the Discussion. Option (b) needs Study 2's data to answer “do the clips carry a no-disability signal”.</p></div>
+  <div class="q"><p><span class="n">2</span><b>Study 2 data.</b> If collection has started, send the export; the clip-neutrality check (how many infer a disability, how many infer an AI, with no description) comes first, then the storyline decision.</p></div>
+  <div class="q"><p><span class="n">3</span><b>More participants.</b> Not recommended for the existing cells. If the disability effect must be tested, open a separate preregistered replication cell with a stronger disclosure (repeated, visible) and a pre-stated sample size and analysis.</p></div>
+  <div class="q"><p><span class="n">4</span><b>Format and unwritten parts.</b> Markdown drafts are provided; say the word for LaTeX/Word or a Discussion outline.</p></div>
+</section>
+</main>
+</div>

@@ -397,7 +397,38 @@ def wrap_item_codes(doc):
             n += 1; return f'<span class="ic" tabindex="0" data-tip="{html.escape(tip, quote=True)}">{code}</span>'
         parts[i] = CODE_RE.sub(sub, p)
     return "".join(parts), n
-out3, n_wrapped = wrap_item_codes(out3)
-open(OUT, "w", encoding="utf-8").write(out3)
-open(os.path.join(HERE, "workbook.html"), "w", encoding="utf-8").write('<meta charset="utf-8">\n' + out3)
-print("phase-14 tables injected; item codes wrapped:", n_wrapped, "; written", OUT, len(out3)//1024, "KB")
+
+# ============================================================ bilingual assembly
+import json
+from en_labels import LABELS
+ALL = {}; ALL.update(subs); ALL.update(subs2); ALL.update(subs3)
+FIGKEYS = [k for k in ALL if re.match(r"^P?FIG\d+$", k)]
+FIGSTORE = {k: ALL[k] for k in FIGKEYS}
+def fill(t):
+    t = re.sub(r'src="\[\[(P?FIG\d+)\]\]"', r'data-fig="\1"', t)
+    for k, v in ALL.items():
+        if k in FIGKEYS: continue
+        t = t.replace("[[" + k + "]]", v)
+    left = re.findall(r"\[\[[A-Z0-9_]+\]\]", t); assert not left, left
+    return t
+zh_full = tmpl
+head, rest = zh_full.split('<div class="wrap">', 1)
+k = rest.index("\n<script>"); wrap_zh = '<div class="wrap" data-lang="zh">' + rest[:k]; tail = rest[k:]
+en_tmpl = open(os.path.join(HERE, "workbook_template_en.html"), encoding="utf-8").read()
+wrap_en = en_tmpl.replace('<div class="wrap">', '<div class="wrap" data-lang="en" hidden>', 1)
+wrap_zh = fill(wrap_zh); wrap_en = fill(wrap_en)
+wrap_en = re.sub(r'\bid="([^"]+)"', r'id="\1-en"', wrap_en); wrap_en = re.sub(r'href="#([^"]+)"', r'href="#\1-en"', wrap_en)
+def translate(t):
+    for zh_s, en_s in sorted(LABELS.items(), key=lambda kv: -len(kv[0])): t = t.replace(zh_s, en_s)
+    return t
+wrap_en = translate(wrap_en)
+figstore = '<script type="application/json" id="figstore">' + json.dumps(FIGSTORE) + '</script>'
+doc = head + wrap_zh + "\n" + wrap_en + "\n" + figstore + tail
+doc, n_wrapped = wrap_item_codes(doc)
+a = doc.index('<div class="wrap" data-lang="en"'); b = doc.index('<script type="application/json" id="figstore">')
+doc = doc[:a] + translate(doc[a:b]) + doc[b:]
+open(OUT, "w", encoding="utf-8").write(doc)
+open(os.path.join(HERE, "workbook.html"), "w", encoding="utf-8").write('<meta charset="utf-8">\n' + doc)
+leftover = sorted(set(re.findall(r"[\u4e00-\u9fff][^<>\"]*", doc[a:b])))
+print("bilingual workbook written:", OUT, len(doc)//1024, "KB; item codes wrapped:", n_wrapped, "; CJK leftovers in EN block:", len(leftover))
+for x in leftover[:60]: print("   ", x[:90])

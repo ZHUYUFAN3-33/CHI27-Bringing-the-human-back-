@@ -124,7 +124,12 @@ h3.tg3:focus-visible, section[id] > h2:focus-visible{outline:2px solid var(--acc
 .ic:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 #tip{position:fixed;z-index:50;background:var(--ink);color:var(--bg);font-size:12.5px;line-height:1.5;padding:8px 11px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.25);white-space:pre-line;pointer-events:none;font-family:var(--sans)}
 #tip b{font-weight:600}
+.langbtn{position:fixed;top:12px;right:12px;z-index:60;font:inherit;font-size:13px;font-weight:600;padding:6px 13px;border-radius:999px;border:1px solid var(--rule-2);background:var(--surface);color:var(--accent-ink);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.10)}
+.langbtn:hover{border-color:var(--accent)}
+.langbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media print{.langbtn{display:none}}
 </style>
+<button type="button" id="lang-toggle" class="langbtn" aria-label="Switch language">English</button>
 
 <div class="wrap">
 <nav class="toc" aria-label="目录">
@@ -162,7 +167,7 @@ h3.tg3:focus-visible, section[id] > h2:focus-visible{outline:2px solid var(--acc
 <header class="hero">
   <div class="eyebrow">CHI '27 · Study 1 · “Bringing the Human Back?”</div>
   <h1>OriHime Study 1 分析手册</h1>
-  <div class="ctrlbar"><button type="button" id="expand-all">全部展开</button><button type="button" id="collapse-all">全部折叠</button><span class="hint">点击任一节标题或小标题可折叠 / 展开；目录点击会自动展开对应的节；折叠状态只记在你自己的浏览器里。</span></div>
+  <div class="ctrlbar"><button type="button" data-action="expand">全部展开</button><button type="button" data-action="collapse">全部折叠</button><span class="hint">点击任一节标题或小标题可折叠 / 展开；目录点击会自动展开对应的节；折叠状态只记在你自己的浏览器里。</span></div>
   <p class="lede">数据导出于 2026-09-02 10:41 UTC（问卷版本 v6e），300 份完成问卷。这一页是整个分析的工作台：研究设计怎么重建、数据长什么样、质量如何、路线图走到哪一步、每一次分析为什么做。每完成一个阶段就更新一次。<b>当前阶段：Phase 15–21 完成。按<b>试用主线</b>生成了 Methods、Results、Limitations、审稿人方法理由、论文级图表和可复现流水线；主线本身仍是试用，等你定夺。</b></p>
 </header>
 
@@ -943,7 +948,7 @@ h3.tg3:focus-visible, section[id] > h2:focus-visible{outline:2px solid var(--acc
 
 <script>
 (function(){
-  var KEY = "study1-workbook.open.v1", DEFAULT_OPEN = ["status"];
+  var KEY = "study1-workbook.open.v2", DEFAULT_OPEN = ["status", "status-en"];
   var open = new Set(DEFAULT_OPEN);
   try { var s = localStorage.getItem(KEY); if (s) open = new Set(JSON.parse(s)); } catch (e) {}
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(Array.from(open))); } catch (e) {} }
@@ -988,11 +993,11 @@ h3.tg3:focus-visible, section[id] > h2:focus-visible{outline:2px solid var(--acc
   });
   window.addEventListener("hashchange", function(){ reveal(location.hash.slice(1)); });
   if (location.hash) { reveal(location.hash.slice(1)); setTimeout(function(){ var el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView(); }, 50); }
-  document.getElementById("expand-all").addEventListener("click", function(){
+  document.querySelectorAll('[data-action="expand"]').forEach(function(b){ b.addEventListener("click", function(){
     secs.forEach(function(sec){ setSec(sec, true); });
     document.querySelectorAll(".sub-body").forEach(function(sb){ sb.hidden = false; }); document.querySelectorAll("h3.tg3").forEach(function(h){ h.classList.remove("closed"); h.setAttribute("aria-expanded", "true"); });
-  });
-  document.getElementById("collapse-all").addEventListener("click", function(){ secs.forEach(function(sec){ setSec(sec, false); }); });
+  }); });
+  document.querySelectorAll('[data-action="collapse"]').forEach(function(b){ b.addEventListener("click", function(){ secs.forEach(function(sec){ setSec(sec, false); }); }); });
 })();
 </script>
 
@@ -1015,5 +1020,25 @@ h3.tg3:focus-visible, section[id] > h2:focus-visible{outline:2px solid var(--acc
   document.addEventListener("click", function(e){ var el = icOf(e); if (el) { e.stopPropagation(); e.preventDefault(); if (tip.hidden) show(el); else hide(); } else hide(); }, true);
   window.addEventListener("scroll", hide, true);
   window.addEventListener("keydown", function(e){ if (e.key === "Escape") hide(); });
+})();
+</script>
+<script>
+(function(){
+  var s = document.getElementById("figstore"); if (!s) return;
+  var figs = JSON.parse(s.textContent);
+  document.querySelectorAll("img[data-fig]").forEach(function(img){ var k = img.getAttribute("data-fig"); if (figs[k]) img.src = figs[k]; });
+})();
+(function(){
+  var KEY = "study1-workbook.lang", lang = "zh"; try { lang = localStorage.getItem(KEY) || "zh"; } catch (e) {}
+  var btn = document.getElementById("lang-toggle"); if (!btn) return;
+  function apply(l){
+    lang = l;
+    document.querySelectorAll(".wrap[data-lang]").forEach(function(w){ w.hidden = w.getAttribute("data-lang") !== l; });
+    document.documentElement.lang = (l === "zh") ? "zh-CN" : "en";
+    btn.textContent = (l === "zh") ? "English" : "中文"; btn.setAttribute("aria-label", (l === "zh") ? "Switch to English" : "切换到中文");
+    try { localStorage.setItem(KEY, l); } catch (e) {}
+  }
+  btn.addEventListener("click", function(){ apply(lang === "zh" ? "en" : "zh"); });
+  apply(lang);
 })();
 </script>
