@@ -249,11 +249,22 @@ belongs in the limitations.
 
 A second study on a **fresh sample**, served by the same app under `/s2`.
 Nobody is told how OriHime is controlled: page one says only that there are
-three ways it can be, and each of the three clips is followed by the same three
-questions — an open description, who they think is controlling the robot, and
-whether a person involved is thought to have a disability. Five pages:
-information · about OriHime · consent (one page), three clips, finish. The only
-randomised factor is the clip order, balanced across the same six permutations.
+three ways it can be. Each of the three clips is then followed by the same
+questions — an open description (at least 30 characters), the two evaluation
+items `AU1` and `OH2` carried over verbatim from Study 1, who they think is
+controlling the robot and how confident they are in that, and whether a person
+involved is thought to have a disability. The last two are optional
+follow-ups: what made them think so, and what kind of disability. Six pages:
+information · about OriHime · consent (one page), three clips, a closing
+question with the background block, finish. The only randomised factor is the
+clip order, balanced across the same six permutations.
+
+An instructed-response check rides the clip shown **second**, whichever clip
+that is, and is scored on the server against a key the browser never receives.
+The background block is asked last, where it cannot colour a judgement: age,
+gender, AI-use frequency, contact with people with disabilities, and the five
+positive GAAIS items — the same ids Study 1 uses, so the two samples can be
+described in the same terms.
 
 Its own tables (`s2_*`), its own dashboard, its own exports, its own open/closed
 switch and its own Connect project. Nothing it does touches the Study 1 rows.
@@ -283,7 +294,7 @@ https://study1-survey.fly.dev/s2/preview?token=<TOKEN>&order=O3
 The dashboard shows, live, how the two forced-choice questions are being
 answered per clip (or per position shown), the length of the open descriptions,
 the most recent descriptions in full, allocation over the six orders, drop-off,
-and the export panel. The preview renders the five pages for any clip order and
+and the export panel. The preview renders the six pages for any clip order and
 records nothing. **There is no wording editor for Study 2**: its text lives in
 `shared/s2-instrument.js` and changes with a deploy.
 
@@ -295,16 +306,18 @@ https://study1-survey.fly.dev/api/s2/export/wide.csv?token=<TOKEN>
 
 | path | one row per |
 |---|---|
-| `/api/s2/export/participants.csv` | participant — order, `pos_REL/ADV/COL`, status, `complete_pass`, `text_chars` |
+| `/api/s2/export/participants.csv` | participant — order, `pos_REL/ADV/COL`, status, `complete_pass`, `attention_pass`, `text_chars` |
 | `/api/s2/export/responses.csv` | answer (long); the descriptions are in `value_text` |
-| `/api/s2/export/wide.csv` | participant, one column per item (`E1–E3`, `REL_IMP/WHO/DIS`, `ADV_…`, `COL_…`) |
+| `/api/s2/export/wide.csv` | participant, one column per item (`E1–E3`, `REL_IMP/AU1/OH2/AT1/WHO/CONF/WHY/DIS/DIS_KIND`, `ADV_…`, `COL_…`, `SAME`, `BG_*`, `GAAIS_*`) |
 | `/api/s2/export/page_times.csv` | page visit |
 | `/api/s2/export/video_events.csv` | player event |
 | `/api/s2/export/codebook.csv` | item — coding and stem |
 | `/api/s2/export/all.json` | everything, nested |
 
 Same query parameters as Study 1: `include_test=1`, `status=`, `usable_only=1`
-(completed with every item answered), `since=`, `labels=1`. All at once:
+(completed, every required item answered, attention check passed), `since=`,
+`labels=1`. `text_chars` counts the three open descriptions only, not the
+optional follow-ups. All at once:
 
 ```bash
 ADMIN_TOKEN=<TOKEN> ./scripts/s2-export.sh
@@ -326,8 +339,18 @@ own unique code and no return button. Study 1's `STUDY_OPEN`,
 ### Checking it
 
 ```bash
+node scripts/s2-plan-check.mjs                                            # offline, no server
 node scripts/s2-simulate.mjs --n 20 --base https://study1-survey.fly.dev   # test rows only
+node scripts/s2-browser-test.mjs https://study1-survey.fly.dev $ADMIN_TOKEN
 ```
+
+`s2-browser-test.mjs` drives the real page through `/s2/preview`, so it opens no
+video gate and records nothing. It needs Playwright:
+`npm install --no-save playwright && npx playwright install chromium`.
+
+**Sample size.** The analysis plan asks for 250–300 people. The allocation
+targets ship at 0, which means uncapped; set them from the dashboard, or let the
+Connect quota be the stop.
 
 ---
 

@@ -6,7 +6,8 @@ import {
   s2AllocationSnapshot, reconcileS2Allocation, setS2CellTarget, setS2AllTargets, setS2CellEnabled
 } from "./allocation.js";
 import {
-  buildS2Plan, publicS2Plan, s2PlanItems, S2_ORDER_KEYS, S2_ORDERS, S2_ITEMS, S2_SEGMENT_KEYS, S2_VERSION
+  buildS2Plan, publicS2Plan, s2PlanItems, S2_ORDER_KEYS, S2_ORDERS, S2_ITEMS, S2_CONFIDENCE,
+  S2_SEGMENT_KEYS, S2_VERSION
 } from "../../shared/s2-instrument.js";
 
 export default async function s2AdminRoutes(app) {
@@ -27,7 +28,11 @@ export default async function s2AdminRoutes(app) {
   app.get("/api/s2/admin/design", async () => ({
     orders: S2_ORDER_KEYS.map(key => ({ key, segments: S2_ORDERS[key] })),
     segments: S2_SEGMENT_KEYS,
-    items: { WHO: S2_ITEMS.WHO, DIS: S2_ITEMS.DIS, IMP: { stem: S2_ITEMS.IMP.stem } },
+    items: {
+      WHO: S2_ITEMS.WHO, DIS: S2_ITEMS.DIS,
+      IMP: { stem: S2_ITEMS.IMP.stem, minLength: S2_ITEMS.IMP.minLength },
+      CONF: { stem: S2_ITEMS.CONF.stem, options: S2_CONFIDENCE }
+    },
     instrumentVersion: S2_VERSION
   }));
 
@@ -39,8 +44,11 @@ export default async function s2AdminRoutes(app) {
            COUNT(*) FILTER (WHERE status = 'in_progress')               AS in_progress,
            COUNT(*) FILTER (WHERE status = 'screened_out')              AS screened_out,
            COUNT(*) FILTER (WHERE status = 'completed'
-                              AND COALESCE(complete_pass, TRUE))        AS usable,
-           COUNT(*) FILTER (WHERE status = 'completed' AND text_chars < 60) AS thin_text,
+                              AND COALESCE(complete_pass, TRUE)
+                              AND COALESCE(attention_pass, TRUE))       AS usable,
+           COUNT(*) FILTER (WHERE status = 'completed'
+                              AND attention_pass IS FALSE)              AS attention_fail,
+           COUNT(*) FILTER (WHERE status = 'completed' AND text_chars < 90) AS thin_text,
            ROUND(percentile_cont(0.5) WITHIN GROUP (
              ORDER BY EXTRACT(EPOCH FROM (last_answer_at - first_answer_at))
            ) FILTER (WHERE status = 'completed'))                       AS median_seconds,
@@ -49,7 +57,7 @@ export default async function s2AdminRoutes(app) {
          FROM s2_participants WHERE NOT is_test`),
       s2AllocationSnapshot(),
       q(`SELECT id, short_code, seg_order, status, source, external_pid, answered_count,
-                text_chars, complete_pass, started_at, completed_at, last_seen_at
+                text_chars, complete_pass, attention_pass, started_at, completed_at, last_seen_at
            FROM s2_participants WHERE NOT is_test
           ORDER BY started_at DESC LIMIT 40`),
       q(`SELECT COUNT(*) AS n FROM s2_participants
@@ -98,7 +106,8 @@ export default async function s2AdminRoutes(app) {
                 ROUND(AVG(LENGTH(r.value_text)))::int AS mean_chars,
                 ROUND(percentile_cont(0.5) WITHIN GROUP (ORDER BY LENGTH(r.value_text)))::int AS median_chars
            FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
-          WHERE NOT p.is_test AND p.status = 'completed' AND r.item_type = 'text'
+          WHERE NOT p.is_test AND p.status = 'completed'
+            AND r.item_type = 'text' AND right(r.item_id, 4) = '_IMP'
           GROUP BY 1 ORDER BY 1`)
     ]);
     return { bySegment: bySegment.rows, byPosition: byPosition.rows, text: text.rows };

@@ -307,11 +307,76 @@ function target(page) {
 
 function buildItem(item) {
   switch (item.type) {
-    case "mc":   return mcBlock(item);
-    case "text": return item.multiline ? textareaBlock(item) : textBlock(item);
-    case "note": return el("div", "note", md(item.text));
-    default:     return el("div");
+    case "mc":      return mcBlock(item);
+    case "text":    return item.multiline ? textareaBlock(item) : textBlock(item);
+    case "number":  return textBlock(item);
+    case "matrix":  return matrixBlock(item);
+    /* A lone seven-point item is a one-row table, so it inherits the same
+       column headers, the same hit targets and the same phone layout. */
+    case "likert7": return matrixBlock({ instruction: null, rows: [item] });
+    case "heading": return headingBlock(item);
+    case "note":    return el("div", "note", md(item.text));
+    default:        return el("div");
   }
+}
+
+function headingBlock(item) {
+  const wrap = el("div", "seam");
+  if (item.eyebrow) wrap.append(el("div", "eyebrow", esc(item.eyebrow)));
+  if (item.title)   wrap.append(el("h2", null, esc(item.title)));
+  if (item.text)    wrap.append(el("p", "lede", md(item.text)));
+  return wrap;
+}
+
+/* Seven-point items, one table. The column labels come from the item itself
+   when it has its own (the confidence item), and otherwise from the agreement
+   anchors the server sent once with the plan. Ported from Study 1 so both
+   studies present a seven-point item identically — the same table, the same
+   1–7 numbering, the same collapse to stacked rows on a phone, all of which
+   already have styles in survey.css. */
+function matrixBlock(block) {
+  const wrap = el("div", "matrix-q");
+  if (block.instruction) wrap.append(el("p", "minstr", esc(block.instruction)));
+
+  const scaleFor = row => row.options ?? S.plan.scale;
+  const table = el("table", "likert");
+  const head = scaleFor(block.rows[0]);
+  table.innerHTML =
+    `<thead><tr><th class="stemcol"></th>` +
+    head.map((lab, i) => `<th><span class="n">${i + 1}</span>${esc(lab)}</th>`).join("") +
+    `</tr></thead>`;
+
+  const tbody = el("tbody");
+  block.rows.forEach(row => {
+    const scale = scaleFor(row);
+    const tr = el("tr");
+    tr.dataset.item = row.id;
+    tr.append(el("td", "stemcell", md(row.stem) + (row.required !== false ? '<span class="req">*</span>' : "")));
+    for (let c = 1; c <= 7; c++) {
+      const td = el("td");
+      td.dataset.n = c;
+      const lab = el("label", "hit");
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = row.id;
+      input.value = c;
+      input.setAttribute("aria-label", `${scale[c - 1]} — ${row.stem}`);
+      if (S.answers.get(row.id)?.num === c) input.checked = true;
+      input.addEventListener("change", () => setAnswer(row.id, { num: c, text: scale[c - 1] }, tr));
+      lab.append(input);
+      td.append(lab);
+      tr.append(td);
+    }
+    tbody.append(tr);
+  });
+  table.append(tbody);
+  wrap.append(table);
+
+  /* On a phone the header row is dropped, so the two ends go underneath. */
+  const key = el("div", "likertkey");
+  key.innerHTML = `<span>1 · ${esc(head[0])}</span><span>7 · ${esc(head[6])}</span>`;
+  wrap.append(key);
+  return wrap;
 }
 
 function mcBlock(item) {
@@ -370,15 +435,30 @@ function textBlock(item) {
   const wrap = el("div", "q");
   wrap.dataset.item = item.id;
   wrap.append(el("p", "stem", esc(item.stem) + (item.required ? '<span class="req">*</span>' : "")));
+  const isNum = item.type === "number";
   const input = document.createElement("input");
-  input.type = "text";
+  input.type = isNum ? "number" : "text";
+  if (isNum) {
+    input.inputMode = "numeric";
+    if (item.min != null) input.min = item.min;
+    if (item.max != null) input.max = item.max;
+  }
   if (item.maxLength) input.maxLength = item.maxLength;
   input.autocomplete = "off";
-  input.value = S.answers.get(item.id)?.text ?? "";
+  const cur = S.answers.get(item.id);
+  if (cur) input.value = isNum ? (cur.num ?? "") : (cur.text ?? "");
   input.addEventListener("input", () => {
     const raw = input.value.trim();
     if (!raw) { S.answers.delete(item.id); updateNext(); return; }
-    setAnswer(item.id, { num: null, text: raw }, wrap);
+    if (isNum) {
+      const n = Number(raw);
+      /* Out of range is left on screen rather than stored: the participant can
+         still fix a typo, and the server would refuse it anyway. */
+      if (!Number.isFinite(n)) { S.answers.delete(item.id); updateNext(); return; }
+      setAnswer(item.id, { num: n, text: null }, wrap);
+    } else {
+      setAnswer(item.id, { num: null, text: raw }, wrap);
+    }
   });
   wrap.append(input);
   return wrap;
@@ -567,8 +647,23 @@ function renderFallback(page) {
 
 /* ---------------------------------------------------- required-item checks */
 
+/* A page's stored items, in order. A matrix is a container: it contributes its
+   rows and never itself, and notes and headings contribute nothing. Every walk
+   over a page's answers goes through here — miss one and a matrix block, which
+   has no id of its own, reads as an unanswered required item and the Next
+   button never lights. */
+function flatItems(page) {
+  const out = [];
+  for (const it of page.items) {
+    if (it.type === "note" || it.type === "heading") continue;
+    if (it.type === "matrix") { out.push(...it.rows); continue; }
+    out.push(it);
+  }
+  return out;
+}
+
 function requiredItems(page) {
-  return page.items.filter(it => it.type !== "note" && it.required !== false);
+  return flatItems(page).filter(it => it.required !== false);
 }
 
 /* A free-text answer under its minimum counts as missing: it is kept on
@@ -616,8 +711,8 @@ nextBtn.addEventListener("click", async () => {
     return;
   }
 
-  const trip = page.items.find(it => it.screenOut && S.answers.get(it.id)
-                                     && it.screenOut.includes(S.answers.get(it.id).num));
+  const trip = flatItems(page).find(it => it.screenOut && S.answers.get(it.id)
+                                         && it.screenOut.includes(S.answers.get(it.id).num));
   const nextPage = S.plan.pages[S.page + 1];
   savePage(page, trip ? null : nextPage);
 
@@ -659,8 +754,7 @@ function markMissing(ids) {
 function savePage(page, nextPage) {
   if (S.preview) return;
   const answers = [];
-  for (const it of page.items) {
-    if (it.type === "note") continue;
+  for (const it of flatItems(page)) {
     const a = S.answers.get(it.id);
     if (!a || a.restored) continue;
     if (it.type === "text" && it.minLength != null && (a.text ?? "").length < it.minLength) continue;

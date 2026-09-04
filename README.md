@@ -22,12 +22,20 @@ server-side randomisation, storage, resume, quality flags, and export.
 
 **Study 2** — a perception study on a fresh sample, served by the same app under
 `/s2` with its own tables, dashboard (`/s2/admin`), preview (`/s2/preview`) and
-exports (`/api/s2/export/*`). Five pages: information, about OriHime and consent
-on one page, three clips each followed by an open description and two
-forced-choice items (who is controlling OriHime; does a person involved have a
-disability), and a finish page. The clip order is the only randomised factor.
-The instrument is `shared/s2-instrument.js`, the server side `src/s2/`, the
-participant runtime `public/s2/`. See [LINKS.md](LINKS.md#study-2--who-is-controlling-orihime).
+exports (`/api/s2/export/*`). Six pages: information, about OriHime and consent
+on one page; three clips, each followed by an open description, two evaluation
+items carried over from Study 1, who the participant thinks is controlling
+OriHime and how confident they are, and whether a person involved has a
+disability; a closing question and the background block; a finish page. The clip
+order is the only randomised factor. The instrument is
+`shared/s2-instrument.js`, the server side `src/s2/`, the participant runtime
+`public/s2/`. See [LINKS.md](LINKS.md#study-2--who-is-controlling-orihime).
+
+Study 2 shares Study 1's seven-point scale, its GAAIS items, its background item
+ids and the wording of `AU1` and `OH2`, all imported from `shared/instrument.js`
+rather than restated — the two studies only compare if an answer of 6 means the
+same thing in both. Its instructed-response check is scored on the server
+against a key the browser is never sent, exactly as Study 1's is.
 
 ---
 
@@ -86,12 +94,13 @@ public/                the participant app (index.html, survey.js, net.js, surve
 private/               admin.html and the original mockup — both token-gated
 db/schema.sql          the schema, idempotent, applied on every boot
 db/s2-schema.sql       Study 2's tables (s2_*), applied right after
-shared/s2-instrument.js  Study 2's five pages
+shared/s2-instrument.js  Study 2's six pages
 src/s2/                Study 2's routes: participant API, dashboard API, exports
 public/s2/             Study 2's participant app; public/net-core.js is the
                        transport both studies share
 private/s2-admin.html  Study 2's dashboard · private/s2-preview.html its preview
-scripts/               deploy, tunnel, export, simulate, browser-test, s2-simulate
+scripts/               deploy, tunnel, export, simulate, browser-test,
+                       s2-simulate, s2-browser-test, s2-plan-check
 ```
 
 ---

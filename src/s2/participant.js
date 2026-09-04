@@ -60,6 +60,22 @@ function coerce(item, raw) {
       if (!Number.isInteger(n) || n < 0 || n >= item.options.length) return null;
       return { value_num: n, value_text: item.options[n] };
     }
+    /* Seven-point items are stored 1..7, the way Study 1 stores them, so a
+       column from either study means the same thing without rescaling. The
+       label comes from the item's own options — the agreement anchors for the
+       evaluation items, the confidence wording for the confidence item. */
+    case "likert7": {
+      const n = Number(raw?.num);
+      if (!Number.isInteger(n) || n < 1 || n > 7) return null;
+      return { value_num: n, value_text: item.options?.[n - 1] ?? null };
+    }
+    case "number": {
+      const n = Number(raw?.num);
+      if (!Number.isFinite(n)) return null;
+      if (item.min != null && n < item.min) return null;
+      if (item.max != null && n > item.max) return null;
+      return { value_num: n, value_text: null };
+    }
     case "text": {
       const s = String(raw?.text ?? "").replace(/\s+/g, " ").trim();
       if (!s) return null;
@@ -305,8 +321,13 @@ export default async function s2ParticipantRoutes(app) {
                 page_index      = GREATEST(page_index, COALESCE($3, 0)),
                 last_seen_at    = now(),
                 answered_count  = (SELECT COUNT(*) FROM s2_responses WHERE participant_id = $1),
+                /* The three open descriptions only. The optional "why" and
+                   "what kind of disability" boxes are text too, and counting
+                   them would inflate the one number the dashboard uses to spot
+                   a participant who typed nothing worth reading. */
                 text_chars      = (SELECT COALESCE(SUM(LENGTH(value_text)), 0) FROM s2_responses
-                                    WHERE participant_id = $1 AND item_type = 'text'),
+                                    WHERE participant_id = $1 AND item_type = 'text'
+                                      AND right(item_id, 4) = '_IMP'),
                 first_answer_at = LEAST(first_answer_at, (SELECT MIN(answered_at) FROM s2_responses WHERE participant_id = $1)),
                 last_answer_at  = GREATEST(last_answer_at, (SELECT MAX(answered_at) FROM s2_responses WHERE participant_id = $1))
           WHERE id = $1`,
@@ -341,11 +362,17 @@ export default async function s2ParticipantRoutes(app) {
 
     const items = s2PlanItems(buildS2Plan(p.seg_order));
     const { rows: stored } = await q(
-      `SELECT item_id FROM s2_responses WHERE participant_id = $1`, [p.id]
+      `SELECT item_id, value_num FROM s2_responses WHERE participant_id = $1`, [p.id]
     );
-    const got = new Set(stored.map(r => r.item_id));
+    const got = new Map(stored.map(r => [r.item_id, r.value_num]));
     const required = items.filter(i => i.required);
     const missing = required.filter(i => !got.has(i.id)).map(i => i.id);
+
+    /* The instructed-response check, scored here against the key the browser
+       was never sent. Not answering it is not passing it. Null only if the
+       instrument carries no check at all. */
+    const check = items.find(i => i.group === "attention");
+    const attentionPass = check ? Number(got.get(check.id)) === check.expected : null;
 
     const { rows } = await withTx(async client => {
       await client.query(
@@ -353,18 +380,22 @@ export default async function s2ParticipantRoutes(app) {
          ON CONFLICT (participant_id) DO UPDATE SET payload = EXCLUDED.payload, received_at = now()`,
         [p.id, JSON.stringify({
           client: req.body ?? {},
-          derived: { missing, itemsExpected: required.length, itemsStored: got.size }
+          derived: {
+            missing, itemsExpected: required.length, itemsStored: got.size,
+            attentionItem: check?.id ?? null, attentionPass
+          }
         })]
       );
       const upd = await client.query(
         `UPDATE s2_participants
             SET status = 'completed', completed_at = now(), last_seen_at = now(),
-                page_key = 'finish', page_index = GREATEST(page_index, 4),
+                page_key = 'finish', page_index = GREATEST(page_index, 5),
                 complete_pass = $2,
+                attention_pass = $3,
                 answered_count = (SELECT COUNT(*) FROM s2_responses WHERE participant_id = $1)
           WHERE id = $1
           RETURNING short_code`,
-        [p.id, missing.length === 0]
+        [p.id, missing.length === 0, attentionPass]
       );
       if (p.status !== "completed" && !p.is_test) {
         await client.query(`UPDATE s2_allocation SET completed = completed + 1 WHERE cell = $1`, [p.seg_order]);
@@ -372,7 +403,7 @@ export default async function s2ParticipantRoutes(app) {
       return upd;
     });
 
-    req.log.info({ pid: p.id, order: p.seg_order, missing: missing.length }, "s2 completed");
+    req.log.info({ pid: p.id, order: p.seg_order, missing: missing.length, attentionPass }, "s2 completed");
     const code = completionFor({ short_code: rows[0]?.short_code ?? p.short_code });
     return { ok: true, shortCode: rows[0]?.short_code ?? p.short_code,
              completionCode: code.code, redirectUrl: code.redirectUrl, missing };

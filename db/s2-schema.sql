@@ -44,8 +44,13 @@ CREATE TABLE IF NOT EXISTS s2_participants (
 
   -- derived on completion
   complete_pass    BOOLEAN,                         -- every required item present at submit
+  attention_pass   BOOLEAN,                         -- instructed-response check, scored server-side
   text_chars       INTEGER NOT NULL DEFAULT 0       -- characters typed across the three descriptions
 );
+
+-- CREATE TABLE IF NOT EXISTS does not add columns to an existing deployment.
+ALTER TABLE s2_participants
+  ADD COLUMN IF NOT EXISTS attention_pass BOOLEAN;
 
 CREATE INDEX IF NOT EXISTS s2_participants_status_idx   ON s2_participants (status);
 CREATE INDEX IF NOT EXISTS s2_participants_order_idx    ON s2_participants (seg_order);
@@ -122,7 +127,8 @@ SELECT a.cell,
        COUNT(p.id) FILTER (WHERE p.status = 'in_progress'  AND NOT p.is_test) AS in_progress,
        COUNT(p.id) FILTER (WHERE p.status = 'screened_out' AND NOT p.is_test) AS screened_out,
        COUNT(p.id) FILTER (WHERE p.status = 'completed'    AND NOT p.is_test
-                             AND COALESCE(p.complete_pass, TRUE))               AS usable
+                             AND COALESCE(p.complete_pass, TRUE)
+                             AND COALESCE(p.attention_pass, TRUE))              AS usable
 FROM s2_allocation a
 LEFT JOIN s2_participants p ON p.seg_order = a.cell
 GROUP BY a.cell, a.seg_order, a.enabled, a.target, a.assigned

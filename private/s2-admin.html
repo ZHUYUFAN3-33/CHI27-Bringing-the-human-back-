@@ -106,7 +106,8 @@
   <div class="scroll"><table id="cells"></table></div>
   <p class="note">
     The only randomised factor is the order of the three clips. A new participant is given the least-filled
-    open order, ties broken at random. <code>usable</code> counts completions with every item answered.
+    open order, ties broken at random. <code>usable</code> counts completions with every item answered that
+    also passed the attention check.
     Leave the targets at 0 and let the CloudResearch quota be the stop.
   </p>
 
@@ -151,7 +152,8 @@ function tiles(d) {
     ["Usable",           n(t.usable), "", `${pct(t.usable, t.completed)} of completions`],
     ["In progress",      n(t.in_progress), "plain", `${n(d.activeNow)} active in last 5 min`],
     ["Screened out",     n(t.screened_out), "plain", "ineligible or declined"],
-    ["Thin descriptions", n(t.thin_text), t.thin_text > 0 ? "warn" : "plain", "under 60 characters in total"],
+    ["Failed attention", n(t.attention_fail), t.attention_fail > 0 ? "warn" : "plain", "instructed-response check"],
+    ["Thin descriptions", n(t.thin_text), t.thin_text > 0 ? "warn" : "plain", "under 90 characters in total"],
     ["Median duration",  mins, "plain", "first to last answer"],
     ["Median text",      t.median_text_chars != null ? n(t.median_text_chars) + " ch" : "—", "plain", "characters across the three descriptions"]
   ].map(([k, v, cls, note]) =>
@@ -257,10 +259,11 @@ function syncTargetControl(cells) {
 
 function recentTable(rows) {
   const head = `<tr><th>started</th><th>code</th><th>order</th><th>status</th>
-    <th class="num">items</th><th class="num">text chars</th><th>complete</th><th>external id</th></tr>`;
+    <th class="num">items</th><th class="num">text chars</th><th>complete</th><th>attention</th><th>external id</th></tr>`;
   $("#recent").innerHTML = head + rows.map(r => {
     const st = r.status === "completed" ? "ok" : r.status === "screened_out" ? "bad" : "warn";
     const cp = r.complete_pass == null ? "" : `<span class="pill ${r.complete_pass ? "ok" : "bad"}">${r.complete_pass ? "all items" : "missing"}</span>`;
+    const ap = r.attention_pass == null ? "" : `<span class="pill ${r.attention_pass ? "ok" : "bad"}">${r.attention_pass ? "attn" : "failed attn"}</span>`;
     return `<tr>
       <td>${new Date(r.started_at).toLocaleString()}</td>
       <td>${esc(r.short_code)}</td><td>${esc(r.seg_order)}</td>
@@ -268,6 +271,7 @@ function recentTable(rows) {
       <td class="num">${n(r.answered_count)}</td>
       <td class="num" style="color:${r.text_chars < 60 && r.status === "completed" ? "var(--signal)" : "inherit"}">${n(r.text_chars)}</td>
       <td>${cp}</td>
+      <td>${ap}</td>
       <td>${esc(r.external_pid ?? "")}</td>
     </tr>`;
   }).join("");

@@ -400,7 +400,7 @@ const EDUCATION = [
   "Prefer not to say"
 ];
 
-const GENDER = ["Male", "Female", "Nonbinary", "Prefer not to say"];
+export const GENDER = ["Male", "Female", "Nonbinary", "Prefer not to say"];
 
 /* Household income before tax, in US dollars. Brackets rather than a free
    number: people answer brackets, and the analysis is ordinal either way.

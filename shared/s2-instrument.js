@@ -3,22 +3,46 @@
    -----------------------------------------------------------------------------
    A perception study on a fresh sample. Nobody is told how OriHime is
    controlled: page one says only that there are three ways it can be, and each
-   of the three clips is followed by the same three questions — an open
-   description, who the participant thinks is controlling the robot, and
+   of the three clips is followed by the same questions — an open description,
+   two evaluation items carried over verbatim from Study 1, who the participant
+   thinks is controlling the robot and how confident they are in that, and
    whether a person involved is thought to have a disability.
 
-   Five pages: intro (information, about OriHime, consent) · three clips ·
-   finish. The only thing randomised is the order of the clips, balanced across
-   the same six permutations Study 1 uses.
+   Six pages: intro (information, about OriHime, consent) · three clips · a
+   closing question with the background block · finish. The only thing
+   randomised is the order of the clips, balanced across the same six
+   permutations Study 1 uses.
 
    Same rules as shared/instrument.js: item ids are the contract with the
    database and are frozen once collection starts; the browser renders the plan
    the server sends it; the server validates every answer against this file.
    ========================================================================== */
 
-import { SEGMENTS, ORDERS, ORDER_KEYS, DURATION, GATE_FRACTION } from "./instrument.js";
+import {
+  SEGMENTS, ORDERS, ORDER_KEYS, DURATION, GATE_FRACTION,
+  SCALE, FREQ, GENDER, GAAIS, ATTENTION_CHECK_VALUE
+} from "./instrument.js";
 
-export const S2_VERSION = "s2-v1";
+export const S2_VERSION = "s2-v2";
+
+/* The seven-point agreement scale, the frequency options and the GAAIS items
+   are Study 1's, imported rather than restated: the two studies only compare
+   if an answer of 6 means the same thing in both. */
+export const S2_SCALE = SCALE;
+
+/* The confidence scale. Seven points to match the agreement items, but named
+   for confidence throughout rather than anchored only at the ends, so a stored
+   value_text says what it means without a codebook lookup. */
+export const S2_CONFIDENCE = [
+  "Not at all confident", "Slightly confident", "Somewhat confident",
+  "Moderately confident", "Quite confident", "Very confident", "Completely confident"
+];
+
+/* The five positive-subscale GAAIS items, asked at the end. Study 1 found
+   attitude to AI moderating the AI-only penalty; here it is a candidate
+   predictor of the tendency to infer an AI. Ids keep the original scale's
+   numbering, so GAAIS_07 is item 7 in both studies. */
+export const S2_GAAIS = GAAIS.filter(g => g.sub === "pos");
 
 /* The clips, the orders and the gate rule are the same materials as Study 1,
    so they are read from there rather than copied: a new cut of a clip changes
@@ -74,7 +98,7 @@ export const S2_INFO = {
       key: "what",
       heading: "What you will do",
       body:
-        "You will watch **three short video clips** of a person talking with a robot called OriHime, and answer three questions about each clip.\n\n" +
+        "You will watch **three short video clips** of a person talking with a robot called OriHime, and answer a few questions about each clip. At the end there are some short questions about you.\n\n" +
         "It takes about **10–15 minutes**, and you will need **sound**."
     },
     {
@@ -123,9 +147,25 @@ export const S2_REMINDER =
 export const S2_ITEMS = {
   IMP: {
     stem: "What does the interaction in this video look like to you? Please describe it in your own words.",
-    minLength: 10,
+    /* Thirty characters, not ten: ten lets “it was fine” through, and the open
+       description is the only material the cue coding has to work with. */
+    minLength: 30,
     maxLength: 2000
   },
+
+  /* The two evaluation items are Study 1’s, word for word and on the same
+     seven-point scale, so “do people who spontaneously read the controller as
+     an AI also find the interaction less genuine” can be set beside Study 1’s
+     C1 effect. Asked before the three control methods are restated, so the
+     option list cannot steer them. */
+  AU1: { stem: "This interaction felt genuine, rather than like the execution of a program." },
+  OH2: { stem: "In this interaction, OriHime was useful for this task." },
+  BLOCK_LEAD: "Please answer the following about the interaction you have just watched.",
+
+  /* Instructed-response check, on the middle clip only, exactly where Study 1
+     puts it. Its answer key never leaves the server. */
+  AT1: { stem: "To show that you are reading carefully, please select “Disagree” for this item." },
+
   WHO: {
     stem: "Who do you think is controlling OriHime in this video?",
     options: [
@@ -143,7 +183,56 @@ export const S2_ITEMS = {
       "I can’t tell",
       "I don’t think a person is involved"
     ]
+  },
+
+  /* Confidence is asked immediately after the judgement and before the reason:
+     writing out a justification is known to inflate how sure people say they
+     are, so the reason comes second. It separates a held impression from a
+     shrug, which is what the “weak default” rule in the analysis plan needs. */
+  CONF: { stem: "How confident are you in that judgement?" },
+
+  /* Optional, and deliberately so: a required “why” turns into noise from the
+     people who have no reason to give. */
+  WHY: {
+    stem: "What made you think so?",
+    maxLength: 500
+  },
+
+  /* Only meaningful after “Yes” on DIS, but shown to everyone: the client has
+     no conditional-display logic, and an optional box that most people leave
+     empty costs less than the branching would. The wording carries the
+     condition so it reads correctly to the people it does not apply to. */
+  DIS_KIND: {
+    stem: "If you answered “Yes” above, what kind of disability do you have in mind?",
+    maxLength: 500
   }
+};
+
+/* Asked once at the end. Whether people think the three clips were controlled
+   the same way is what tells a stable personal prior apart from a per-clip
+   inference, which is the S2-Q5 reading. */
+export const S2_CLOSING = {
+  SAME: {
+    stem: "Thinking about all three videos: do you think OriHime was controlled the same way in all of them?",
+    options: [
+      "Yes, the same way in all three",
+      "No, different ways in different videos",
+      "I can’t tell"
+    ]
+  }
+};
+
+/* The background block. Asked last, where it cannot colour the judgements, and
+   kept to the four items that bear on this study plus the GAAIS positives.
+   Ids match Study 1’s so the two samples can be described in the same terms. */
+export const S2_BACKGROUND = {
+  heading: "Background",
+  lead: "These last few questions are about you. They are asked after the videos so they cannot affect your answers.",
+  gaaisLead: "Finally, how much do you agree with each of these statements about artificial intelligence?",
+  age: "What is your age in years?",
+  gender: "What gender do you identify with?",
+  freqAi: "How often do you use AI tools in your personal or professional life?",
+  freqDisability: "How often do you see or interact with people with disabilities in your personal or professional life?"
 };
 
 /* ---------------------------------------------------------------- helpers */
@@ -151,10 +240,38 @@ export const S2_ITEMS = {
 const mc = (id, stem, options, extra = {}) =>
   ({ id, type: "mc", stem, options, required: true, ...extra });
 
+/* Seven-point agreement, Study 1's scale. A lone likert7 renders as a one-row
+   table; several of them share one table through matrix() below. */
+const likert = (id, stem, extra = {}) =>
+  ({ id, type: "likert7", stem, options: SCALE, required: true, ...extra });
+
+/* Seven points again, but on its own labels: "strongly agree" is not an answer
+   to "how confident are you". Every point is named rather than only the ends,
+   so value_text is readable on its own in the export. */
+const confidence = (id, stem, extra = {}) =>
+  ({ id, type: "likert7", stem, options: S2_CONFIDENCE, required: true, ...extra });
+
+const number = (id, stem, extra = {}) =>
+  ({ id, type: "number", stem, required: true, ...extra });
+
+/* One table, several rows, one shared instruction — the shape Study 1 uses for
+   its item blocks. The block id is a name, not an answer: it stores nothing. */
+const matrix = (id, instruction, rows, extra = {}) =>
+  ({ id, type: "matrix", instruction, rows, ...extra });
+
+/* Renders a seam and stores nothing. */
+const heading = (eyebrow, title, text) =>
+  ({ type: "heading", eyebrow, title, text });
+
 /* Free text in a box that grows, not a one-line input: the open description is
    the richest thing this study collects. */
 const longText = (id, stem, extra = {}) =>
   ({ id, type: "text", multiline: true, stem, required: true, ...extra });
+
+/* The optional follow-ups. Not required, and with no minimum: an empty box is
+   a legitimate answer and simply never reaches the database. */
+const optionalText = (id, stem, extra = {}) =>
+  ({ id, type: "text", multiline: true, stem, required: false, ...extra });
 
 /* Renders a panel of text and stores nothing. */
 const note = text => ({ type: "note", text });
@@ -204,6 +321,36 @@ export function buildS2Plan(order) {
     const pos = i + 1;
     const q = code => `${seg}_${code}`;
     const meta = { segment: seg, segPosition: pos };
+
+    /* The evaluation block. It sits between the open description and the
+       restatement of the three control methods: after, so the description is
+       the participant's own unprompted words; before, so the list of methods
+       cannot colour a judgement of how genuine the interaction felt. */
+    const evalRows = [
+      likert(q("AU1"), S2_ITEMS.AU1.stem, meta),
+      likert(q("OH2"), S2_ITEMS.OH2.stem, meta)
+    ];
+    /* The attention check rides in the middle clip, whichever content that is —
+       the same position Study 1 gives it. `expected` is stripped before the
+       plan is sent to the browser. */
+    if (i === 1) {
+      evalRows.push(likert(q("AT1"), S2_ITEMS.AT1.stem,
+        { ...meta, group: "attention", expected: ATTENTION_CHECK_VALUE }));
+    }
+
+    const items = [
+      longText(q("IMP"), S2_ITEMS.IMP.stem,
+        { ...meta, minLength: S2_ITEMS.IMP.minLength, maxLength: S2_ITEMS.IMP.maxLength }),
+      matrix(q("__eval"), S2_ITEMS.BLOCK_LEAD, evalRows, meta),
+      note(S2_REMINDER),
+      mc(q("WHO"), S2_ITEMS.WHO.stem, S2_ITEMS.WHO.options, { ...meta, group: "who" }),
+      confidence(q("CONF"), S2_ITEMS.CONF.stem, { ...meta, group: "confidence" }),
+      optionalText(q("WHY"), S2_ITEMS.WHY.stem, { ...meta, maxLength: S2_ITEMS.WHY.maxLength }),
+      mc(q("DIS"), S2_ITEMS.DIS.stem, S2_ITEMS.DIS.options, { ...meta, group: "disability" }),
+      optionalText(q("DIS_KIND"), S2_ITEMS.DIS_KIND.stem,
+        { ...meta, maxLength: S2_ITEMS.DIS_KIND.maxLength })
+    ];
+
     pages.push({
       key: `clip_${pos}`,
       kind: "segment",
@@ -212,17 +359,33 @@ export function buildS2Plan(order) {
       segment: seg,
       segPosition: pos,
       video: { id: S2_CLIPS[seg].yt, duration: S2_CLIPS[seg].duration },
-      items: [
-        longText(q("IMP"), S2_ITEMS.IMP.stem,
-          { ...meta, minLength: S2_ITEMS.IMP.minLength, maxLength: S2_ITEMS.IMP.maxLength }),
-        note(S2_REMINDER),
-        mc(q("WHO"), S2_ITEMS.WHO.stem, S2_ITEMS.WHO.options, { ...meta, group: "who" }),
-        mc(q("DIS"), S2_ITEMS.DIS.stem, S2_ITEMS.DIS.options, { ...meta, group: "disability" })
-      ]
+      items: items
     });
   });
 
-  /* -- 5 · finish -----------------------------------------------------------
+  /* -- 5 · closing question and background ---------------------------------
+     Everything here is asked after the last clip, so nothing on this page can
+     reach back and colour a judgement. The closing question comes first, while
+     the three videos are still fresh; the GAAIS block comes last, because it is
+     the least engaging and attrition is cheapest at the very end. */
+  pages.push({
+    key: "background",
+    kind: "page",
+    eyebrow: "Last page",
+    title: "A few last questions",
+    items: [
+      mc("SAME", S2_CLOSING.SAME.stem, S2_CLOSING.SAME.options, { group: "consistency" }),
+      heading("Background", S2_BACKGROUND.heading, S2_BACKGROUND.lead),
+      number("BG_age", S2_BACKGROUND.age, { min: 18, max: 120 }),
+      mc("BG_gender", S2_BACKGROUND.gender, GENDER),
+      mc("BG_freq_ai", S2_BACKGROUND.freqAi, FREQ),
+      mc("BG_freq_disability", S2_BACKGROUND.freqDisability, FREQ),
+      matrix("__gaais", S2_BACKGROUND.gaaisLead,
+        S2_GAAIS.map(g => likert(`GAAIS_${String(g.n).padStart(2, "0")}`, g.text, { group: "gaais" })))
+    ]
+  });
+
+  /* -- 6 · finish -----------------------------------------------------------
      Reached only after the completion call has succeeded; carries the code. */
   pages.push({
     key: "finish",
@@ -238,29 +401,38 @@ export function buildS2Plan(order) {
 
 /* ---------------------------------------------------------------- derived */
 
-/** Flatten a plan into the ordered list of stored items (one per DB row). */
+/** Flatten a plan into the ordered list of stored items (one per DB row).
+    Notes and headings render and store nothing; a matrix is a container, so it
+    contributes its rows rather than itself. `expected` travels here — this list
+    is the server's, and is what scores the attention check. */
 export function s2PlanItems(plan) {
   const out = [];
-  for (const page of plan.pages) {
-    for (const it of page.items) {
-      if (it.type === "note") continue;
-      out.push({
-        id: it.id,
-        type: it.type,
-        pageKey: page.key,
-        segment: it.segment ?? null,
-        segPosition: it.segPosition ?? null,
-        stem: it.stem,
-        options: it.options,
-        required: it.required !== false,
-        minLength: it.minLength,
-        maxLength: it.maxLength,
-        group: it.group,
-        screenOut: it.screenOut,
-        screenOutReason: it.screenOutReason
-      });
+  const push = (it, page) => {
+    if (it.type === "note" || it.type === "heading") return;
+    if (it.type === "matrix") {
+      it.rows.forEach(r => push(r, page));
+      return;
     }
-  }
+    out.push({
+      id: it.id,
+      type: it.type,
+      pageKey: page.key,
+      segment: it.segment ?? null,
+      segPosition: it.segPosition ?? null,
+      stem: it.stem,
+      options: it.options,
+      required: it.required !== false,
+      minLength: it.minLength,
+      maxLength: it.maxLength,
+      min: it.min,
+      max: it.max,
+      group: it.group,
+      expected: it.expected,
+      screenOut: it.screenOut,
+      screenOutReason: it.screenOutReason
+    });
+  };
+  for (const page of plan.pages) for (const it of page.items) push(it, page);
   return out;
 }
 
@@ -280,11 +452,30 @@ export function s2AllItemIds() {
     }
   }
   const segRank = { REL: 0, ADV: 1, COL: 2 };
-  const codeRank = { IMP: 0, WHO: 1, DIS: 2 };
+  /* The order the items are asked in, which is the order they should read in
+     across a row of wide.csv. AT1 only exists on whichever clip fell in the
+     middle, so each participant fills exactly one of the three AT1 columns. */
+  const codeRank = {
+    IMP: 0, AU1: 1, OH2: 2, AT1: 3,
+    WHO: 4, CONF: 5, WHY: 6, DIS: 7, DIS_KIND: 8
+  };
+  /* Split on the FIRST underscore only: REL_DIS_KIND is segment REL, code
+     DIS_KIND, and must not collapse onto REL_DIS. */
   const rank = id => {
     if (/^E\d/.test(id)) return [0, 0, id];
-    const [seg, code] = id.split("_");
-    return [1, (segRank[seg] ?? 9) * 10 + (codeRank[code] ?? 9), id];
+    const cut = id.indexOf("_");
+    const seg = cut < 0 ? id : id.slice(0, cut);
+    const code = cut < 0 ? "" : id.slice(cut + 1);
+    if (seg in segRank) return [1, segRank[seg] * 100 + (codeRank[code] ?? 99), id];
+    if (id === "SAME") return [2, 0, id];
+    /* Asked order, not alphabetical: a reader opening wide.csv should meet the
+       background columns in the order the page put them. */
+    if (seg === "BG") {
+      const bgRank = { age: 0, gender: 1, freq_ai: 2, freq_disability: 3 };
+      return [3, bgRank[code] ?? 9, id];
+    }
+    if (seg === "GAAIS") return [4, 0, id];
+    return [5, 0, id];
   };
   return ordered.sort((a, b) => {
     const ra = rank(a), rb = rank(b);
@@ -298,25 +489,40 @@ export function s2AllCells() {
 }
 
 /* ---------------------------------------------------------------------------
-   publicS2Plan — what the browser is sent. Nothing here is secret (there are
-   no answer keys in this study), but the shape is fixed here rather than by
-   whatever buildS2Plan happens to return, so the client cannot come to depend
-   on a server-side field by accident.
+   publicS2Plan — what the browser is sent. Since v2 there IS something to keep
+   back: `expected`, the attention check's answer key. This is an allowlist
+   rather than a delete-list, so a field added to an item in future is withheld
+   by default and has to be named here to reach the browser — the same rule
+   Study 1 follows, and the reason a participant with devtools open sees the
+   study they are actually taking.
 --------------------------------------------------------------------------- */
 export function publicS2Plan(plan) {
   const stripItem = it => {
     if (it.type === "note") return { type: "note", text: it.text };
+    if (it.type === "heading") {
+      return { type: "heading", eyebrow: it.eyebrow, title: it.title, text: it.text };
+    }
+    if (it.type === "matrix") {
+      /* The block id travels: it names the block, it is not an answer, and
+         /preview needs it to say which instruction it is looking at. */
+      return { id: it.id, type: "matrix", instruction: it.instruction, rows: it.rows.map(stripItem) };
+    }
     const out = { id: it.id, type: it.type, stem: it.stem, required: it.required !== false };
     if (it.multiline) out.multiline = true;
     if (it.options) out.options = it.options;
     if (it.minLength != null) out.minLength = it.minLength;
     if (it.maxLength != null) out.maxLength = it.maxLength;
+    if (it.min != null) out.min = it.min;
+    if (it.max != null) out.max = it.max;
     if (it.screenOut) { out.screenOut = it.screenOut; out.screenOutReason = it.screenOutReason; }
     return out;
   };
   return {
     instrumentVersion: S2_VERSION,
     gateFraction: S2_GATE_FRACTION,
+    /* The seven anchors the likert tables are drawn from. Sent once, not on
+       every item. */
+    scale: [...S2_SCALE],
     pages: plan.pages.map(p => ({
       key: p.key,
       kind: p.kind,
