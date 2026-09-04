@@ -1,0 +1,13 @@
+dv,contrast,spec,diff,ci_lo,ci_hi,d,p_raw,n
+OH,C1 human-involved vs AI-only,"participant cluster bootstrap (4000), equal-weight cell means",0.3963981356525217,-0.01072993850018262,0.8094028023880658,,0.055,272
+OH,C2 H vs HA,"participant cluster bootstrap (4000), equal-weight cell means",-0.0762245714000116,-0.30235864474872864,0.1405870392009142,,0.5045,272
+OH,C3 disability disclosed vs no mention,"participant cluster bootstrap (4000), equal-weight cell means",-0.09120651521967282,-0.33022778250935314,0.16243629116242245,,0.4875,272
+AU1,C1 human-involved vs AI-only,"participant cluster bootstrap (4000), equal-weight cell means",0.8119330795197284,0.180297626394786,1.4244663102670168,,0.0115,272
+AU1,C2 H vs HA,"participant cluster bootstrap (4000), equal-weight cell means",0.15049281531951575,-0.14967010174487688,0.442026972724179,,0.3315,272
+AU1,C3 disability disclosed vs no mention,"participant cluster bootstrap (4000), equal-weight cell means",-0.2888480190469913,-0.596467405615352,0.016480362589556645,,0.066,272
+CR1,C1 human-involved vs AI-only,"participant cluster bootstrap (4000), equal-weight cell means",0.5035627164638727,0.03363648332839615,1.0071597082789323,,0.031,272
+CR1,C2 H vs HA,"participant cluster bootstrap (4000), equal-weight cell means",0.013957188154878786,-0.20427971018070382,0.23069241923863096,,0.884,272
+CR1,C3 disability disclosed vs no mention,"participant cluster bootstrap (4000), equal-weight cell means",-0.21333563740495798,-0.4301963312459539,0.011038711146221819,,0.064,272
+CR2,C1 human-involved vs AI-only,"participant cluster bootstrap (4000), equal-weight cell means",0.2234799527482476,-0.13387375470414592,0.5954863751193187,,0.213,272
+CR2,C2 H vs HA,"participant cluster bootstrap (4000), equal-weight cell means",-0.13670349524007896,-0.3324085571574341,0.058879352592444416,,0.1655,272
+CR2,C3 disability disclosed vs no mention,"participant cluster bootstrap (4000), equal-weight cell means",-0.11029289139045151,-0.31974601553328375,0.10924169642759049,,0.3195,272

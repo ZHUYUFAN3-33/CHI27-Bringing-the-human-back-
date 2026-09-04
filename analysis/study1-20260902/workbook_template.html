@@ -1,0 +1,1012 @@
+<title>OriHime Study 1 分析手册</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#f5f6f9; --surface:#ffffff; --surface-2:#eef0f5; --ink:#171a21; --ink-2:#4b4f5e; --muted:#7f8493; --rule:#dfe2ea; --rule-2:#cfd3de;
+  --accent:#4a3aa7; --accent-ink:#3c2f8f; --accent-soft:#ece9fb;
+  --h:#2a78d6; --ha:#eb6834; --a:#1baf7a;
+  --ok:#006300; --ok-soft:#e3f5e3; --now:#3c2f8f; --now-soft:#ece9fb; --wait:#7a5200; --wait-soft:#fff1d6; --todo:#4b4f5e; --todo-soft:#eef0f5;
+  --sans:"IBM Plex Sans","Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131418; --surface:#1b1c22; --surface-2:#22242c; --ink:#eceef4; --ink-2:#b8bcca; --muted:#858a9a; --rule:#2b2d37; --rule-2:#3a3d4a;
+    --accent:#9085e9; --accent-ink:#b3aaf3; --accent-soft:#26224a;
+    --h:#3987e5; --ha:#d95926; --a:#199e70;
+    --ok:#4fce4f; --ok-soft:#173a17; --now:#b3aaf3; --now-soft:#26224a; --wait:#f0c060; --wait-soft:#3d2f0e; --todo:#b8bcca; --todo-soft:#22242c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131418; --surface:#1b1c22; --surface-2:#22242c; --ink:#eceef4; --ink-2:#b8bcca; --muted:#858a9a; --rule:#2b2d37; --rule-2:#3a3d4a;
+  --accent:#9085e9; --accent-ink:#b3aaf3; --accent-soft:#26224a;
+  --h:#3987e5; --ha:#d95926; --a:#199e70;
+  --ok:#4fce4f; --ok-soft:#173a17; --now:#b3aaf3; --now-soft:#26224a; --wait:#f0c060; --wait-soft:#3d2f0e; --todo:#b8bcca; --todo-soft:#22242c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.75;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-ink)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{display:grid;grid-template-columns:1fr;gap:0 40px;max-width:1180px;margin:0 auto;padding:36px 20px 80px}
+@media(min-width:1080px){.wrap{grid-template-columns:220px minmax(0,880px)}}
+nav.toc{display:none}
+@media(min-width:1080px){
+  nav.toc{display:block;position:sticky;top:24px;align-self:start;font-size:13px;line-height:1.5}
+  nav.toc .eyebrow{margin-bottom:8px}
+  nav.toc a{display:block;color:var(--ink-2);text-decoration:none;padding:5px 0 5px 12px;border-left:2px solid var(--rule)}
+  nav.toc a:hover{color:var(--ink);border-left-color:var(--accent)}
+  nav.toc a.sub{padding-left:22px;font-size:12.5px;color:var(--muted)}
+}
+main{min-width:0}
+header.hero{padding:0 0 28px;border-bottom:1px solid var(--rule);margin-bottom:36px}
+.eyebrow{font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink)}
+h1{font-size:30px;line-height:1.25;margin:8px 0 12px;font-weight:700;text-wrap:balance}
+h2{font-size:22px;line-height:1.3;margin:0 0 14px;font-weight:700;text-wrap:balance}
+h3{font-size:17px;line-height:1.4;margin:28px 0 10px;font-weight:600}
+h4{font-size:15.5px;margin:20px 0 6px;font-weight:600}
+section{padding:8px 0 28px;margin-bottom:24px;border-bottom:1px solid var(--rule)}
+section:last-of-type{border-bottom:0}
+p{margin:0 0 14px;max-width:880px}
+ul,ol{margin:0 0 14px;padding-left:22px}
+li{margin:4px 0}
+.lede{font-size:16.5px;color:var(--ink-2);max-width:820px}
+code,.id{font-family:var(--mono);font-size:.9em;background:var(--surface-2);padding:1px 5px;border-radius:4px;color:var(--ink)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0 6px}
+.tile{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:12px 14px}
+.tile .v{font-size:26px;font-weight:600;line-height:1.1;font-family:var(--sans)}
+.tile .l{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
+.tscroll{overflow-x:auto;margin:10px 0 18px;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.45}
+th,td{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+thead th{background:var(--surface-2);color:var(--ink-2);font-weight:600;font-size:12.5px;position:sticky;top:0}
+tbody th{font-weight:500;white-space:nowrap}
+tfoot td{font-weight:600;background:var(--surface-2)}
+table.num td{font-variant-numeric:tabular-nums;white-space:nowrap}
+table.map td,table.map th{white-space:normal}
+table.map td:first-child{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.sd{color:var(--muted);font-size:.88em}
+.chip{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;line-height:1.6;white-space:nowrap}
+.chip.h{background:color-mix(in srgb,var(--h) 16%,transparent);color:var(--h)}
+.chip.ha{background:color-mix(in srgb,var(--ha) 16%,transparent);color:var(--ha)}
+.chip.a{background:color-mix(in srgb,var(--a) 18%,transparent);color:var(--a)}
+.st{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:4px;white-space:nowrap}
+.st.ok{background:var(--ok-soft);color:var(--ok)}
+.st.now{background:var(--now-soft);color:var(--now)}
+.st.wait{background:var(--wait-soft);color:var(--wait)}
+.st.todo{background:var(--todo-soft);color:var(--todo)}
+.grid7{display:grid;grid-template-columns:120px repeat(3,1fr);gap:6px;margin:14px 0 18px;font-size:13.5px}
+.grid7 .hd{color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:6px 8px}
+.grid7 .rh{color:var(--ink-2);padding:10px 8px;font-weight:500}
+.grid7 .cell{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
+.grid7 .cell b{font-family:var(--mono);font-weight:500}
+.grid7 .cell.h{border-top:3px solid var(--h)} .grid7 .cell.ha{border-top:3px solid var(--ha)} .grid7 .cell.a{border-top:3px solid var(--a)}
+.grid7 .cell.none{background:transparent;border-style:dashed;color:var(--muted)}
+figure{margin:18px 0 26px}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--rule);border-radius:8px;background:#fcfcfb}
+figcaption{font-size:13px;color:var(--ink-2);margin-top:8px;line-height:1.55}
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0 18px}
+.note p:last-child{margin-bottom:0}
+.warn{border-left:3px solid var(--wait);background:var(--wait-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0 18px}
+.warn p:last-child{margin-bottom:0}
+.teach{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:14px 18px;margin:14px 0 18px}
+.teach .t{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);margin-bottom:6px}
+.teach p:last-child{margin-bottom:0}
+.timeline{list-style:none;padding:0;margin:10px 0 18px;counter-reset:step}
+.timeline li{position:relative;padding:6px 0 6px 40px;border-left:2px solid var(--rule);margin-left:12px}
+.timeline li::before{counter-increment:step;content:counter(step);position:absolute;left:-13px;top:8px;width:24px;height:24px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);color:var(--accent-ink);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;font-family:var(--sans)}
+.q{background:var(--surface);border:1px solid var(--rule-2);border-radius:8px;padding:14px 18px;margin:12px 0}
+.q .n{font-family:var(--sans);font-weight:700;color:var(--accent-ink);margin-right:6px}
+.q p:last-child{margin-bottom:0}
+.small{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto}}
+html{scroll-behavior:smooth}
+.doc{font-size:14px;line-height:1.65;padding:6px 4px 12px}
+.doc h1{font-size:19px;margin:12px 0 8px}.doc h2{font-size:16px;margin:16px 0 6px}.doc h3{font-size:14.5px;margin:14px 0 4px}
+.doc blockquote{border-left:3px solid var(--wait);background:var(--wait-soft);margin:8px 0;padding:8px 12px;border-radius:0 6px 6px 0}
+.doc table{font-size:12.5px}.doc td,.doc th{white-space:normal}
+.ctrlbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0 0}
+.ctrlbar button{font:inherit;font-size:12.5px;font-weight:600;color:var(--accent-ink);background:var(--accent-soft);border:1px solid transparent;border-radius:999px;padding:4px 12px;cursor:pointer}
+.ctrlbar button:hover{border-color:var(--accent)}
+.ctrlbar .hint{font-size:12.5px;color:var(--muted)}
+section[id] > h2, section[id] > .eyebrow{cursor:pointer}
+section[id] > h2{display:flex;align-items:baseline;gap:10px}
+section[id] > h2 .chev{flex:none;display:inline-block;width:10px;height:10px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(45deg) translateY(-3px);transition:transform .15s}
+section[id].collapsed > h2 .chev{transform:rotate(-45deg) translateY(2px)}
+section[id].collapsed{padding-bottom:12px}
+section[id].collapsed > h2{margin-bottom:0}
+h3.tg3{cursor:pointer;display:flex;align-items:center;gap:8px}
+h3.tg3::before{content:"";flex:none;width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translateY(-2px);transition:transform .15s}
+h3.tg3.closed::before{transform:rotate(-45deg) translateY(1px)}
+h3.tg3:focus-visible, section[id] > h2:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+@media print{.sec-body,.sub-body{display:block !important}.ctrlbar{display:none}}
+@media (prefers-reduced-motion: reduce){section[id] > h2 .chev, h3.tg3::before{transition:none}}
+.ic{border-bottom:1px dotted var(--accent);cursor:help;border-radius:2px}
+.ic:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+#tip{position:fixed;z-index:50;background:var(--ink);color:var(--bg);font-size:12.5px;line-height:1.5;padding:8px 11px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.25);white-space:pre-line;pointer-events:none;font-family:var(--sans)}
+#tip b{font-weight:600}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="目录">
+  <div class="eyebrow">目录</div>
+  <a href="#status">现状一览</a>
+  <a href="#design">1 · 研究设计重建</a>
+  <a class="sub" href="#unit">分析单位</a>
+  <a href="#vars">2 · 变量地图</a>
+  <a class="sub" href="#scales">量表处理与信度</a>
+  <a href="#quality">3 · 数据质量</a>
+  <a class="sub" href="#excl">排除规则的候选</a>
+  <a class="sub" href="#balance">协变量平衡</a>
+  <a href="#desc">4 · 描述统计</a>
+  <a class="sub" href="#seen">原始数据里看到的 pattern</a>
+  <a href="#rq">5 · RQ → 统计问题</a>
+  <a href="#framework">6 · 主统计框架与假设检查</a>
+  <a href="#pairwise">7–8 · 全部两两比较（raw p 先看）</a>
+  <a href="#patterns">9 · Pattern 识别</a>
+  <a href="#contrasts">11 · 理论对比（含残障合并）</a>
+  <a href="#interactions">12 · 交互与简单效应</a>
+  <a href="#ranks">RQ4 · 责任与功劳归因</a>
+  <a href="#robust">13 · 稳健性与敏感性</a>
+  <a href="#explore">14 · 探索 E1–E8</a>
+  <a href="#grading">发现分级</a>
+  <a href="#paper">15–21 · 试用主线与论文产出</a>
+  <a href="#disab">附录 A · 残障因子补充排查</a>
+  <a href="#study2">附录 B · Study 2 计划</a>
+  <a href="#roadmap">Analysis Roadmap</a>
+  <a href="#log">Analysis Log</a>
+  <a href="#teach">统计小课堂</a>
+  <a href="#questions">需要你决定的事</a>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">CHI '27 · Study 1 · “Bringing the Human Back?”</div>
+  <h1>OriHime Study 1 分析手册</h1>
+  <div class="ctrlbar"><button type="button" id="expand-all">全部展开</button><button type="button" id="collapse-all">全部折叠</button><span class="hint">点击任一节标题或小标题可折叠 / 展开；目录点击会自动展开对应的节；折叠状态只记在你自己的浏览器里。</span></div>
+  <p class="lede">数据导出于 2026-09-02 10:41 UTC（问卷版本 v6e），300 份完成问卷。这一页是整个分析的工作台：研究设计怎么重建、数据长什么样、质量如何、路线图走到哪一步、每一次分析为什么做。每完成一个阶段就更新一次。<b>当前阶段：Phase 15–21 完成。按<b>试用主线</b>生成了 Methods、Results、Limitations、审稿人方法理由、论文级图表和可复现流水线；主线本身仍是试用，等你定夺。</b></p>
+</header>
+
+<section id="status">
+  <div class="eyebrow">现状一览</div>
+  <h2>现状与主要结论</h2>
+  <div class="tiles">
+    <div class="tile"><div class="v">300</div><div class="l">完成问卷（另有 15 人中途离开、1 人筛出）</div></div>
+    <div class="tile"><div class="v">[[N_AT1]]</div><div class="l">通过注意检查 AT1</div></div>
+    <div class="tile"><div class="v">[[N_AV1]]</div><div class="l">通过理解检查 AV1</div></div>
+    <div class="tile"><div class="v">[[N_BOTH]]</div><div class="l">两项检查都通过</div></div>
+    <div class="tile"><div class="v">272</div><div class="l">主分析样本（816 个影片行）</div></div>
+    <div class="tile"><div class="v">[[N_PAIRS_TOTAL]]</div><div class="l">两两比较；raw p &lt; .05 的有 [[N_RAW_SIG]]，纯随机约 [[N_EXPECTED]]</div></div>
+  </div>
+  <ul>
+    <li><b>已定下的决定（2026-09-04，在看任何 p 值之前）：</b>主样本 = 通过 AT1 与 AV1 的 272 人；主结果变量 = OH 综合、AU1、CR1、CR2；主模型 = 线性混合模型；主对比 = C1 有人 vs 仅 AI、C2 H vs HA、C3 告知残障 vs 不提及；BEL1 只作可信度检查与调节变量。A 组不补招。</li>
+    <li><b>站得住的发现：</b>被告知“完全由 AI 控制”的人觉得互动更不真实（AU1，d ≈ .62，八种检验方式全部 p &lt; .02）；AI 参与会让人把责任和功劳从人类操作员身上移开一半（优势比 .42–.47）；被告知“AI 辅助”的人认为操作员掌控更少（CR3，d ≈ .40）。</li>
+    <li><b>只能算“有迹象”：</b>仅 AI 条件下控制者更不温暖（CR1，d ≈ .52，稳健检验里两种方法 p 略大于 .05）；OriHime 综合评价更低（OH，只在模型法下显著）；告知残障让真实感和温暖略降（d ≈ −.24，p ≈ .06–.11，且部分被协变量解释）。</li>
+    <li><b>无差别：</b>H 与 HA 在所有感知题上（d ≤ .17）；智力 vs 行动残障；控制来源 × 画像交互；PE、HM、BEL1 在条件间。</li>
+    <li><b>探索阶段新增：</b>对 AI 的既有态度调节仅 AI 的扣分（交互 p = .003–.09，方向一致；扣分集中在对 AI 较负面的参与者，对 AI 正面的人评价 AI 控制的 OriHime 不低于人）；H 与 HA 在 OH、AU1、CR1、HM 上通过 ±0.35 SD 的等价性检验；残障告知的效应被限定在 ±0.5 SD 内且没有找到任何调节变量；HM 的残障苗头和 CR2 的位置交互被证明是单格波动，已剔除。</li>
+    <li><b>残障因子的最后一次排查（附录）：</b>再补 8 项、31 个检验后仍是 null，贝叶斯因子 5–20 倍支持无效应；告知那句话被读到（多停留 5.5 秒）也被相信；加人到 610 才有 80% 功效且估计可能缩小；“影片盖过标签”没有直接支持，可用 Study 2 直接检验。残障只能作为等价故事起头。</li>
+    <li>所有脚本与结果表在 <code>exports/20260902T104106Z/analysis/</code>（<code>results/</code> 下是每张表的 CSV；探索阶段的 113 个检验在 <code>results/phase14_test_log.csv</code>）。</li>
+  </ul>
+</section>
+
+<section id="design">
+  <div class="eyebrow">Phase 1.5 · 研究设计重建</div>
+  <h2>研究设计</h2>
+  <p>下面全部是我从问卷代码（<code>shared/instrument.js</code>）和导出数据里反推出来的，请你逐条确认对不对。</p>
+
+  <h3>参与者与条件分配</h3>
+  <p>CloudResearch Connect 上招募的英语参与者，263 人在美国、30 人在加拿大、6 人在英国、1 人在爱尔兰。年龄 18–78 岁（均值 [[AGE_MEAN]]），男女各半。每人只参加一次，条件由<b>服务器</b>分配：42 个格子（7 个条件 × 6 种影片顺序），每次把新来的人放进当前人数最少的格子，平局随机。所以各条件人数几乎相等（41–45 人），影片顺序在每个条件内也是平衡的。</p>
+
+  <h3>操纵</h3>
+  <p>在看任何影片之前，参与者读到一段“关于你将看到的 OriHime”的文字。<b>影片本身对所有人完全相同</b>；条件之间唯一的差别是这段文字告诉他们“谁在控制 OriHime”，以及（有人的条件下）“操作员是什么样的人”。所以任何条件差异都只能来自这段先验描述，而不是从机器人的行为里推断出来的——这是这个设计的核心，也是后面解释结果时要反复回到的一点。</p>
+
+  <div class="grid7">
+    <div class="hd"></div><div class="hd">H · 人类操作员</div><div class="hd">HA · 人类 + AI 辅助</div><div class="hd">A · 仅 AI</div>
+    <div class="rh">画像 1 · 不提及</div><div class="cell h"><b>H1</b> n = 42</div><div class="cell ha"><b>HA1</b> n = 41</div><div class="cell a"><b>A</b> n = 44<br><span class="small">没有操作员，所以没有画像</span></div>
+    <div class="rh">画像 2 · 智力障碍</div><div class="cell h"><b>H2</b> n = 43</div><div class="cell ha"><b>HA2</b> n = 42</div><div class="cell none">不存在</div>
+    <div class="rh">画像 3 · 行动障碍</div><div class="cell h"><b>H3</b> n = 43</div><div class="cell ha"><b>HA3</b> n = 45</div><div class="cell none">不存在</div>
+  </div>
+
+  <ul>
+    <li><b>因子 1 · 控制来源 <code>ctrl</code>（被试间）：</b><span class="chip h">H</span> 由受过训练的人实时控制，没有任何 AI；<span class="chip ha">HA</span> 人控制、AI 提供措辞和动作建议，人做最终决定；<span class="chip a">A</span> 完全由 AI 系统控制，没有人。</li>
+    <li><b>因子 2 · 操作员画像 <code>profile</code>（被试间，只在有人的条件下存在）：</b>1 = 什么都不说（对照）；2 = “操作员有智力障碍”；3 = “操作员有行动障碍”。A 条件没有操作员，所以没有这个因子——设计是 <b>3 × 2 加一个参照格</b>，不是完整的 3 × 3。</li>
+    <li><b>因子 3 · 影片 / 任务类型 <code>clip</code>（被试内）：</b>每个人都看三段：REL 闲聊近况（70 秒）、ADV 工作量建议（105 秒）、COL 协作修改并打印文件（115 秒）。6 种顺序全排列，所以“第几段看到”（位置 1–3）和“前一段是什么”都是平衡的。</li>
+    <li><b>样本量的形状：</b>H 128 人、HA 128 人，但 A 只有 44 人（它只有一个格子，拿到 1/7 的样本）。凡是“有人 vs 没人”的比较都是 256 对 44，这直接决定了那条对比的精度，后面会讲。</li>
+  </ul>
+
+  <h3>测量顺序</h3>
+  <ol class="timeline">
+    <li>知情同意与资格（E1–E3）。</li>
+    <li><b>前测</b>：对机器人的负面态度 NARS（10 题）、对 AI 的总体态度 GAAIS（9 题）、对残障者的刻板印象 SCM（9 题）。这些都在操纵之前作答，所以是干净的基线变量。</li>
+    <li><b>操纵</b>：条件描述页（控制来源 + 画像 + 一张示意图），点“我已读”。</li>
+    <li><b>影片 1</b> → 理解检查 AV1（只在第一段问）→ OH1 可信、OH2 有用、OH3 愿意参与、AU1 真实感 → CR1 控制者温暖、CR2 控制者能力、CR3 操作员在掌控（A 不问）→ R1 谁该为负面结果负责（排序）、R2 谁该为正面结果受表扬（排序）。</li>
+    <li><b>影片 2</b>：同上，外加注意检查 AT1（“请选 Disagree”）。</li>
+    <li><b>影片 3</b>：同上。</li>
+    <li><b>总体问题</b>：PE1–4 OriHime 在日常生活中有用、HM1–3 和 OriHime 对话有趣。</li>
+    <li><b>BEL1</b>：“你有多相信开头给你的操作员描述”，然后人口学与接触频率。</li>
+    <li>揭示说明（debrief）与是否愿意接受后续访谈 FU1。</li>
+  </ol>
+
+  <div class="warn">
+    <p><b>一个你必须知道的事实：</b>mockup 里设计了两个操纵检查（C1 “谁在控制”、C2 “操作员画像”），但 v6 正式问卷里<b>没有这两题</b>，导出里的 <code>check_c1_pass</code> / <code>check_c2_pass</code> 全部为空。数据里能起类似作用的只有两样：BEL1（结尾问相信程度，是主观的、事后的）和 CR3（“操作员在掌控 OriHime 的言行”，只在 H/HA 问，它对 H 与 HA 的差别恰好是这个操纵应该造成的）。这意味着论文里不能写“操纵检查通过”，只能报告 BEL1 的分布和 CR3 的 H–HA 差异作为间接证据。</p>
+  </div>
+
+  <h3 id="unit">分析单位</h3>
+  <p>这份数据有三个层次，选统计方法之前必须先分清楚：</p>
+  <ul>
+    <li><b>参与者层（300 行，每人 1 行）：</b>PE、HM、BEL1、前测量表、人口学。这些是一人一个数，彼此独立（不同的人）。</li>
+    <li><b>参与者 × 影片层（900 行，每人 3 行）：</b>OH1–3、AU1、CR1–3、R1/R2。<b>同一个人的三行不是独立的</b>：一个本来就喜欢机器人的人三段都会打高分。如果把 900 行当成 900 个独立的人，标准误会被低估，p 值会偏小——这是后面要用混合模型（mixed model）而不是普通 t 检验/ANOVA 的根本原因。</li>
+    <li><b>参与者 × 影片 × 角色层（排序题）：</b>每个排序题里 3 或 4 个角色各得一个名次，名次之间又互相约束（一个排第 1，别人就不能排第 1）。这类数据要用专门的方法（先看“谁排第 1”的比例，再考虑配对/排序模型）。</li>
+  </ul>
+  <p>还有一点：影片是<b>被试内</b>因子（每人都看三段），控制来源和画像是<b>被试间</b>因子（每人只在一个条件里）。这是一个混合设计（mixed design），影片层的观测嵌套（nested）在参与者里。</p>
+</section>
+
+<section id="vars">
+  <div class="eyebrow">Phase 2 · 变量地图</div>
+  <h2>变量地图</h2>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>变量</th><th>含义</th><th>类型 / 测量层级</th><th>研究角色</th><th>重复？</th><th>使用方式</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">condition</th><td>7 个条件之一（H1…A）</td><td>类别</td><td>操纵</td><td>否</td><td>全部两两比较时的因子</td></tr>
+      <tr><th scope="row">ctrl</th><td>控制来源 H / HA / A</td><td>类别</td><td>操纵 · 因子 1</td><td>否</td><td>主对比：有人 vs 仅 AI；H vs HA</td></tr>
+      <tr><th scope="row">profile</th><td>操作员画像 1/2/3（A 为空）</td><td>类别</td><td>操纵 · 因子 2</td><td>否</td><td>只在 H+HA 内分析；与 ctrl 的交互</td></tr>
+      <tr><th scope="row">segment / clip</th><td>影片类型 REL / ADV / COL</td><td>类别（被试内）</td><td>因子 3 / 调节变量</td><td>是</td><td>主效应 + clip × ctrl 交互</td></tr>
+      <tr><th scope="row">pos, seg_order</th><td>该影片是第几段播放；6 种顺序</td><td>类别</td><td>干扰变量（设计上已平衡）</td><td>是</td><td>作为控制项放进模型，检查顺序效应</td></tr>
+      <tr><th scope="row">OH1 / OH2 / OH3</th><td>OriHime 可信 / 有用 / 我愿意参与</td><td>7 点 Likert 单题（有序）</td><td>结果 · 影片层</td><td>是（3 段）</td><td>先合成 OH（3 题均值，α ≈ .80），也保留单题</td></tr>
+      <tr><th scope="row">AU1</th><td>互动“真实，不像程序在执行”</td><td>7 点 Likert 单题</td><td>结果 · 影片层</td><td>是</td><td>单题分析；稳健性时按有序变量处理</td></tr>
+      <tr><th scope="row">CR1 / CR2</th><td>控制者（人或 AI）温暖 / 有能力</td><td>7 点 Likert 单题</td><td>结果 · 影片层</td><td>是</td><td>分开分析（对应刻板印象的两个维度）</td></tr>
+      <tr><th scope="row">CR3</th><td>操作员在掌控 OriHime 的言行（A 不问）</td><td>7 点 Likert 单题</td><td>结果 / 间接操纵检查</td><td>是</td><td>只比较 H vs HA 及画像</td></tr>
+      <tr><th scope="row">R1__*, R2__*</th><td>责任 / 功劳排序：操作员、AI、OriHime 提供方、影片中的人</td><td>名次 1..n（n = 3 或 4，随条件）</td><td>结果 · 归因</td><td>是</td><td>“排第 1”的比例；配对比较；排序模型</td></tr>
+      <tr><th scope="row">PE1–4, HM1–3</th><td>绩效期望、享乐动机（UTAUT2 风格）</td><td>7 点 Likert，多题量表</td><td>结果 · 参与者层</td><td>否</td><td>合成 PE（α .96）、HM（α .97）</td></tr>
+      <tr><th scope="row">BEL1</th><td>有多相信开头的描述</td><td>7 点 Likert 单题（事后）</td><td>操纵相关 / 调节变量</td><td>否</td><td>不作为排除标准；作为调节或敏感性分析</td></tr>
+      <tr><th scope="row">NARS_*</th><td>对机器人的负面态度（10 题，3/5/6 反向）</td><td>多题量表</td><td>前测 · 协变量 / 调节变量</td><td>否</td><td>合成 NARS（高 = 更负面）</td></tr>
+      <tr><th scope="row">GAAIS_*</th><td>对 AI 的态度：5 正向 + 4 负向（负向反向计分）</td><td>多题量表</td><td>前测 · 协变量 / 调节变量</td><td>否</td><td>按作者建议分两个分量表报告</td></tr>
+      <tr><th scope="row">SCM_*</th><td>对残障者的刻板印象：能力 5 题、温暖 4 题</td><td>多题量表</td><td>前测 · 协变量 / 调节变量（对画像因子尤其相关）</td><td>否</td><td>合成 SCM_comp、SCM_warm</td></tr>
+      <tr><th scope="row">AV1, AT1</th><td>理解检查（第一段）、注意检查（第二段）</td><td>二值：通过/未通过</td><td>质量标记</td><td>否</td><td>定义分析样本；不进入模型</td></tr>
+      <tr><th scope="row">BG_age, BG_gender, BG_education, BG_income, BG_country</th><td>人口学</td><td>数值 / 类别 / 有序</td><td>描述样本；年龄可作协变量</td><td>否</td><td>样本描述；平衡检查</td></tr>
+      <tr><th scope="row">BG_freq_ai / _robot / _disability</th><td>使用 AI、接触机器人、接触残障者的频率</td><td>6 级有序（0–5）</td><td>协变量 / 调节变量</td><td>否</td><td>探索性调节分析的候选</td></tr>
+      <tr><th scope="row">duration_s, dwell, gate_open, mobile</th><td>总用时、各页停留、影片是否播完、是否手机</td><td>过程数据</td><td>质量 / 敏感性</td><td>部分</td><td>合规证据；不进入主模型</td></tr>
+      <tr><th scope="row">FU1</th><td>是否愿意接受后续访谈</td><td>二值</td><td>行政</td><td>否</td><td>不分析</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="scales">量表处理与信度</h3>
+  <p>原则：<b>多题量表先看题目是否“说的是同一件事”（内部一致性），再决定能不能平均成一个分数；单题 Likert 永远是单题</b>，不能因为方便就当作连续变量而不加说明。下表的 α 是 Cronbach's alpha（见小课堂），一般 ≥ .70 视为可以合成。</p>
+  [[T_ALPHA]]
+  <ul>
+    <li><b>OH 综合</b>可以合成（α ≈ .80，三段各自也都在 .78–.82）。但 OH3“愿意参与”的均值明显低于 OH1/OH2，而且分布更散，所以主表同时保留三个单题。</li>
+    <li><b>CR1 与 CR2</b> 相关 r = .67，也能合成，但它们对应“温暖”和“能力”两个理论上不同的维度（和前测 SCM 的两维一样），分开报告信息更多。CR3 与 CR2 只有 r = .34，它测的是另一件事（掌控），不合并。</li>
+    <li><b>GAAIS</b> 两个分量表相关 .72，按作者建议分开报告；<b>NARS</b> 只施测了 14 题中的 10 题（去掉了 4 条容易“制造态度”的题），论文里要说明这是缩减版。NARS_07（“机器人这个词对我没有意义”）与总分几乎不相关（.13），它拉低了 S1 分量表的 α（.70）。</li>
+  </ul>
+  <p>下面是影片层单题的分布形状。注意<b>天花板效应</b>：CR3 有 36% 的回答是 7 分，CR2、OH2 也有超过四分之一是 7 分。分数挤在顶端会压缩条件差异（想高也高不上去了），而且分布明显左偏，这是后面做“有序模型”作为稳健性检验的理由之一。</p>
+  [[T_ITEMS]]
+</section>
+
+<section id="quality">
+  <div class="eyebrow">Phase 3 · 数据质量</div>
+  <h2>数据质量检查</h2>
+  <ul>
+    <li><b>完整性：</b>300 个完成者，<code>external_pid</code> 无重复；没有 Likert 越界值；年龄 18–78；1800 个排序题全部是合法排列；每人恰好一次 AV1（第一段）和一次 AT1（第二段）；缺失只有条件结构造成的（A 不问 CR3、H 没有 AI 这一行、A 没有操作员这一行）加上 1 人年龄缺失。</li>
+    <li><b>影片合规：</b>900 段影片全部因“播放到结束”打开了作答门（<code>gate_open</code>），没有靠拖进度条过关的；2 人在某一段使用了备用播放器（fallback）；除 1 例外，每页停留时间都 ≥ 影片长度。系统播放器报错 7 次，涉及 4 人，都成功恢复。</li>
+    <li><b>注意检查 AT1（要求选 “Disagree”）：</b>[[N_AT1]] / 300 通过。未通过的 21 人里 [[N_AT1_NEAR]] 人选了相邻的 “Strongly disagree”——他们读到了指令但没选精确的那个选项；其余 10 人选了 3–7，更像没读。A 条件未通过最多（6 人）。手机作答者在未通过者中占 38%，而整体只有 11%。</li>
+    <li><b>理解检查 AV1（第一段影片里发生了什么）：</b>[[N_AV1]] / 300 通过。REL 作为第一段时 99/99 全对，ADV 99/101，COL 94/100——COL 那道题（“空调设到 22 度”）稍难。两项检查都通过的有 [[N_BOTH]] 人。</li>
+    <li><b>作答风格：</b>[[N_SL3]] 人在三段影片页上每一题都给了同一个分数（多为全 7 或全 6）；其中大多数通过了两项检查。这些人未必是乱答（一个真心觉得一切都很好的人也会这样），但他们对条件差异不提供信息，值得做“去掉他们结果变不变”的敏感性分析。</li>
+    <li><b>用时：</b>中位 [[DUR_MED]] 分钟（四分位 [[DUR_Q1]]–[[DUR_Q3]]），最快 [[DUR_MIN]]，最慢 [[DUR_MAX]]。三段影片加起来近 5 分钟，所以 8.5 分钟仍然是合理的下限，没有人快到不可能看完影片。</li>
+    <li><b>设备：</b>[[N_MOBILE]] 人用手机。</li>
+  </ul>
+
+  <h3 id="excl">排除规则候选</h3>
+  <p>问卷 README 里把 “completed 且通过检查” 定义为分析样本，说明排除是计划内的，只是没有写死哪几条。下面是几种规则的后果：</p>
+  [[T_EXCL]]
+  <div class="note">
+    <p><b>我的建议（待你确认）：</b>主分析样本 = AT1 严格 + AV1（[[N_BOTH]] 人），因为这两项是设计时就写进问卷的质量检查；“全部 300 人”和“再去掉三段全同分者”作为敏感性分析。<b>不要</b>用 BEL1（相信程度）排除人：它是在看完影片、答完所有题之后才测的，一个人“不相信”可能正是因为条件描述与影片给他的感受冲突——按它排除会把条件效应的一部分排掉，造成选择偏差。BEL1 更适合作为调节变量或“只看相信者”的敏感性分析。</p>
+  </div>
+
+  <h3 id="balance">协变量平衡</h3>
+  <p>各条件的人是随机分的，所以理论上背景变量应该相似。但样本有限时总会有机会性的不平衡。这份数据里最明显的两处：<b>年龄</b>——HA1 平均 49.7 岁，H2 只有 35.4 岁；<b>对 AI 的正向态度</b>——A 条件 4.48，其他条件都在 4.8–5.2。后者尤其要注意：GAAIS 正向态度与 OH 综合的相关高达 r = .46，如果 A 组本来就更不喜欢 AI，那么 A 组的低分有一部分可能是“人不一样”而不是“条件不一样”。处理办法不是删人，而是在次要模型里把这些<b>前测</b>变量作为协变量放进去，比较调整前后结论是否一致。</p>
+  [[T_BAL]]
+  <figure><img src="[[FIG5]]" alt="各条件的年龄和 GAAIS 正向态度分布"><figcaption>图 5 · 随机分组后仍存在的背景差异：每个点是一个人，黑点是组均值，竖线是 95% 置信区间。年龄在 H2 与 HA1 之间差了 14 岁；A 组对 AI 的正向态度略低于其他组。</figcaption></figure>
+
+  <h3>BEL1 相信程度</h3>
+  <p>[[BEL_HI]]% 的人给了 5 分以上（相信），[[BEL_LO]]% 给了 3 分以下（不相信）。各条件之间没有明显规律：H2 最低（4.74），HA3 和 A 最高（5.47、5.43）。“仅 AI”条件并没有比“人类操作员”更难以置信，这对结果解释是好消息。</p>
+  [[T_BEL]]
+  <figure><img src="[[FIG3]]" alt="BEL1 在各条件的分布"><figcaption>图 3 · BEL1 每个条件里 1–7 分各占多少。颜色越深分数越高。</figcaption></figure>
+</section>
+
+<section id="desc">
+  <div class="eyebrow">Phase 4 · 描述统计</div>
+  <h2>描述统计</h2>
+  <p>约定：括号里是标准差 SD，方括号里是 95% 置信区间（两者都在小课堂里解释）。影片层的结果先按每个人三段的平均折成一人一个数，这样 7 个条件才能并排看；影片之间的差异单独列表。</p>
+
+  <h3>按条件</h3>
+  [[T_COND]]
+  <figure><img src="[[FIG1]]" alt="七个条件下各结果变量的分布"><figcaption>图 1 · 每个点是一个参与者（三段影片的平均），黑点是条件均值，竖线是 95% 置信区间，上方数字是均值。CR3 在 A 条件不问。</figcaption></figure>
+
+  <h3>按控制来源合并（H / HA / A）</h3>
+  [[T_CTRL]]
+
+  <h3>按操作员画像合并（只在 H + HA 内）</h3>
+  [[T_PROF]]
+
+  <h3>影片 × 控制来源</h3>
+  [[T_CLIP]]
+  <figure><img src="[[FIG2]]" alt="影片与控制来源的组合均值"><figcaption>图 2 · 每个点是该影片、该控制来源下所有行的均值和 95% 置信区间。A 组只有 44 人，所以它的区间最宽。</figcaption></figure>
+
+  <h3>播放位置</h3>
+  [[T_POS]]
+
+  <h3>责任与功劳排序</h3>
+  [[T_RANK]]
+  [[T_RANK_PROF]]
+  <figure><img src="[[FIG4]]" alt="各条件下被排第一的角色比例"><figcaption>图 4 · 负面结果时谁该负最大责任、正面结果时谁该受最大表扬：把该角色排第 1 的行数比例。H 条件没有“AI”这一行，A 条件没有“人类操作员”这一行。</figcaption></figure>
+
+  <h3>前测与结果的相关</h3>
+  <p>这张表回答“哪些背景变量和结果有关”，它是后面选协变量、做调节分析的依据，不是结果本身。r 是皮尔逊相关（−1 到 1，0 表示无线性关系）。</p>
+  [[T_COR]]
+
+  <h3 id="seen">描述性 pattern（未检验）</h3>
+  <ol>
+    <li><b>控制来源：A 组在“关于 OriHime 和互动”的题上一致偏低。</b>OH 综合 5.34 对 H 5.61 / HA 5.71；AU1 真实感 4.83 对 5.52 / 5.39；CR1 温暖 5.31 对 5.71 / 5.70。CR2 能力几乎没差（5.72 对 5.81 / 5.94）。也就是说，“完全由 AI 控制”的描述压低的是信任、真实感和温暖，而不是能力。A 组的置信区间因为人少而很宽，这些差异能否站住要靠后面的检验。</li>
+    <li><b>H 与 HA 几乎无法区分</b>——除了 CR3：H 6.15 对 HA 5.74，方向正是操纵应该造成的（被告知“AI 提供建议”的人认为操作员掌控得少一些）。这是我们手上最接近“操纵检查通过”的证据。</li>
+    <li><b>操作员画像：差异很小。</b>H + HA 内，“不提及”在 AU1（5.63 对 5.28 / 5.46）和 CR1（5.84 对 5.62 / 5.66）上略高，其余几乎重合，区间大幅重叠。看图 1 的 H1/H2/H3 与 HA1/HA2/HA3 会发现真正的差别都在点云内部。</li>
+    <li><b>影片本身的差异比条件差异大。</b>ADV（建议）在 OH 上最高（5.80），REL（闲聊）最低（5.44）；COL（协作）在 AU1 上最低。A 组的“罚分”在 REL 最大（OH 4.96 对 5.47 / 5.57），在 COL 最小——这是 clip × ctrl 交互的候选。注意三段影片长度不同（70 / 105 / 115 秒），任务类型与时长混在一起，是设计上的局限。</li>
+    <li><b>位置效应：</b>AU1 从第 1 段到第 3 段逐步上升（5.15 → 5.38 → 5.57），CR1 也是（5.52 → 5.59 → 5.83）。因为顺序是平衡的，这不会偏倚条件比较，但会增加噪音，模型里应把位置放进去。</li>
+    <li><b>归因：</b>H 条件里 73% 的行把人类操作员排在责任第 1；HA 里降到 55%，而 AI 只拿到 16%——即便有 AI 参与，人仍然被视为主要责任方。A 条件里 AI 被排第 1 的比例是 58%（责任）和 63%（功劳），剩下的责任/功劳流向 OriHime 提供方和影片中的人。HA 里人类操作员“责任第 1”（55%）略高于“功劳第 1”（50%），是一个可能的责任 &gt; 功劳的不对称。</li>
+    <li><b>前测：</b>对 AI 的态度、对机器人的负面态度、对残障者的温暖印象都与结果中等相关（|r| .3–.5）。这既是加协变量能提高精度的理由，也是做“态度 × 条件”调节分析的理由。</li>
+  </ol>
+  <div class="warn">
+    <p>以上都是均值和比例的直观比较，还没有任何检验。看起来“有差别”的（例如 A 组偏低）可能被检验推翻，看起来“没差别”的（例如画像）也可能藏着某一段影片或某一个子群体里的效应。下一阶段就是把这些印象逐一变成可以检验的统计问题。</p>
+  </div>
+</section>
+
+<section id="rq">
+  <div class="eyebrow">Phase 5 · RQ 与统计问题的对应</div>
+  <h2>研究问题与统计问题</h2>
+  <p>你确认了这四个 RQ 与设计相符，两个因子都重要，没有方向性假设，也没有预注册。表格保留为分析矩阵；实际执行的主对比、主样本、主模型在第 6 节。</p>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>RQ（推断）</th><th>结果变量</th><th>预测变量 / 对比</th><th>数据结构</th><th>候选方法</th><th>我倾向的主方法与理由</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">RQ1 被告知“谁在控制”是否改变对 OriHime 和控制者的看法</th><td>OH 综合（+ 三个单题）、AU1、CR1、CR2</td><td>ctrl：有人（H、HA）vs 仅 AI；H vs HA</td><td>参与者 × 影片，嵌套</td><td>参与者均值上的 ANOVA / t 检验；线性混合模型 LMM；有序混合模型</td><td>LMM：<code>DV ~ condition + clip + pos + (1 | participant)</code>，随机截距处理同一人三行的相关；条件用 7 水平因子，随后做全部 21 对两两比较（原始 p 先看）</td></tr>
+      <tr><th scope="row">RQ2 告知操作员有残障是否改变看法，是否随控制来源不同而不同</th><td>同上 + CR3</td><td>profile（1/2/3）；profile × ctrl（H/HA）</td><td>H + HA 子样本，2 × 3 因子</td><td>2 × 3 ANOVA（参与者均值）；LMM 加交互项</td><td>同一个 LMM 框架，在 H+HA 内拟合 <code>ctrl * profile</code>；再做 2 vs 1、3 vs 1、2 vs 3 的对比</td></tr>
+      <tr><th scope="row">RQ3 任务类型是否调节上述效应</th><td>影片层 DV</td><td>clip × ctrl，clip × profile</td><td>被试内 × 被试间</td><td>LMM 交互项的似然比检验；分影片的简单效应</td><td>先做交互项的整体检验，再按影片拆开看简单效应；同时报告影片时长混淆</td></tr>
+      <tr><th scope="row">RQ4 责任与功劳归给谁</th><td>R1 / R2 名次</td><td>ctrl；责任 vs 功劳（同一人的配对比较）</td><td>参与者 × 影片 × 角色</td><td>“排第 1”比例的 GLMM（logit）；McNemar 配对检验；Plackett–Luce 排序模型</td><td>先看比例和配对比较（简单、透明），排序模型作为补充</td></tr>
+      <tr><th scope="row">次要：总体接受度</th><td>PE、HM</td><td>condition</td><td>参与者层</td><td>单因素 ANOVA / 回归</td><td>普通线性模型（一人一个数，不需要混合模型）</td></tr>
+      <tr><th scope="row">探索：谁受影响更大</th><td>影片层 DV</td><td>ctrl × GAAIS / NARS / SCM / BEL1</td><td>参与者 × 影片</td><td>LMM 加交互项</td><td>标记为探索性；先说明理由再跑</td></tr>
+    </tbody>
+  </table></div>
+  <div class="teach">
+    <div class="t">这一步为什么重要</div>
+    <p>“A 条件是否降低信任”不是一个能直接检验的问题；“A 条件下 OH 综合的期望值是否低于 H 和 HA 条件，控制影片和位置之后”才是。把 RQ 翻译成统计问题的过程会强迫我们说清楚：比什么、在哪个层次比、控制什么。</p>
+  </div>
+</section>
+
+
+<section id="framework">
+  <div class="eyebrow">Phase 6 · 主统计框架</div>
+  <h2>主统计框架：线性混合模型</h2>
+  <div class="teach">
+    <div class="t">模型</div>
+    <p><code>DV ~ condition + clip + position + (1 | participant)</code></p>
+    <p><b>白话：</b>每个人对每段影片给一个分数。分数 = 该条件的平均水平 + 这段影片的难易 + 这是第几段 + <b>这个人自己的基线</b> + 剩下的随机误差。<code>(1 | participant)</code> 就是“每个人自己的基线”，它承认同一个人的三个分数是相关的。<b>它估计什么：</b>各条件在“同一段影片、同一位置”下的期望分数，条件之间的差就是我们要的效应。</p>
+  </div>
+  <h3>候选方法比较</h3>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>候选方法</th><th>它怎么处理三段影片</th><th>问题</th><th>本轮用途</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">独立样本 t 检验 / 单因素 ANOVA，直接用 900 行</th><td>当成 900 个独立的人</td><td>把样本量虚报三倍，p 值偏小</td><td>不用</td></tr>
+      <tr><th scope="row">先把每人三段平均，再做 t 检验 / ANOVA</th><td>折成一人一个数</td><td>合法但丢掉影片信息，不能检验影片 × 条件交互；不假设方差相等的 Welch 版本反而更稳健</td><td>作为稳健性检验（Welch t、Mann–Whitney）</td></tr>
+      <tr><th scope="row">重复测量 ANOVA</th><td>被试内因子</td><td>要求球形性，处理缺失（A 没有 CR3）和不平衡格子不方便；本质上是混合模型的特例</td><td>不用</td></tr>
+      <tr><th scope="row">线性混合模型 LMM</th><td>随机截距吸收人与人之间的差异</td><td>假设残差方差相同、残差近似正态；把 1–7 当作等距</td><td><b>主模型</b></td></tr>
+      <tr><th scope="row">有序（比例优势）模型</th><td>把 1–7 当作有顺序的类别</td><td>对天花板效应更诚实；Python 里带随机效应的版本不成熟，用 GEE 版本</td><td>稳健性检验（单题）</td></tr>
+    </tbody>
+  </table></div>
+  <h3>假设检查</h3>
+  [[T_MODELS]]
+  <ul>
+    <li><b>ICC</b>（组内相关）在 .40–.78 之间：分数差异的一半以上来自“人不一样”，而不是“影片不一样”。这正是必须用混合模型的证据，也解释了为什么条件效应在 900 行的图上看着明显、检验起来却不容易。</li>
+    <li><b>残差偏度</b> −0.35 到 −1.06：左偏（高分挤在顶端），属于中等程度。混合模型对此不敏感，但我们仍用有序模型和 bootstrap 复核。</li>
+    <li><b>方差不齐：</b>这是本轮发现的最重要的假设问题。A 组的人与人差异比 H/HA 大 1.3–1.5 倍（下表，Levene 检验 p ≤ .014）。主模型假设大家方差一样，所以凡是涉及 A 的对比，模型给出的标准误可能<b>偏小</b>，p 值偏乐观。对策：用不假设等方差的方法复核（Welch t、Mann–Whitney、参与者 bootstrap），见第 13 节。</li>
+  </ul>
+  [[T_LEV]]
+  <div class="teach">
+    <div class="t">怎么读混合模型的输出（以 OH 综合为例）</div>
+    <p><b>Intercept 5.47：</b>参照格（H1，REL 影片，第 1 段）的期望分数。<b>condition[A] −0.40，SE 0.22，z −1.81，p = .071：</b>A 比 H1 低 0.40 分；SE 是这个估计的不确定度；z = 估计 ÷ SE；p 是“若真实差异为零，看到这么大 z 的概率”。<b>clip[ADV] +0.36，p &lt; .001：</b>建议影片比闲聊影片高 0.36 分，所有人都如此。<b>Group Var：</b>人与人基线的方差。论文里要报告：估计、SE 或 CI、检验统计量、p、以及方差成分或 ICC。</p>
+  </div>
+</section>
+
+<section id="pairwise">
+  <div class="eyebrow">Phase 7–8 · 两两比较</div>
+  <h2>所有条件的两两比较</h2>
+  <p>比较的范围：11 个结果变量 × 7 个条件的全部 21 对（CR3 只有 6 个条件，15 对）。差值来自主模型（影片层）或普通线性模型（参与者层）；d 用参与者层均值的合并 SD 标准化。每个结果变量的 21 对是一个“统计家族”，Holm 与 BH 校正都在家族内做。<b>先看未校正的 raw p</b>，是为了完整看到地图；同时必须记住：225 次比较里即使什么效应都没有，也会有约 11 次 raw p &lt; .05。</p>
+  [[T_PAIR_SUMMARY]]
+  <figure><img src="[[FIG7]]" alt="四个主要结果变量的 21 对两两差值矩阵"><figcaption>图 7 · 四个主结果变量的全部两两差值（行条件 − 列条件）与 raw p。深紫 = raw p &lt; .05，浅紫 = p &lt; .10。整张图只有最后一行（A 减去各人类条件）有颜色。</figcaption></figure>
+  <h3>raw p &lt; .05 的全部比较</h3>
+  [[T_PAIR_SIG]]
+  <h3>控制来源三水平的比较</h3>
+  <p>这是同一模型下更省力的比较：H（3 格合并，118 人）、HA（118 人）、A（36 人）。合并让每对的精度更高，代价是看不到画像。</p>
+  [[T_CTRL3]]
+  <div class="teach">
+    <div class="t">raw p、Holm p、BH p 分别是什么</div>
+    <p><b>raw p：</b>只看这一对比较时的 p。<b>Holm：</b>控制“家族内至少犯一次第一类错误”的概率，最严格；AU1 里 3 对 A 的比较通过了 Holm，说明它们即使按最保守的标准也站得住。<b>BH-FDR：</b>控制“被判为显著的结果里假阳性的比例”，比 Holm 宽松，适合探索性地图。三种数字都保留，论文里说明主结论依据哪一种。</p>
+  </div>
+</section>
+
+<section id="patterns">
+  <div class="eyebrow">Phase 9 · Pattern 识别</div>
+  <h2>Pattern 识别</h2>
+  <ul>
+    <li><b>Unique condition：</b>四个主结果变量的 84 对比较里，10 对 raw p &lt; .05，<b>全部</b>是“某个人类格子 &gt; A”，方向一致。六个人类格子彼此之间的 60 对比较，<b>零</b>对显著。这不是梯度，也不是簇，而是 A 独自站在外面。</li>
+    <li><b>没有画像结构：</b>H1/H2/H3 之间、HA1/HA2/HA3 之间的任何一对都不显著，也看不出 1 &gt; 2 &gt; 3 之类的排序。</li>
+    <li><b>CR3 是另一个 pattern：</b>H 格子高于 HA 格子（9 对 H–HA 比较里 4 对显著，H 内部和 HA 内部都无差异），这是“AI 辅助”这句话确实被读进去的证据。</li>
+    <li><b>因子结构的读法：</b>“有人 vs 没人”有主效应（AU1、CR1，OH 较弱），“H vs HA”没有主效应，“画像”没有主效应，也没有交互。</li>
+    <li><b>一个要警惕的格子：</b>HA1 在很多题上是最高的（HM 上 HA1 &gt; HA3 显著）。HA1 同时是年龄最大、对 AI 态度最正面的组。21 个格子对比里冒出一两个显著属正常，把它当发现之前要先看协变量调整后还在不在（第 13 节：调整后 C3 的差异变小，和这一点相符）。</li>
+  </ul>
+  <div class="warn">
+    <p><b>不要拼接 p 值：</b>“H3 &gt; A 显著（p &lt; .001）而 HA3 &gt; A 不显著（p = .06）”不能推出“H3 与 HA3 不同”。直接比较 H3 与 HA3 的结果是 p = .80，差 0.02 分。两个比较一个过线一个没过线，往往只是精度不同（这里 HA3 与 A 的差是 0.55，H3 与 A 的差是 1.09，它们的区间大量重叠）。要说两个效应不同，必须做交互检验或“对比的对比”。</p>
+  </div>
+</section>
+
+<section id="contrasts">
+  <div class="eyebrow">Phase 11 · 理论对比</div>
+  <h2>理论驱动的对比</h2>
+  <p>每个对比的研究理由与统计定义：<b>C1</b> 六个有人的格子平均 vs A，回答“告知有人参与是否改变认知”；<b>C2</b> 三个 H 格子平均 vs 三个 HA 格子平均，回答“AI 辅助这句话本身有没有作用”；<b>C3</b> H2、H3、HA2、HA3 平均 vs H1、HA1 平均，回答“告知任何一种残障是否改变认知”——合并的前提是两种残障的效应相近，所以同时检验 <b>C4</b> 智力 vs 行动；<b>C5a/C5b</b> 把 C3 拆开。所有对比都是格子的等权平均，因此不受各格人数略有不同的影响。</p>
+  <figure><img src="[[FIG6]]" alt="理论对比的森林图"><figcaption>图 6 · 四个对比在各结果变量上的估计与 95% 置信区间（紫色 = raw p &lt; .05）。C1 一栏三个紫点是本轮最清楚的发现；C2、C3、C4 三栏的区间几乎全部跨过 0。</figcaption></figure>
+  [[T_CON]]
+  <ul>
+    <li><b>C1 有人 vs 仅 AI：</b>AU1 真实感差 0.81 分，d = .62（中等偏大），p = .001，Holm 后 .002；CR1 温暖差 0.50，d = .52，p = .004；OH 综合差 0.40，d = .42，p = .020（Holm .040，BH .080）；CR2 能力差 0.22，p = .135。读法：告知“完全由 AI 控制”让人觉得互动<b>更像程序在执行</b>、控制者<b>更不温暖</b>，但<b>能力评价不受影响</b>。</li>
+    <li><b>C2 H vs HA：</b>四个主结果变量的 d 都在 −.17 到 +.13 之间，置信区间大致排除了 |d| &gt; .35 的效应。这不是“没检验出来”，而是“如果有差异，也很小”。CR3 例外（H 高 0.40，p = .002），它本来就应该不同。</li>
+    <li><b>C3 告知残障 vs 不提及：</b>方向全部为负（告知后评价略低），但 OH −0.09，AU1 −0.29（d = −.24，p = .112），CR1 −0.21（d = −.25，p = .114），CR2 −0.11，都不显著。C4 智力 vs 行动在所有结果变量上 d ≤ .17，说明合并是合理的，也说明两种残障没有被区别对待。C5a 智力 vs 不提及在 AU1 上最接近显著（−0.39，p = .061）。</li>
+    <li><b>参与者层：</b>PE、HM 在任何对比上都不显著；HM 的 C3 −0.40（p = .076）和 C5b −0.45（p = .079）是仅有的迹象。</li>
+  </ul>
+</section>
+
+<section id="interactions">
+  <div class="eyebrow">Phase 12 · 交互与简单效应</div>
+  <h2>交互与简单效应</h2>
+  <p>交互用似然比检验（LRT）：把带交互项的模型和不带的比，看似然提高得是否超过随机波动。表中是 p 值。</p>
+  [[T_INT]]
+  <ul>
+    <li><b>影片 × 控制来源：</b>OH 综合 p = .13，其余更大。描述统计里“A 组在 REL 扣分最多”的印象<b>没有通过检验</b>，只能说 A 的扣分在三段影片里大小不一但方向一致。</li>
+    <li><b>CR2 的两处苗头：</b>影片 × 有人/仅 AI p = .051，下面的简单效应显示 AI 只在闲聊影片（REL）里被认为能力更低（d = .44，p = .078），在建议和协作影片里完全不差。位置 × 条件 p = .012 没有理论解释，df = 12 的检验在 8 个结果变量里跑出一个 .012 属正常，先记为探索性线索。</li>
+    <li><b>控制来源 × 画像：</b>全部 p ≥ .18。残障告知的（微小）效应在 H 和 HA 下没有差别。</li>
+  </ul>
+  <h3>各影片内的简单效应（探索性）</h3>
+  [[T_SIMPLE]]
+  <p class="small">简单效应是行级 Welch t，只用来看交互的形状，不作为独立结论；三段影片长度不同（70/105/115 秒）与任务类型混在一起，是设计上的局限。</p>
+</section>
+
+<section id="ranks">
+  <div class="eyebrow">RQ4 · 责任与功劳归因</div>
+  <h2>责任与功劳归因</h2>
+  <p>方法：把“某角色是否被排第 1”当作二值结果，用 GEE 逻辑回归（参与者为聚类，控制影片）估计条件之间的<b>优势比</b>（odds ratio，OR）。OR = 1 表示没差别，0.5 表示“被排第 1 的几率减半”。责任 vs 功劳的不对称在参与者层比较（每人三段影片里该角色排第 1 的比例，责任减功劳），用 Wilcoxon 符号秩检验。</p>
+  [[T_RANKS]]
+  <ul>
+    <li><b>HA vs H：</b>加上“AI 辅助”后，人类操作员被排为最大责任方的比例从 72% 降到 55%（OR .47，p = .001），最大功劳方从 71% 降到 51%（OR .42，p &lt; .001）。移走的部分主要去了 AI（HA 里 AI 排第 1 约 15%）和影片中的人。</li>
+    <li><b>A vs HA：</b>没有人时 AI 被排第 1 的比例从 15% 跳到 57%（责任）和 60%（功劳），OR ≈ 7.8。</li>
+    <li><b>残障告知：</b>OR .89（责任）、.80（功劳），都不显著：告知操作员有残障没有让参与者更少或更多地把责任推给操作员。</li>
+    <li><b>责任 &gt; 功劳的不对称：</b>只在 HA 出现（人类操作员排第 1 的比例，责任比功劳高 4.8 个百分点，p = .024）；H 里没有，A 里 AI 也没有。效应很小，算“有迹象”。</li>
+  </ul>
+  <h3>参与者层结果变量与可信度检查</h3>
+  [[T_PL]]
+  <p>BEL1 在 7 个条件间没有差异（整体 p = .45；C1 p = .30），说明三种描述<b>被相信的程度相同</b>——这是“可信度检查”通过。它不能证明操纵起效；起效的证据是 CR3：被告知 AI 辅助的人认为操作员掌控更少（H 6.14 vs HA 5.73，d = .40，p = .002）。仅 AI 条件没有对应的直接检查，只能用“A 组把责任和功劳归给 AI”作为间接证据。</p>
+</section>
+
+<section id="robust">
+  <div class="eyebrow">Phase 13 · 稳健性与敏感性</div>
+  <h2>稳健性与敏感性分析</h2>
+  <p>列出的每种方法都有独立的理由：换样本定义（排除规则会不会左右结论）；加前测协变量（GAAIS、NARS、SCM 温暖、年龄——因为随机分组后这些变量有机会性不平衡，且与结果相关 .3–.5）；参与者均值的 Welch t 与 Mann–Whitney（不假设方差相等、不假设正态）；参与者 bootstrap（在 Levene 检验发现 A 组方差更大之后加入，属于 data-informed 的稳健性检验）；有序 GEE（把 1–7 当作有序类别，回应天花板效应；只对单题）。单元格里是差值（或优势比）与 p。</p>
+  [[T_ROB]]
+  [[T_ORD]]
+  <ul>
+    <li><b>AU1 的 C1 效应在全部方法下成立</b>（p 最大 .023）：这是本轮唯一在每一种设定下都显著的感知效应。</li>
+    <li><b>CR1 的 C1 效应</b>在模型法、协变量调整、bootstrap、有序 GEE 下显著，在 Welch t（.052）和 Mann–Whitney（.092）下略过线：差异确实存在但精度有限。</li>
+    <li><b>OH 综合的 C1 效应</b>只在假设等方差的模型法下显著（.019–.039），在方差稳健的方法下 p = .055–.069。它由 OH2 有用（有序 GEE p = .031）和 OH3 愿意参与驱动，OH1 可信本身不显著（p = .10–.17）。所以“AI 控制降低信任”这句话<b>数据不支持</b>，支持的是“降低有用感和参与意愿”。</li>
+    <li><b>C3 告知残障：</b>方向在所有方法下都是负的，bootstrap 与 Welch 下 p ≈ .06–.07，但<b>加入协变量后 AU1 的差异从 −0.29 缩到 −0.10（p = .57）</b>。也就是说，这个苗头有一部分是“不提及”组恰好更年长、对 AI 更正面造成的，不能作为发现报告，只能作为值得复现的方向。</li>
+    <li>排除规则（272 vs 300 vs 257）不改变任何结论。</li>
+  </ul>
+</section>
+
+
+<section id="explore">
+  <div class="eyebrow">Phase 14 · 探索性分析 E1–E8</div>
+  <h2>探索性分析 E1–E8</h2>
+  <p>先看记账。这一轮一共跑了下表这么多检验；其中 E5 的“显著”意思是“等价”，E7 的平均名次比较不能算发现（见下文），所以真正需要警惕假阳性的是 E1、E2、E6、E8 里的那几个。</p>
+  [[T_E_BOOK]]
+
+  <h3>E1 · 态度 × 控制来源的调节（post-hoc）</h3>
+  <p><b>为什么合理：</b>态度在操纵之前测量，是合法的调节变量；理论上“完全由 AI 控制”这句话对 AI 怀疑者是坏消息，对 AI 爱好者不是。<b>统计：</b>LMM 加“有人 × 态度”交互项，LRT 检验；再算态度低于均值 1 个 SD、等于均值、高于 1 个 SD 时“有人 − 仅 AI”的差。</p>
+  [[T_E1]]
+  <figure><img src="[[FIG8]]" alt="态度调节图"><figcaption>图 8 · 每个点是一名参与者三段影片的平均分；线是混合模型估计的斜率。仅 AI 组（绿）的斜率在四个结果变量上都比有人组（蓝）陡：对 AI 越负面的人，给 AI 控制的 OriHime 打分越低；对 AI 正面的人，两组几乎重合。</figcaption></figure>
+  <ul>
+    <li>GAAIS 正向态度 × 有人/仅 AI 的交互在 OH（p = .019）和 CR2（p = .003）显著，AU1（.083）、CR1（.093）方向相同。三水平检验里 HA 的斜率（.30）和 H（.26）几乎一样，A 是 .50：AI 辅助不会触发这种态度依赖，只有“完全由 AI”会。</li>
+    <li>态度低于均值 1 SD 的参与者，仅 AI 的扣分是 OH 0.44、AU1 0.91、CR1 0.62、CR2 0.42 分，全部 p ≤ .015；态度高于均值 1 SD 的参与者，差异在 −0.36 到 +0.20 之间，全部不显著。<b>注意：</b>“对 AI 正面的人给 AI 控制的 OriHime 打分更高”这个反向差异本身不显著，不能这么写。</li>
+    <li>这同时解释了第 6 节发现的方差不齐：A 组的分歧大，是因为态度在 A 组里起的作用大。</li>
+    <li><b>性质：</b>post-hoc（9-02 的报告已经看过一次），14 个检验里 3 个显著；论文里只能作为探索性发现，并说明它需要复现。</li>
+  </ul>
+
+  <h3>E2 · BEL1 敏感性分析</h3>
+  <p><b>为什么合理：</b>如果条件效应真的来自描述，它应该在相信描述的人身上成立。<b>限制：</b>BEL1 在操纵之后测，它可能本身就是对条件的反应。</p>
+  [[T_E2B]]
+  <ul>
+    <li>只看相信者（BEL1 ≥ 5，206 人）：C1 在 OH（p = .025）、AU1（.001）、CR1（.006）上与主样本几乎相同；C3 仍不显著。<b>结论对相信与否不敏感。</b></li>
+    <li>相信者里 AU1 的 H vs HA 出现 +0.39（p = .037）：28 个检验里的一个，主样本里是 .38，且方向与“AI 辅助扣分”的直觉相反；记录，不报告。</li>
+    <li>“有人 × BEL1”交互项在四个结果变量上都为负（CR1 p = .036，CR2 p = .009），字面意思是“不相信的人扣分更大”。但 A 组里不相信描述的只有 3 人，这个交互踩在 3 个人身上，<b>不可解释</b>。</li>
+  </ul>
+  [[T_E2I]]
+
+  <h3>E3 · OH 单题</h3>
+  [[T_E3]]
+  <p>参与者 bootstrap 下只有 OH2 有用显著（p = .036），OH3 愿意参与 .085，OH1 可信 .146。与第 13 节的有序 GEE 一致。写法应为“仅 AI 降低了对 OriHime 有用性的评价，对可信度的评价没有可检出的差异”。</p>
+
+  <h3>E4 · 残障告知的调节变量</h3>
+  <p><b>为什么合理：</b>告知效应可能只在特定任务、特定人群出现；接触残障者的频率（接触假说）和对残障者的刻板印象（SCM）是理论上最直接的调节变量，且都在操纵前测量。</p>
+  [[T_E4]]
+  <ul>
+    <li>20 个检验，0 个显著。告知 × 影片在 CR1（.068）、CR2（.080）接近，简单效应显示告知在协作影片里降低温暖 0.33 分（p = .014），在建议影片里没有；但整体交互不显著，不能宣称“只在协作任务出现”。</li>
+    <li>告知 × 接触频率全部 p ≥ .36；告知 × SCM 温暖在 AU1 上：刻板印象较冷的人告知后降 0.43（p = .054），较暖的人 −0.08，方向合理但交互本身 p = .27。</li>
+    <li><b>结论：</b>残障告知在这份数据里没有主效应，也没有可检出的条件性效应。</li>
+  </ul>
+
+  <h3>E5 · 等价性检验（TOST）</h3>
+  <p><b>为什么合理：</b>“p &gt; .05”不等于“相同”。TOST（两个单侧检验）反过来问：差异是否小到落在我们事先认定的“无关紧要”区间内？界取 ±0.35 SD（本样本能可靠检出的最小效应）和 ±0.50 SD（中等效应）。TOST p &lt; .05 表示“可以宣称等价”。</p>
+  [[T_E5]]
+  <ul>
+    <li><b>H 与 HA：</b>在 OH、AU1、CR1、HM 上通过 ±0.35 SD 的等价性检验，在所有结果变量上通过 ±0.50 SD；CR3 不等价（它本来就应该不同）。论文里可以写“人工与 AI 辅助的人工在感知上统计等价（|d| &lt; 0.35）”。</li>
+    <li><b>告知残障 vs 不提及：</b>OH 在 ±0.35 内等价；AU1、CR1、HM 的 90% CI 下界到 −0.47，只能宣称在 ±0.50 内等价。写法：“效应若存在，也小于中等（|d| &lt; 0.5）”。</li>
+    <li><b>智力 vs 行动：</b>除 AU1 外全部在 ±0.35 内等价。</li>
+  </ul>
+
+  <h3>E6 · CR2 的两处交互线索</h3>
+  <p><b>REL 特异的能力扣分：</b>用“有人 × 是否闲聊影片”这一个自由度的对比检验，交互 = 0.33，p = .037；但在闲聊影片内部，有序模型的有人 vs 仅 AI 优势比 1.78，p = .108。也就是说，“AI 在闲聊里显得能力更低、在任务型影片里不低”这个<b>差异</b>勉强显著，而闲聊里的扣分本身不显著。性质：post-hoc 线索。</p>
+  [[T_E6A]]
+  <p><b>位置 × 条件（第一轮 p = .012）：</b>拆开看，有人 × 位置 p = .51，控制来源 × 位置 p = .62，画像 × 位置 p = .061。原来的 .012 来自个别格子的不规则起伏（H1 第 3 段 6.13，H3 第 3 段 5.52），没有任何一条理论线能对上。剔除。</p>
+  [[T_E6B]]
+
+  <h3>E7 · 排序模型</h3>
+  <p><b>为什么合理：</b>第一轮只用了“谁排第 1”，丢掉了第 2、3 名。Plackett–Luce 模型把一个排序看成逐级挑选，估计每个角色的“分量”（worth，条件内加总为 1）。</p>
+  [[T_E7C]]
+  <figure><img src="[[FIG9]]" alt="Plackett-Luce 分量"><figcaption>图 9 · 每个角色的分量与参与者 bootstrap 95% 区间。从 H 到 HA，人类操作员失去约 0.23 的分量，几乎全部流向 AI（0.28）；OriHime 提供方不变（0.18–0.19），影片中的人反而更少（0.13 → 0.09）。在 A 里，AI 承接 0.55，与 H 里操作员的 0.68 相比仍偏低，缺口流向提供方（0.30）。</figcaption></figure>
+  [[T_E7D]]
+  <p>HA 里当操作员排第 1 时，第 2 名有 64–67% 是 AI，21–25% 是提供方，只有 11–12% 是影片中的人：AI 已经被当作紧随其后的责任方。</p>
+  [[T_E7A]]
+  <p>责任 &gt; 功劳的不对称在三段影片里方向一致（各差 3–6 个百分点），单段都不显著，合并的 GEE 优势比 1.21（p = .032），没有影片交互（p = .89）。它是一个稳定但很小的效应。</p>
+  <p class="small">E7b 的“平均名次”比较（H vs HA、HA vs A 全部 p &lt; .001）<b>不能</b>作为发现：H 只有 3 个选项而 HA 有 4 个，平均名次随选项数机械变化。已在记账表中剔除，保留在 CSV 里供查证。</p>
+
+  <h3>E8 · HM 与残障告知</h3>
+  [[T_E8]]
+  <p>只在 HA 内比较时“显著”（−0.69，p = .022），在 H 内是 −0.11（p = .69）；加入协变量后缩到 −0.21（p = .26）。六个人类格子的 HM 均值是 H1 5.16、H2 5.09、H3 5.02、HA1 5.61、HA2 5.00、HA3 4.85——只有 HA1 偏高，其余五格几乎一样。这是那个最年长、对 AI 最正面的格子在说话，不是残障告知。</p>
+</section>
+
+<section id="grading">
+  <div class="eyebrow">发现分级</div>
+  <h2>发现分级</h2>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>级别</th><th>发现</th><th>依据</th><th>性质</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Strong</th><td>被告知“完全由 AI 控制”后，互动被认为更不真实（AU1）</td><td>d = .62 [.26, 1.02]；LMM p = .001，Holm .002；八种设定 p ≤ .023；相信者子样本 p = .001</td><td>确认性（主对比 C1）</td></tr>
+      <tr><th scope="row">Strong</th><td>AI 参与把责任与功劳从人类操作员身上移走约一半，流向 AI；没有人时 AI 承接大部分</td><td>OR .47 / .42（p ≤ .001）；Plackett–Luce 分量 .68 → .45，AI 得 .28；A 里 AI .55</td><td>确认性（RQ4）</td></tr>
+      <tr><th scope="row">Strong</th><td>“AI 辅助”的描述被读进去了：HA 认为操作员掌控更少</td><td>CR3 d = .40，p = .002</td><td>操纵证据</td></tr>
+      <tr><th scope="row">Strong（等价）</th><td>人工与 AI 辅助的人工在感知上统计等价</td><td>TOST ±0.35 SD 通过：OH、AU1、CR1、HM；±0.50 SD 全部通过</td><td>确认性（C2 的等价性版本）</td></tr>
+      <tr><th scope="row">Suggestive</th><td>仅 AI 条件下控制者更不温暖（CR1）</td><td>d = .52；模型 p = .004，bootstrap .031，有序 GEE .030；Welch .052，Mann–Whitney .092</td><td>确认性对比，精度不足</td></tr>
+      <tr><th scope="row">Suggestive</th><td>仅 AI 降低对 OriHime 的有用性评价与参与意愿，不降低可信度</td><td>OH2 bootstrap p = .036，有序 GEE .031；OH1 p = .10–.17</td><td>确认性对比的单题拆解</td></tr>
+      <tr><th scope="row">Suggestive</th><td>HA 里人类操作员“担责”多于“受表扬”</td><td>OR 1.21，p = .032；三段影片方向一致，单段不显著</td><td>次要</td></tr>
+      <tr><th scope="row">Exploratory · 值得报告</th><td>对 AI 的既有态度调节仅 AI 的扣分：扣分集中在 AI 怀疑者身上</td><td>交互 OH p = .019，CR2 .003，AU1 .083，CR1 .093，方向一致；HA 的斜率与 H 相同</td><td>post-hoc，需复现</td></tr>
+      <tr><th scope="row">Exploratory · 线索</th><td>AI 的能力扣分只出现在闲聊影片</td><td>对比的对比 p = .037；闲聊内部 OR 1.78，p = .108</td><td>post-hoc</td></tr>
+      <tr><th scope="row">Null（有界）</th><td>告知操作员有残障不改变任何评价或归因；两种残障无差别；没有调节变量</td><td>C3 |d| ≤ .25，TOST ±0.50 全部通过；E4 20 个检验 0 显著；归因 OR .80–.89</td><td>确认性 + 探索性</td></tr>
+      <tr><th scope="row">Null</th><td>控制来源 × 画像无交互；PE、HM、BEL1 不随条件变化；影片 × 控制来源无交互</td><td>p ≥ .18；p ≥ .40；p ≥ .13</td><td>确认性</td></tr>
+      <tr><th scope="row">剔除</th><td>HM 的残障苗头；CR2 的位置 × 条件交互；BEL1 × 有人交互</td><td>HA1 单格；分解后无结构；A 组不相信者仅 3 人</td><td>探索后证伪</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+
+<section id="paper">
+  <div class="eyebrow">Phase 15–21 · 论文产出</div>
+  <h2>试用主线与论文草稿</h2>
+  <div class="warn">
+    <p><b>试用（TRIAL）。</b>这条主线是 2026-09-04 选定的工作框架，不是决定。每份草稿的开头都有 TRIAL 标记；每个结论都带着证据级别标签（confirmatory / equivalence / secondary / exploratory），改稿时不要把标签删掉。</p>
+  </div>
+  <h3>主线提要</h3>
+  <ol>
+    <li><b>设定。</b>影片对所有人相同，唯一变量是一页文字：谁在控制，操作员是什么人。条件差异只能来自先验归因。</li>
+    <li><b>有人在场改变了什么。</b>被告知“完全由 AI 控制”的人觉得互动更不真实（d .62，全部方法成立）、控制者更不温暖（d .52，有迹象）、OriHime 更没用也更不想参与（有迹象）；能力和可信度不变。</li>
+    <li><b>什么没有变。</b>人工与 AI 辅助的人工统计等价（±0.35 SD 内：OH、真实感、温暖、享乐；±0.50 SD 内：全部）；告知残障没有可检出的效应，效应被限定在 ±0.50 SD 内，没有任何调节变量；但“AI 辅助”确实降低了感知到的操作员掌控（d .40），说明文字被读进去了。</li>
+    <li><b>代价在归因上。</b>AI 辅助把操作员被排第一的几率减半，流失的份额几乎全给了 AI（Plackett–Luce 分量 .68 → .45，AI 得 .28）；没有人时 AI 承接 .55；HA 里操作员担责略多于受表扬。</li>
+    <li><b>尾声（探索性）。</b>仅 AI 的扣分集中在对 AI 态度较负面的参与者身上；HA 的斜率与 H 相同，只有“没有人”触发态度依赖。</li>
+  </ol>
+  <h3>数据不支持的结论</h3>
+  <ul>
+    <li>“AI 控制的机器人更不被信任”——可信度单题没有差异。</li>
+    <li>“告知残障改变了对操作员的评价”——有界的 null，两种残障之间也无差别。</li>
+    <li>“AI 辅助削弱了操作员的地位”——感知等价，只有归因转移。</li>
+    <li>“残障效应出现在特定任务或人群”——20 个调节检验全部不显著。</li>
+    <li>“喜欢 AI 的人更偏好 AI 控制”——+1 SD 处的反向差异不显著。</li>
+  </ul>
+  <h3>论文级图（PNG 300 dpi 与 PDF 都在 <code>paper/figures/</code>）</h3>
+  <figure><img src="[[PFIG1]]" alt="Figure 1"><figcaption>Figure 1 · Condition means with 95% CIs for the four primary outcomes and operator control (participant-level means, n = 272).</figcaption></figure>
+  <figure><img src="[[PFIG2]]" alt="Figure 2"><figcaption>Figure 2 · Pre-specified contrasts C1–C3 across outcomes (mixed-model estimates, 95% CIs; violet = p &lt; .05).</figcaption></figure>
+  <figure><img src="[[PFIG3]]" alt="Figure 3"><figcaption>Figure 3 · Clip × control source (row-level means, 95% CIs); no clip × control interaction on the primary outcomes.</figcaption></figure>
+  <figure><img src="[[PFIG4]]" alt="Figure 4"><figcaption>Figure 4 · Plackett–Luce worths for responsibility and credit by control source (participant-bootstrap 95% intervals).</figcaption></figure>
+  <figure><img src="[[PFIG5]]" alt="Figure 5"><figcaption>Figure 5 · Exploratory: prior attitude to AI moderates the AI-only penalty (mixed-model slopes; post hoc).</figcaption></figure>
+  <h3>草稿全文（英文）</h3>
+  <p>文件在 <code>paper/</code>：<code>story.md</code>、<code>methods.md</code>、<code>results.md</code>、<code>limitations.md</code>（含面向审稿人的方法理由）、<code>tables.md</code>、<code>numbers_sheet.md</code>。下面可展开阅读。</p>
+  <details><summary><b>story.md · Trial storyline</b></summary><div class="doc">[[DOC_STORY]]</div></details>
+  <details><summary><b>methods.md · Statistical Methods (draft)</b></summary><div class="doc">[[DOC_METHODS]]</div></details>
+  <details><summary><b>results.md · Results (draft)</b></summary><div class="doc">[[DOC_RESULTS]]</div></details>
+  <details><summary><b>limitations.md · Limitations and reviewer-facing rationale (draft)</b></summary><div class="doc">[[DOC_LIMITS]]</div></details>
+  <details><summary><b>tables.md · Tables 1–6</b></summary><div class="doc">[[DOC_TABLES]]</div></details>
+  <h3>可复现性</h3>
+  <p><code>analysis/README.md</code> 说明流水线，<code>run_all.sh</code> 一键从原始导出重跑到手册（约 5 分钟）。补充材料 S1（225 对两两比较）和 S2（113 个探索性检验）分别是 <code>results/pairwise_all.csv</code> 与 <code>results/phase14_test_log.csv</code>。注意 <code>exports/</code> 在仓库里被 gitignore，这些代码目前不在版本控制之下。</p>
+</section>
+
+
+<section id="disab">
+  <div class="eyebrow">附录 A · 残障因子补充排查</div>
+  <h2>残障因子补充排查</h2>
+  <h3>四个问题的回答</h3>
+  <div class="q"><p><span class="n">问 1</span><b>真的挖不出来了吗？</b>是。针对残障因子又补了 8 项分析，31 个检验，3 个 p &lt; .05，随机预期 1.6 个，而且这 3 个都不是“残障告知有效应”。贝叶斯因子显示数据支持“没有告知效应”：OH 综合 20 倍，能力 16 倍，掌控 13 倍，绩效期望 9.6 倍，真实感 6 倍，温暖 5.5 倍。这不是“没检出”，而是“数据倾向于无效应”。</p></div>
+  <div class="q"><p><span class="n">问 2</span><b>再加人 p 值会怎么变？</b>效应量不变时 z 按样本量的平方根放大。真实感和温暖现在 d ≈ −.24、p .11：人类格子再加同样多的人，p 约到 .025；要有 80% 的把握检出 d = .24 需要 610 人，现在是 236。不这么做的三个理由：加前测协变量后估计缩到 −.10 和 −.18，现在的 −.24 有一部分是“不提及”组恰好更年长、更亲 AI；看到 p = .11 再决定加人重测是“可选停止”，会抬高假阳性率，论文里必须声明；就算显著，0.3 分在 7 点量表上撑不起故事。一定要检验的话，另开一个预注册的复现格，把告知做强，事先写明人数与分析。</p></div>
+  <div class="q"><p><span class="n">问 3</span><b>会不会是影片不中立？</b>怀疑有道理：人类条件下能力评分平均 5.86，73% 的评分 ≥ 6，参与者看到的是称职流畅的操作员，“智力残障”标签起作用的空间被压缩了。但数据不支持“影片盖过了标签”这个机制：那句话被读到了（告知组在描述页多停留 5.5 秒，p .023）；被相信了（相信程度条件间相等，智力残障格略低 4.96 对 5.27，p .17）；如果标签先起作用再被影片抹掉，效应应在第一段影片最大、随后消失，实际第一段为零、第三段反而出现 −.26 到 −.37 的差（事后线索，方向相反）；温暖减能力的家长式模式也没有出现。能直接检验影片中立性的是 Study 2：无描述的新样本回答“是否有残障”，如果多数人说“没有”或“看不出”，就说明影片自带“无残障”信号，与 H2、H3 的描述冲突，这是解释 null 最有力的证据，也比补人便宜。</p></div>
+  <div class="q"><p><span class="n">问 4</span><b>残障还能当开头吗？</b>可以，但只能是等价故事：以 OriHime 由残障者担任操作员起头，问“知道操作员有残障会改变评价吗”，答“不会：标签被读到、被相信，评价和归因都没变，改变评价的只有有没有人这一件事”。对包容性远程工作这是正面结论。代价是要正面回答“单句告知太弱”的质疑，用停留时间、相信程度、Study 2 和等价性检验来答，并把可见或重复的告知列为后续研究。数据不支持任何“残障告知改变了评价”的说法。</p></div>
+  <h3>检验清单</h3>
+  <p>先把已经检验过的东西列全：合并对比 C3 与拆开的 C4、C5a、C5b（全部结果变量）；控制来源 × 画像交互；画像 × 影片；接触频率、SCM 温暖、SCM 能力三个调节变量；归因排序；PE、HM、BEL1；等价性检验。以上没有一项显著。下面是这次新增的八项，共 31 个检验，3 个 p &lt; .05，随机预期约 1.6 个。</p>
+  [[T_D_BOOK]]
+  <h3>D1 · 告知效应 × 播放位置</h3>
+  <p><b>为什么合理：</b>如果影片里流畅、称职的表现盖过了“有残障”的标签，告知效应应该在第一段影片最大、随后消失。<b>结果恰好相反：</b>第一段影片上告知效应为零（五个结果变量的差在 −0.03 到 −0.15 之间），第三段影片上出现一致的 −0.26 到 −0.37 分的差（p .03–.056），交互在 OH（p = .026）、CR2（p = .033）显著。</p>
+  [[T_D1]]
+  [[T_D1M]]
+  <p>怎么读：不提及组的评分随位置上升（整体的位置效应），告知组没有跟着上升。这不是“标签被影片冲淡”，倒像是“标签的影响慢慢累积”或者只是波动：它是 post-hoc 的，5 个交互里 2 个显著，各结果变量彼此相关，所以算一个线索，不是发现。<b>它否定的是你的假说的预测方向</b>——标签并没有先起作用再被影片抹掉。</p>
+  <h3>D2 · 只看第一段影片</h3>
+  <p>刚读完描述、只看过一段影片时的评价，告知与不提及几乎完全相同（d 在 −.04 到 −.10 之间，p ≥ .41）。也就是说，即便在行为证据最少的时候，标签也没有产生可检出的影响。</p>
+  [[T_D2]]
+  <h3>D3 · 温暖减能力的刻板印象模式</h3>
+  <p>刻板印象内容模型预测残障会带来“温暖高、能力低”的家长式模式，即告知后温暖减能力的差距变大。数据里差距反而略微缩小（−0.10，p = .18；智力残障 −0.13，p = .076），没有家长式模式。</p>
+  <h3>D4 · 控制来源内的归因</h3>
+  [[T_D4]]
+  <p>14 个检验全部不显著。最接近的是 HA 内告知后“影片中的人”被排功劳第一的比例从 16% 升到 28%（OR 1.87，p = .13），HA3 里操作员被排功劳第一只有 45%。方向有趣，证据不足。</p>
+  <h3>D5 · 各画像的相信程度</h3>
+  <p>智力残障的两格 BEL1 平均 4.96，其他人类格子 5.27（p = .17）；H2 最低 4.85，不相信的比例 23%，H1 是 15%。方向上“人类操作员有智力残障”是六种描述里最难相信的，但差异不显著。</p>
+  <h3>D6 · 告知页停留时间</h3>
+  <p>告知残障的参与者在描述页中位停留 45.7 秒，不提及的 40.2 秒（Mann–Whitney p = .023；HA2、HA3 中位 57、52 秒）。多出的一句话确实被读了。停留时间不调节告知效应（p ≥ .49）。这一条可以写进论文，回应“是不是没读到”的质疑。</p>
+  <h3>D7 · 贝叶斯因子</h3>
+  [[T_D7]]
+  <p>BF01 是“没有告知效应”相对于“有某个效应”的证据比。OH 20、CR2 16、CR3 13 属于强证据，PE 9.6、AU1 6.0、CR1 5.5 属于中等证据，HM 2.8 偏弱。论文里可以用它把“不显著”升级为“数据支持无效应”。</p>
+  <h3>D8 · 样本量推算</h3>
+  <p>p 值随样本量变化的规律：如果<b>效应量不变</b>，z 按 √(倍数) 放大。AU1 和 CR1 目前 d ≈ −.24：人类格子再加同样多的人（236 → 472）p 会到 .025 左右，加到 610 人才有 80% 的把握检出 d = .24。但三件事让这条路不可取：一，协变量调整后估计缩到 −.10 和 −.18，说明现在的 −.24 有一部分是不提及组恰好更年长、更亲 AI；二，看到 p = .11 之后决定加人再检验，是“可选停止”，会抬高假阳性率，必须在论文里声明，审稿人也会追问；三，即使显著，0.3 分的差异在 7 点量表上很小，故事仍然撑不起来。<b>如果要补，正确的做法是另开一个预注册的复现格</b>，把告知做强（重复出现、可见的线索），而不是往现在的格子里加人。</p>
+  [[T_D8]]
+  <h3>影片中立性</h3>
+  <ul>
+    <li>影片里的操作员表现流畅，人类条件下能力评分平均 5.86，72% 的评分 ≥ 6。参与者看到的是称职的表现，这确实压缩了“智力残障”标签起作用的空间。但这是设计的一部分：所有条件看同样的影片，才把效应隔离为先验归因。</li>
+    <li>数据能说的：标签被读到（D6）、被相信（BEL1 条件间相等）、在行为证据最少的第一段影片上也没有起作用（D2）、而且没有“先起作用再被抹掉”的轨迹（D1）。所以“影片盖过标签”在这份数据里没有直接支持；更准确的说法是“在观察到称职表现的情况下，一次性的文字告知不改变评价”。</li>
+    <li><b>能直接检验影片中不中立的数据在 Study 2。</b>Study 2 让新样本在没有任何描述的情况下回答“谁在控制”“是否有残障”。如果大多数人回答“没有残障”或“看不出”，就说明影片自带“无残障”信号，和 H2/H3 的描述相冲突，这是解释本研究 null 的最有力证据；如果回答分散，则影片是中立的，null 更可能是真的。这一步比补人便宜得多。</li>
+  </ul>
+  <h3>残障作为故事开头的可行性</h3>
+  <p>可以，但只能作为一个“等价”故事：以 OriHime 由残障者担任操作员的背景起头，问“知道操作员有残障会改变人们对互动的评价吗”，答案是“不会：标签被读到、被相信，评价和归因都没有变（BF01 5–20，效应限定在 ±0.5 SD 内），改变评价的只有‘有没有人’这一件事”。这是一个对包容性远程工作有正面含义的结论。它的代价是必须正面处理“单句告知太弱”的质疑，用 D6、BEL1、Study 2 和等价性检验回答，并把可见或重复的告知列为后续研究。数据不支持的是任何“残障告知改变了评价”的说法。</p>
+</section>
+
+
+<section id="study2">
+  <div class="eyebrow">附录 B · Study 2 计划（草案，2026-09-04）</div>
+  <h2>Study 2 计划</h2>
+  <h3>现有设计</h3>
+  <p>新样本，不做任何披露。第一页说明 OriHime 有三种控制方式（人、人 + AI 辅助、仅 AI），但不说本次影片用的是哪一种。三段影片与 Study 1 相同，顺序六种全排列平衡。每段影片后三题：<code>IMP</code> 开放描述（“这段互动在你看来是什么样的”，最少 10 字符）；提醒三种方式之后问 <code>WHO</code>（人 / 人 + AI / AI / 看不出）；<code>DIS</code>（如果有人参与控制，这个人是否有残障：是 / 否 / 看不出 / 我认为没有人参与）。没有人口学、态度、相信程度、评价题，也没有注意检查。Study 1 的参与者被服务器拒绝。</p>
+  <h3>Study 2 能回答的问题</h3>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>问题</th><th>结果变量</th><th>分析</th><th>对 Study 1 的意义</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">S2-Q1 不披露时，观众默认认为谁在控制</th><td>WHO，每段影片</td><td>各选项比例与 Wilson 区间；三种方式之间的分布是否偏离均匀；“看不出”的比例</td><td>Study 1 里“仅 AI”的描述如果与观众的默认印象冲突，AI 条件的扣分就带有“标签与印象冲突”的成分</td></tr>
+      <tr><th scope="row">S2-Q2 不披露时，观众是否推断操作员有残障</th><td>DIS，每段影片（限 WHO 选了含人的选项者）</td><td>是 / 否 / 看不出 的比例；“否”是否占多数</td><td>直接检验“影片自带无残障信号”。“否”占多数 → Study 1 的告知与观察冲突；“看不出”占多数 → 影片中立，Study 1 的 null 更可能是真的</td></tr>
+      <tr><th scope="row">S2-Q3 推断是否随影片类型变化</th><td>WHO、DIS × 影片</td><td>被试内比较（Cochran's Q / GEE 多项），位置与顺序效应</td><td>闲聊影片更像人、任务影片更像 AI 的话，对应 Study 1 里“AI 能力扣分只在闲聊影片”的线索</td></tr>
+      <tr><th scope="row">S2-Q4 观众靠什么线索判断</th><td>IMP 开放描述；WHO 的理由（若增题）</td><td>编码：语音流畅度、反应延迟、内容、手势、称呼（it / she / the operator）、是否提到 AI 或残障；双人编码一致性</td><td>解释 Study 1 的机制：人们把“真实感”系于哪些线索</td></tr>
+      <tr><th scope="row">S2-Q5 同一人三段影片的判断是否一致</th><td>WHO 的人内一致性</td><td>三段全同的比例；按顺序看是否被第一段锚定</td><td>判断是“人的先验”还是“影片驱动”</td></tr>
+      <tr><th scope="row">S2-Q6 内部一致性检查</th><td>WHO = AI 但 DIS ≠ “没有人参与”</td><td>矛盾作答的比例，作为质量指标</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+  <h3>与 Study 1 的衔接</h3>
+  <ul>
+    <li>Study 1 测的是“被告知的归因”改变了什么；Study 2 测的是“自发的归因”是什么。两者合起来才能说：告知之所以无效（残障）或有效（仅 AI），是因为它和观众自己的印象一致还是冲突。</li>
+    <li>DIS 的结果决定 Study 1 残障 null 的写法。“否”占多数：写成“单句标签被观察到的称职表现盖过”。“看不出”占多数：写成“即使没有相反证据，标签也不改变评价”。</li>
+    <li>WHO 的结果决定“仅 AI 扣分”的解释深度。如果多数人默认是人，A 组的扣分部分来自“被告知的与看到的不一致”；如果“看不出”占多数，扣分就是标签本身的作用。</li>
+  </ul>
+  <h3>上线前建议的改动（按价值排序；每项都要改代码并部署，题目 id 上线后冻结）</h3>
+  <ol>
+    <li><b>WHO 的信心（每段 1 题）：</b>“你对这个判断有多大把握”1–7。能把“确定的判断”和“猜”分开，也让 WHO 能做加权分析。成本最低，价值最高。</li>
+    <li><b>与 Study 1 可比的评价题（每段 2 题）：</b>AU1“这段互动感觉真实，而不像程序在执行”和 OH2“OriHime 对这项任务有用”。放在 IMP 之后、三种方式提醒之前，避免被选项引导。有了它们，就能检验“自发认为是 AI 的人是否同样觉得不真实”，把 Study 1 最强的发现在无披露条件下复现一次。</li>
+    <li><b>DIS 的追问（可选，不强制）：</b>选“是”时问“你认为是哪一类残障”（开放）；能看出“智力残障”是否曾被自发推断（Study 1 里它是最难相信的描述）。</li>
+    <li><b>WHO 的理由（可选短答）：</b>“是什么让你这么认为？”比 IMP 更直接地收集线索。</li>
+    <li><b>结尾背景题：</b>年龄、性别、AI 使用频率、接触残障者频率，加 GAAIS 正向 5 题。Study 1 发现态度调节了“仅 AI”的扣分，Study 2 里态度很可能也预测自发推断为 AI 的倾向。放在最后，不会影响判断。</li>
+    <li><b>质量控制：</b>IMP 最少字符从 10 提到 30；第二段影片加一条指示性注意检查（与 Study 1 同款），否则只能靠文本质量和播放遥测判断。</li>
+    <li><b>结尾一题（可选）：</b>“三段影片里 OriHime 是同一种方式控制的吗”，帮助解释人内一致性。</li>
+  </ol>
+  <h3>样本量</h3>
+  <p>核心量是每段影片各选项的比例。n = 200 时比例的 95% 区间约 ±7 个百分点，n = 300 约 ±5.5，n = 385 约 ±5。影片之间的被试内比较在 n = 200 时已能可靠检出 10 个百分点的差异。建议 250–300 人，10–15 分钟一份，成本远低于给 Study 1 补人。</p>
+  <h3>影片不中立的情形推演</h3>
+  <p>前提：不中立不会让 Study 1 的比较失效。影片对所有条件是常量，随机分配保证条件差异的估计对这段影片而言是无偏的。不中立改变的是机制解释（标签是填补空白还是与印象冲突）、null 的含义，以及能推广到什么范围。下面按 Study 2 可能出现的情形逐一推。</p>
+  <h4>维度一：不披露时多数人认为谁在控制（WHO）</h4>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>情形</th><th>Study 1 里谁与默认一致</th><th>对“仅 AI 扣分”（C1）的解释</th><th>对 H = HA（C2）的解释</th><th>写法与风险</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">W1 多数选“人”</th><td>H、HA 一致，A 冲突</td><td>扣分 = 标签内容 + 与印象冲突，Study 1 内分不开。旁证偏向标签内容：A 组相信程度与其他组相等；扣分随对 AI 的态度变化，纯冲突应人人受影响</td><td>两者都与默认一致，标签没有增量空间，等价部分是天花板</td><td>“即使影片默认读作人控，被告知仅 AI 仍降低真实感”，说明标签压过印象。Discussion 必须承认冲突成分</td></tr>
+      <tr><th scope="row">W2 多数选“AI”</th><td>A 一致，H、HA 冲突</td><td>同一个差异变成“人类标签的加分”，标题字面成立</td><td>两者都冲突且效果相同，关键是“有人”而不是“纯人”</td><td>对论文最有利。H2、H3 是 AI 默认之上再叠残障标签，双重冲突，残障 null 要多一句解释</td></tr>
+      <tr><th scope="row">W3 多数选“人 + AI”</th><td>HA 一致，H 与 A 反向偏离</td><td>向“纯 AI”偏离有代价</td><td>向“纯人”偏离没有加分，效应不对称</td><td>“AI 辅助是默认想象，去掉人才有代价”</td></tr>
+      <tr><th scope="row">W4 多数“看不出”或分布平坦</th><td>都不冲突</td><td>纯标签效应，最干净</td><td>纯标签效应</td><td>所有结论按现在写；A 组方差大归因于态度而非冲突</td></tr>
+      <tr><th scope="row">W5 随影片变化</th><td>每段影片不同</td><td>A 的扣分应在默认最像人的影片最大。Study 1 里 OH 扣分闲聊影片最大（d .51 对 .34、.25），交互 p .13：方向吻合，证据弱</td><td>同上</td><td>影片差异可从“干扰”升级为“默认印象的调节”，但需交互显著才能写</td></tr>
+    </tbody>
+  </table></div>
+  <h4>维度二：不披露时多数人认为有没有残障（DIS）</h4>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>情形</th><th>对照组 H1、HA1 实际是什么</th><th>残障 null（C3）的含义</th><th>写法与风险</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Da 多数“否”</th><td>默认无残障</td><td>C3 是“告知有 vs 默认无”的干净对比。null 说明单句标签没有改变评价，即使它与观察相反；标签被相信却没有渗入评价</td><td>“观察压过一句话的标签”。局限：不能推广到残障可见的情况</td></tr>
+      <tr><th scope="row">Db 多数“是”</th><td>已经默认有残障</td><td>最糟的情形。两组都以为有残障，C3 变成“告知 vs 默认”，null 不能说明残障标签无影响；Study 1 里没有“默认无残障”的格子可比</td><td>残障部分只能写成“显式告知没有增量效应”。真要检验需要新条件：换操作员的影片，或明确“无残障”的描述（设计时刻意避免了后者）</td></tr>
+      <tr><th scope="row">Dc 多数“看不出”</th><td>真正的空白</td><td>标签是唯一信息源，null 是最强的“标签不重要”</td><td>最有利于残障等价故事</td></tr>
+      <tr><th scope="row">Dd 分裂（如 40 / 40 / 20）</th><td>异质</td><td>Study 1 的 null 是异质效应的平均。两个研究是不同样本，无法在个体层面连接，只能在影片层连接</td><td>需要 WHO 与 DIS 的信心题判断默认有多强</td></tr>
+      <tr><th scope="row">De 依赖 WHO</th><td>认为 AI 者选“没有人参与”</td><td>分析限定在选含人选项者（计划里已有）</td><td>顺便得到“认为有人”的比例</td></tr>
+    </tbody>
+  </table></div>
+  <h4>组合</h4>
+  <ul>
+    <li><b>最好：</b>W4 加 Dc，都接近中立，所有结论按现在的写法。</li>
+    <li><b>对标题最有利：</b>W2 加 Da 或 Dc，人类标签是加分项，残障标签不改变评价。</li>
+    <li><b>最需要重写：</b>Db。残障 null 失去意义，降级为“显式告知无增量效应”，新条件列为后续研究。</li>
+    <li><b>最需要在 Discussion 里辩护：</b>W1 加 Da，仅 AI 的扣分与冲突混在一起，靠“相信程度相等”和“态度调节”两个旁证论证标签内容起作用。</li>
+  </ul>
+  <h4>事先写死的判定规则</h4>
+  <ul>
+    <li>“多数”：比例 &gt; 50% 且 95% 区间下界 &gt; 50%。</li>
+    <li>“中立”：没有选项超过 40%，或“看不出” ≥ 40%。</li>
+    <li>“随影片变化”：Cochran's Q p &lt; .05 且至少一段影片的多数选项不同。</li>
+    <li>信心题把“弱默认”和“强默认”分开；弱默认按接近中立处理。</li>
+    <li>Study 2 数据到手后，先按这套规则判定落在哪个情形，再改 Study 1 的写法；判定过程写进 Analysis Log。</li>
+  </ul>
+  <h3>分析计划（数据到手前写定）</h3>
+  <ul>
+    <li>主分析：每段影片 WHO 与 DIS 的比例和 Wilson 区间；DIS 只在 WHO 为含人选项者中计算，并单独报告“我认为没有人参与”的比例。</li>
+    <li>影片差异：Cochran's Q（二分后）与 GEE 多项 logit（参与者聚类），控制播放位置。</li>
+    <li>人内一致性：三段 WHO 全同的比例，与随机作答下的期望比较；第一段答案对后两段的预测。</li>
+    <li>开放描述：先建线索编码表（语音、延迟、流畅、内容相关性、手势、称谓、AI 词、残障词），两人独立编码 20% 算一致性，其余可用模型辅助初编再人工核对；按 WHO 分组比较线索出现率。</li>
+    <li>与 Study 1 衔接：若加了 AU1/OH2，做 WHO → AU1 的比较（自发认为 AI vs 人），与 Study 1 的 C1 效应量并列。</li>
+    <li>质量：矛盾作答比例、IMP 长度、播放遥测；排除规则事先写明。</li>
+  </ul>
+</section>
+
+<section id="roadmap">
+  <div class="eyebrow">Analysis Roadmap</div>
+  <h2>Analysis Roadmap</h2>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Step</th><th>做什么</th><th>为什么</th><th>输入</th><th>输出</th><th>输出如何影响下一步</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">0</th><td>重建研究设计与分析单位</td><td>方法必须服从设计；一行 ≠ 一个独立观测</td><td>问卷代码、导出数据</td><td>本页第 1 节</td><td>决定了要用混合模型；决定了 A 是参照格而非第四个画像水平</td><td><span class="st ok">已完成</span></td></tr>
+      <tr><th scope="row">1</th><td>变量地图、量表计分与信度</td><td>知道每个变量能怎么用，多题量表能否合成</td><td>codebook、原始答案</td><td>第 2 节；<code>participants_clean.csv</code>、<code>long_segments.csv</code></td><td>OH 可合成；单题保持单题；GAAIS 分两个分量表</td><td><span class="st ok">已完成</span></td></tr>
+      <tr><th scope="row">2</th><td>数据质量检查</td><td>先排除数据本身的问题，再谈效应</td><td>全部导出文件</td><td>第 3 节；<code>quality_report.txt</code></td><td>数据无结构问题；排除规则待你定；协变量不平衡提示要做调整模型</td><td><span class="st ok">已完成 · 主样本 272</span></td></tr>
+      <tr><th scope="row">3</th><td>描述统计与图</td><td>先看原始差异，再看 p 值</td><td>清洗后的数据</td><td>第 4 节；图 1–5</td><td>给出了候选 pattern：A 偏低、H ≈ HA、画像差异小、影片差异大、位置效应</td><td><span class="st ok">已完成</span></td></tr>
+      <tr><th scope="row">4</th><td>RQ / 假设 → 统计问题</td><td>每个问题先说清比什么、在哪一层比</td><td>你的 RQ、假设、预注册（若有）</td><td>分析矩阵（第 5 节定稿）</td><td>决定主结果变量、主对比、统计家族的划分</td><td><span class="st ok">已完成</span></td></tr>
+      <tr><th scope="row">5</th><td>确定主统计框架并检查假设</td><td>影片层数据嵌套在人里；分数左偏且有天花板</td><td>Step 4 的矩阵</td><td>模型设定说明；残差与随机效应诊断</td><td>若残差严重非正态或天花板效应主导 → 以有序混合模型为主，LMM 为辅</td><td><span class="st ok">已完成 · 发现 A 组方差更大</span></td></tr>
+      <tr><th scope="row">6</th><td>所有 7 个条件的完整两两比较（每个 DV 21 对）+ 三个 ctrl 水平的 3 对</td><td>先看完整的比较地图，不挑对子</td><td>主模型</td><td>差值、效应量、95% CI、原始 p 的完整表</td><td>进入 pattern 识别；标出 raw p &lt; .05 的对子</td><td><span class="st ok">已完成</span></td></tr>
+      <tr><th scope="row">7</th><td>Pattern 识别与多重比较校正</td><td>找梯度 / 簇 / 独特条件 / 因子结构；同时算 Holm、FDR，看结论是否改变</td><td>Step 6 的表</td><td>pattern 摘要；raw 与 adjusted p 并列表</td><td>决定哪些对比值得作为理论对比正式检验</td><td><span class="st ok">已完成</span></td></tr>
+      <tr><th scope="row">8</th><td>理论驱动的对比与交互</td><td>有人 vs 仅 AI；H vs HA；画像 2/3 vs 1；ctrl × profile；clip × ctrl；位置</td><td>主模型 + 对比矩阵</td><td>对比估计与 CI；交互项的似然比检验</td><td>不显著 → Step 9；显著 → Step 10 检验稳健性</td><td><span class="st ok">已完成</span></td></tr>
+      <tr><th scope="row">9</th><td>不显著之后的合理替代方法</td><td>动机可以来自不显著，理由必须来自统计/设计：有序模型（天花板）、协变量调整（GAAIS 不平衡）、分影片分析（交互）、单题 vs 合成、非参数、BEL1 调节、态度 × 条件</td><td>Step 8 的结果</td><td>每个替代分析的“为什么合理、改变了什么假设、结果为何变化”</td><td>A 不显著 B 显著时，比较两者的假设与估计，判断是方法更合适还是结果对设定敏感</td><td><span class="st ok">已完成 · E1–E8</span></td></tr>
+      <tr><th scope="row">10</th><td>稳健性 / 敏感性</td><td>重要发现是否只在某一种设定下成立</td><td>样本定义 × 模型设定 × 校正方式</td><td>稳健性矩阵</td><td>把发现分成 strong / suggestive / null / exploratory</td><td><span class="st ok">已完成 · 分级已更新</span></td></tr>
+      <tr><th scope="row">11</th><td>整合成研究故事</td><td>回答“这些数据整体说明了什么”</td><td>全部结果</td><td>主发现、次要发现、机制解释、无效结果、探索发现</td><td>决定论文的 Results 结构</td><td><span class="st ok">已完成 · 试用主线</span></td></tr>
+      <tr><th scope="row">12</th><td>论文级产出</td><td>可复现代码、图表、Methods、Results、Limitations、面向审稿人的方法理由</td><td>Step 11</td><td>文稿与图表</td><td>—</td><td><span class="st ok">已完成 · 草稿（试用）</span></td></tr>
+    </tbody>
+  </table></div>
+  <h3>计划的修改记录</h3>
+  <ul>
+    <li><b>2026-09-04 · 加入 C3“告知残障 vs 不提及”合并对比与 C4“智力 vs 行动”。</b>原因：研究问题（你提出，想知道任何残障告知是否有影响）。在看任何 p 值之前加入，算作主对比。</li>
+    <li><b>2026-09-04 · 加入参与者 bootstrap 作为稳健性检验。</b>原因：模型假设——Levene 检验发现 A 组方差明显更大，主模型的等方差假设不成立，涉及 A 的对比需要不依赖该假设的复核。</li>
+    <li><b>2026-09-04 · 有序 GEE 对 CR1、CR2、OH1–3 改用独立工作相关 + 稳健标准误。</b>原因：数值问题——全局优势比结构在这些题上不收敛。</li>
+    <li><b>2026-09-04 · BEL1 从“操纵检查”改称“可信度检查”。</b>原因：研究逻辑——它证明描述被相信，不证明描述改变了认知；后者由 CR3 提供证据。</li>
+    <li><b>2026-09-04 · A 组不补招。</b>原因：时间。后果：涉及 A 的对比精度固定在 d ≈ .46 的可检测水平。</li>
+    <li><b>2026-09-04 · 探索阶段 E1–E8 按菜单执行，你批准了全部八项。</b>新增等价性检验（E5）作为报告 null result 的正式方式；E7b 的平均名次比较因选项数不同而作废。</li>
+    <li><b>2026-09-04 · 以“把人带回来”作为试用主线生成论文草稿。</b>原因：你的指示（“先试试用这条主线，但也只是尝试”）。所有产出都带 TRIAL 标记；主线不改变任何分析，只决定 Results 的叙述顺序。</li>
+    <li><b>2026-09-04 · 应你的追问增加残障因子最后一次排查 D1–D8。</b>原因：研究问题（你原本想以残障起头）。31 个检验，全部标为诊断性/探索性；结论不变。</li>
+    <li><b>2026-09-04 · 更正：</b>第 9 节曾写“四个主结果变量 84 对比较里 14 对显著”，正确数字是 10 对（OH 2、AU1 4、CR1 4、CR2 0）；结论不变。</li>
+  </ul>
+</section>
+
+<section id="log">
+  <div class="eyebrow">Analysis Log</div>
+  <h2>Analysis Log</h2>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>ID</th><th>分析</th><th>为什么做</th><th>统计理由</th><th>性质</th><th>结果</th><th>Raw p</th><th>Adj. p</th><th>效应量</th><th>决定</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">L0</th><td>数据整理（<code>prep.py</code>）：反向计分、量表合成、质量标记、长表</td><td>计划内</td><td>把导出数据变成分析单位正确的两张表</td><td>Planned</td><td>300 人 / 900 行 / 6168 名次行</td><td>—</td><td>—</td><td>—</td><td>后续分析全部以此为输入</td></tr>
+      <tr><th scope="row">L1</th><td>数据质量检查（<code>quality.py</code>）</td><td>计划内</td><td>缺失、重复、值域、合规、作答风格、平衡、信度</td><td>Planned</td><td>无结构性问题；AT1 279、AV1 292；19 人三段全同分；年龄与 GAAIS 有机会性不平衡</td><td>—</td><td>—</td><td>—</td><td>排除规则交由你决定；GAAIS/NARS/SCM 列为协变量候选</td></tr>
+      <tr><th scope="row">L2</th><td>描述统计与图（<code>descriptives.py</code>、<code>figures_descriptive.py</code>）</td><td>计划内</td><td>先看原始分布和差异，不做检验</td><td>Planned</td><td>见第 4 节</td><td>—</td><td>—</td><td>—</td><td>形成待检验的 pattern 清单</td></tr>
+      <tr><th scope="row">L3</th><td>主模型 LMM，8 个影片层 DV（<code>inferential_primary.py</code>）</td><td>计划内</td><td>嵌套数据的标准模型；REML 估计，ML 用于 LRT</td><td>Primary</td><td>ICC .40–.78；条件整体效应 AU1、CR3 显著，CR1 边缘</td><td>AU1 .004；CR3 .041；CR1 .075；OH .33；CR2 .57</td><td>—</td><td>—</td><td>进入两两比较与对比</td></tr>
+      <tr><th scope="row">L4</th><td>全部两两比较，11 个 DV，225 对</td><td>计划内</td><td>模型内对比向量，raw p 先看，Holm/BH 家族内校正</td><td>Primary map</td><td>21 对 raw p &lt; .05（随机预期 11）；主 DV 的显著对全部是“人类格子 &gt; A”</td><td>见第 7–8 节</td><td>AU1 3 对过 Holm，CR3 1 对</td><td>d .39–.74</td><td>pattern：A 独特，人类格子间无差异</td></tr>
+      <tr><th scope="row">L5</th><td>控制来源三水平的两两比较</td><td>计划内</td><td>同一模型，格子等权合并</td><td>Primary</td><td>H、HA 各 &gt; A（AU1、CR1、OH）；H = HA</td><td>AU1 &lt;.001/.003；CR1 .006/.007；OH .048/.017</td><td>Holm 后 AU1、CR1 仍显著</td><td>d .35–.64</td><td>写入分级</td></tr>
+      <tr><th scope="row">L6</th><td>理论对比 C1–C5（含你提出的 C3 合并）</td><td>计划内 + 你的提问</td><td>格子等权线性对比；C4 检验合并的前提</td><td>Primary (C1–C3) / Secondary</td><td>C1 显著于 AU1、CR1、OH；C2 全无；C3 方向为负但不显著；C4 无差</td><td>见第 11 节</td><td>C1：AU1 .002，CR1 .011，OH .040（Holm）</td><td>C1 d .42–.62；C3 d ≈ −.24</td><td>C3 进入“待复现”</td></tr>
+      <tr><th scope="row">L7</th><td>交互：影片 × 控制来源、影片 × 有人/AI、位置 × 条件、控制来源 × 画像、影片 × 画像</td><td>计划内</td><td>ML 拟合的似然比检验</td><td>Primary / Secondary</td><td>无稳定交互；CR2 两处苗头</td><td>CR2 位置 × 条件 .012；影片 × 有人/AI .051</td><td>—</td><td>—</td><td>苗头列入探索菜单</td></tr>
+      <tr><th scope="row">L8</th><td>每段影片内“有人 vs AI”的简单效应</td><td>看到交互苗头后的跟进</td><td>行级 Welch t，只描述交互形状</td><td>Exploratory</td><td>OH 扣分 REL 最大；CR2 扣分只在 REL</td><td>OH REL .029；CR2 REL .078</td><td>—</td><td>d .25–.62</td><td>不作独立结论</td></tr>
+      <tr><th scope="row">L9</th><td>归因排序：GEE 逻辑回归 + 参与者层 Wilcoxon</td><td>计划内</td><td>二值“排第 1”，参与者聚类；配对不对称在人层比较</td><td>Primary (RQ4)</td><td>HA 使人排第 1 的几率减半；A 里 AI 承接；残障不影响；HA 内责任 &gt; 功劳</td><td>≤ .001；≤ .001；.32–.62；.024</td><td>—</td><td>OR .47 / .42 / 7.8</td><td>写入分级</td></tr>
+      <tr><th scope="row">L10</th><td>参与者层 PE、HM、BEL1：7 条件 ANOVA 与 H/HA 内 2 × 3</td><td>计划内</td><td>一人一个数，普通线性模型</td><td>Secondary</td><td>全部不显著；BEL1 条件间相等（可信度检查通过）</td><td>PE .61；HM .40；BEL1 .45</td><td>—</td><td>—</td><td>HM 的 C3 苗头（.076）列入探索菜单</td></tr>
+      <tr><th scope="row">L11</th><td>稳健性：3 种样本 × 协变量调整 × Welch × Mann–Whitney × 有序 GEE × bootstrap</td><td>计划内；bootstrap 因 Levene 结果加入</td><td>各自放松一条主模型假设</td><td>Robustness / Sensitivity</td><td>AU1 C1 全部成立；CR1 大部分；OH 仅模型法；C3 协变量调整后缩小</td><td>见第 13 节</td><td>—</td><td>—</td><td>决定分级</td></tr>
+      <tr><th scope="row">L12</th><td>E1 态度 × 有人/仅 AI 调节（GAAIS 正向、负向，NARS）</td><td>A 组方差大；9-02 报告见过一次</td><td>前测调节变量；LMM 交互项 LRT；简单斜率</td><td>Post-hoc</td><td>扣分集中在 AI 怀疑者；HA 斜率同 H</td><td>OH .019；CR2 .003；AU1 .083；CR1 .093</td><td>—</td><td>交互 −.18 到 −.27 分/SD</td><td>进入分级：探索性、值得报告</td></tr>
+      <tr><th scope="row">L13</th><td>E2 BEL1 交互与子样本（相信者、不相信者）</td><td>检验效应是否集中在相信者</td><td>BEL1 事后测，只作敏感性</td><td>Sensitivity</td><td>相信者里 C1 不变；交互踩在 3 人上</td><td>C1 相信者 .025/.001/.006</td><td>—</td><td>—</td><td>结论对相信与否不敏感；交互不报告</td></tr>
+      <tr><th scope="row">L14</th><td>E3 OH 单题 bootstrap</td><td>综合分的效应来自哪一题</td><td>方差稳健</td><td>Secondary</td><td>OH2 有用显著，OH1 可信不显著</td><td>.036 / .085 / .146</td><td>—</td><td>+.38 / +.56 / +.25</td><td>措辞改为“有用性”</td></tr>
+      <tr><th scope="row">L15</th><td>E4 告知 × 影片、× 接触频率、× SCM</td><td>C3 不显著，找条件性效应</td><td>前测调节变量；LRT</td><td>Exploratory</td><td>20 个检验 0 显著</td><td>最小 .068</td><td>—</td><td>—</td><td>残障告知记为有界 null</td></tr>
+      <tr><th scope="row">L16</th><td>E5 TOST 等价性（C2、C3、C4）</td><td>把 null 说成“等价”需要正式检验</td><td>界 ±0.35 / ±0.50 SD，Welch 版 TOST</td><td>Secondary</td><td>H = HA 在 4 个 DV 上 ±0.35 等价；C3 ±0.50 等价</td><td>见第 14 节</td><td>—</td><td>d 与 90% CI</td><td>写入分级</td></tr>
+      <tr><th scope="row">L17</th><td>E6 CR2：REL 特异对比；位置 × 条件分解</td><td>第一轮两处苗头</td><td>1 df 交互对比；有序 logit；分解 LRT</td><td>Post-hoc</td><td>REL 对比 p = .037，内部不显著；位置交互分解后消失</td><td>.037；.108；.51/.62/.061</td><td>—</td><td>OR 1.78</td><td>前者留作线索，后者剔除</td></tr>
+      <tr><th scope="row">L18</th><td>E7 排序：GEE 责任 vs 功劳 × 影片；平均名次；Plackett–Luce；第 2 名</td><td>用上完整排序信息</td><td>PL 的 MM 估计 + 参与者 bootstrap</td><td>Secondary / 描述</td><td>操作员分量 .68 → .45，AI 得 .28；第 2 名 2/3 是 AI</td><td>责任 vs 功劳 .032，× 影片 .89</td><td>—</td><td>—</td><td>平均名次比较作废（选项数不同）</td></tr>
+      <tr><th scope="row">L19</th><td>E8 HM 残障苗头的来源</td><td>参与者层唯一接近显著的对比</td><td>协变量调整、分控制来源、bootstrap</td><td>Exploratory</td><td>由 HA1 单格造成</td><td>.068 → .26；H 内 .69，HA 内 .022</td><td>—</td><td>—</td><td>剔除</td></tr>
+      <tr><th scope="row">L20</th><td>论文数字表与 Table 1–6（<code>paper_numbers.py</code>）</td><td>Phase 21</td><td>全部由结果 CSV 生成，不手抄</td><td>Reporting</td><td><code>paper/numbers_sheet.md</code>、<code>tables.md</code></td><td>—</td><td>—</td><td>—</td><td>供草稿引用</td></tr>
+      <tr><th scope="row">L21</th><td>论文级图 Fig 1–5（<code>figures_paper.py</code>）</td><td>Phase 21</td><td>PNG 300 dpi + PDF，标题留给图注</td><td>Reporting</td><td><code>paper/figures/</code></td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><th scope="row">L22</th><td>Methods、Results、Limitations、审稿人理由草稿（试用主线）</td><td>Phase 21</td><td>每个结论带证据级别标签</td><td>Reporting (TRIAL)</td><td><code>paper/*.md</code></td><td>—</td><td>—</td><td>—</td><td>等你决定主线</td></tr>
+      <tr><th scope="row">L23</th><td>D1 告知 × 播放位置</td><td>你的追问：影片是否盖过标签</td><td>LMM 交互 LRT；各位置的条件效应</td><td>Exploratory</td><td>第一段影片无效应，第三段出现 −.26 到 −.37；方向与“影片盖过标签”相反</td><td>OH .026；CR2 .033；其余 ≥ .07</td><td>—</td><td>—</td><td>线索，不作发现</td></tr>
+      <tr><th scope="row">L24</th><td>D2 只看第一段影片</td><td>同上</td><td>一人一行，OLS HC3 与 Welch</td><td>Exploratory</td><td>d −.04 到 −.10，全部不显著</td><td>≥ .41</td><td>—</td><td>—</td><td>标签没有即时效应</td></tr>
+      <tr><th scope="row">L25</th><td>D3 温暖减能力差距</td><td>SCM 家长式模式的检验</td><td>LMM</td><td>Exploratory</td><td>差距略缩小，无家长式模式</td><td>.18</td><td>—</td><td>−.10</td><td>null</td></tr>
+      <tr><th scope="row">L26</th><td>D4 HA 内、H 内分别看归因</td><td>合并可能掩盖控制来源内的效应</td><td>GEE logit</td><td>Exploratory</td><td>14 个检验无显著；HA 内“影片中的人”得功劳升高是最接近的</td><td>最小 .13</td><td>—</td><td>OR 1.87</td><td>null</td></tr>
+      <tr><th scope="row">L27</th><td>D5 各画像的相信程度</td><td>智力残障是否更难相信</td><td>ANOVA、Welch</td><td>Diagnostic</td><td>智力残障格 4.96 vs 5.27，不显著</td><td>.17</td><td>—</td><td>—</td><td>写入 Limitations</td></tr>
+      <tr><th scope="row">L28</th><td>D6 告知页停留时间</td><td>那句话是否被读到</td><td>Kruskal–Wallis、Mann–Whitney；停留 × 告知交互</td><td>Diagnostic</td><td>告知组多停留 5.5 秒（显著）；不调节效应</td><td>.023；交互 ≥ .49</td><td>—</td><td>—</td><td>写入 Methods 作为操纵被接收的证据</td></tr>
+      <tr><th scope="row">L29</th><td>D7 贝叶斯因子 BF01</td><td>把“不显著”量化为“支持无效应”</td><td>BIC 近似</td><td>Secondary</td><td>OH 20、CR2 16、CR3 13、PE 9.6、AU1 6.0、CR1 5.5、HM 2.8</td><td>—</td><td>—</td><td>—</td><td>写入 Results 4.3</td></tr>
+      <tr><th scope="row">L30</th><td>D8 加人的推算</td><td>你的问题</td><td>z ∝ √n；2:1 分配的功效计算</td><td>Planning</td><td>效应不变时加一倍人 p ≈ .025；80% 功效需 610 人；估计可能缩小；可选停止问题</td><td>—</td><td>—</td><td>—</td><td>建议改为预注册复现格</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">说明：2026-09-02 曾有一份快速探索报告（另一个 Artifact），里面已经跑过一些未校正的检验。本手册从零重来，不把那些结果当作已知；等主框架定下来后，我会把两边对得上和对不上的地方列出来。</p>
+</section>
+
+<section id="teach">
+  <div class="eyebrow">统计概念说明</div>
+  <h2>统计概念说明</h2>
+  <div class="teach">
+    <div class="t">均值与标准差 SD</div>
+    <p><b>白话：</b>均值是“平均水平”，SD 是“人与人之间有多分散”。SD 1.0 在 7 点量表上意味着大多数人落在均值上下 1 分之内；SD 1.8（如 A 组的 AU1）说明分歧很大。<b>为什么现在需要：</b>比较两组时，差异要和分散程度一起看——两组均值差 0.3 分，在 SD 1.0 时算中等，在 SD 1.8 时几乎看不见。<b>常见错误：</b>只看均值不看 SD 和 n。</p>
+  </div>
+  <div class="teach">
+    <div class="t">95% 置信区间 CI</div>
+    <p><b>白话：</b>样本均值只是对“真实均值”的一次估计；CI 给出一个范围，告诉你这个估计有多精确。人越多、SD 越小，区间越窄。<b>正式定义：</b>如果把同样的研究重复很多次并每次都算区间，约 95% 的区间会包含真实值。<b>怎么读：</b>A 组 OH 的区间 [4.99, 5.68] 比 H 组的 [5.44, 5.78] 宽一倍，因为 A 只有 44 人。<b>常见错误：</b>两个区间重叠不等于“没有显著差异”（重叠一点点时差异仍可能显著）；也不能说“真实值有 95% 的概率在这个区间里”。</p>
+  </div>
+  <div class="teach">
+    <div class="t">Cronbach's α（内部一致性）</div>
+    <p><b>白话：</b>几道题如果测的是同一个东西，答案应该同涨同跌；α 就是衡量这种一致程度的数（0–1）。<b>为什么现在需要：</b>决定能不能把 OH1–3 平均成一个 OH 分数。<b>经验规则：</b>≥ .70 可接受，≥ .80 好；但 α 很高也可能只是题目重复（PE 的 .96 就有这个味道），而且 α 不能证明这些题只测一个维度。<b>常见错误：</b>把 α 低当成量表“坏了”——题少时 α 天然偏低。</p>
+  </div>
+  <div class="teach">
+    <div class="t">地板 / 天花板效应</div>
+    <p><b>白话：</b>很多人打了最高分（7），就没有空间再往上了。<b>后果：</b>真实差异被压缩，分布左偏，均值和 SD 描述得不准。<b>怎么应对：</b>报告“选 7 的比例”，稳健性分析用有序模型（把 1–7 当作有顺序的类别而不是等距的数字）。</p>
+  </div>
+  <div class="teach">
+    <div class="t">分析单位、重复测量与嵌套</div>
+    <p><b>白话：</b>一个人答了三段影片，这三个答案“长得像”，因为它们来自同一个人。把它们当成三个独立的人，等于把样本量虚报了三倍。<b>混合模型</b>的做法是给每个人一个自己的基线（随机截距），条件效应在这个基线之上估计。这是后面 <code>(1 | participant)</code> 这一项的含义。</p>
+  </div>
+  <div class="teach">
+    <div class="t">随机化与协变量平衡</div>
+    <p><b>白话：</b>随机分组让各组在“平均意义上”相同，但任何一次抽样都可能碰巧不平衡（这里的年龄和 GAAIS 就是）。<b>处理：</b>不删人、不重新分组；在次要模型里把前测变量作为协变量加入，看结论是否改变。<b>注意：</b>只有在操纵<b>之前</b>测的变量才能这样用；BEL1 是操纵之后测的，不算。</p>
+  </div>
+  <div class="teach">
+    <div class="t">p 值与“显著”</div>
+    <p><b>白话：</b>p 值回答“如果真实差异是零，仅凭运气得到至少这么大差异的概率有多大”。p = .004 表示这种运气一千次里约有四次。<b>α = .05</b> 是约定的门槛，不是自然规律：p = .051 和 p = .049 提供的证据几乎一样。<b>它不回答：</b>差异有多大（看 d），也不回答“假设为真的概率”。<b>常见错误：</b>把 p &gt; .05 读成“没有效应”——只能读成“这份数据不足以把它和零区分开”。</p>
+  </div>
+  <div class="teach">
+    <div class="t">效应量 Cohen's d</div>
+    <p><b>白话：</b>两组均值差了几个标准差。0.2 小、0.5 中、0.8 大只是粗略标尺。本轮 AU1 的 C1 效应 d = .62：A 组的典型参与者比有人条件的典型参与者低 0.6 个标准差，约相当于 1–7 量表上差 0.8 分。d 的置信区间 [.26, 1.02] 告诉你这个估计本身有多不精确——因为 A 只有 36 人，区间很宽。</p>
+  </div>
+  <div class="teach">
+    <div class="t">ICC 与似然比检验 LRT</div>
+    <p><b>ICC：</b>总方差里“人与人之间”占的比例。ICC .66 意味着知道是谁答的，就能解释三分之二的分数差异。<b>LRT：</b>比较两个嵌套模型（一个多了某组参数）的对数似然，2 倍差值近似服从卡方分布，自由度 = 多出来的参数个数。它回答“这一组参数整体上有没有用”，例如“条件因子整体是否有效应”“交互项整体是否有效应”。</p>
+  </div>
+  <div class="teach">
+    <div class="t">对比（contrast）与交互（interaction）</div>
+    <p><b>对比：</b>把若干格子的均值按权重加减得到的一个数，例如 C1 = 六个人类格子的平均 − A。它的检验就是“这个数是否为零”。对比比两两比较更有力，因为它把相关的格子合并了。<b>交互：</b>一个因子的效应是否随另一个因子变化，例如“A 的扣分在三段影片里是否不同”。<b>简单效应：</b>把交互拆开，在每一段影片里单独看效应。只有交互检验显著，简单效应的差异才能被当作“不同”。</p>
+  </div>
+  <div class="teach">
+    <div class="t">方差不齐、bootstrap 与优势比</div>
+    <p><b>方差不齐：</b>各组的分散程度不同。A 组的人分歧更大，标准的模型把所有人当成同样分散，会低估 A 组均值的不确定度。<b>Bootstrap：</b>在每个条件内有放回地重抽参与者几千次，重新算对比，看它的分布——它不依赖等方差或正态假设。<b>优势比 OR：</b>逻辑回归的效应量，“某事发生的几率”在两组之间的比值；OR .47 表示 HA 里人类操作员被排第 1 的几率是 H 里的 47%。</p>
+  </div>
+  <div class="teach">
+    <div class="t">操纵检查、可信度检查，以及 HARKing</div>
+    <p><b>可信度检查</b>（BEL1）：参与者相信描述吗——相信程度在条件间相等即通过。<b>操纵检查：</b>描述是否改变了它应该改变的认知——这里由 CR3 承担（HA 认为操作员掌控更少）。<b>方向性假设：</b>预测差异的方向，决定单尾还是双尾检验；我们一律双尾。<b>预注册：</b>看数据前公开登记假设与分析；没有做时，替代做法就是像本手册这样在看 p 值之前写下主样本、主结果变量、主模型与主对比，并把之后的分析标为探索性。<b>HARKing：</b>把看完结果才想到的假设写成事先就有的；它和探索性分析的区别只在于是否如实标注。</p>
+  </div>
+  <div class="teach">
+    <div class="t">调节效应与简单斜率</div>
+    <p><b>白话：</b>“效应是否因人而异”。模型里加一个乘积项“有人 × 态度”，它的系数是两组斜率之差；显著就说明两组的斜率不同。<b>简单斜率 / 条件效应：</b>在态度取某个值（例如均值上下 1 个 SD）时，两组差多少。<b>常见错误：</b>只看交互显著就说“对 AI 正面的人更喜欢 AI”——那需要 +1 SD 处的差异本身显著，这里它不显著。</p>
+  </div>
+  <div class="teach">
+    <div class="t">事后测量的变量不能当普通调节变量</div>
+    <p>BEL1 在操纵之后测，它可能是条件的结果：在 A 组里觉得互动很真实的人，也许正因此不相信“是 AI 在控制”。用它分组会把结果变量的一部分当成分组依据。所以它只能做敏感性分析（相信者里结论还在吗），不能做“效应集中在相信者”这类因果断言。</p>
+  </div>
+  <div class="teach">
+    <div class="t">等价性检验 TOST</div>
+    <p>普通检验问“差异是否为零”，做不到“证明相同”。TOST 先定一个“小到无关紧要”的界（这里是 ±0.35 或 ±0.50 个 SD），然后做两个单侧检验：差异是否显著大于下界，且显著小于上界。两个都显著，就可以宣称“等价”。等价于看 90% 置信区间是否完全落在界内。界必须在看数据前定，我们用的是灵敏度分析算出的可检出最小效应。</p>
+  </div>
+  <div class="teach">
+    <div class="t">排序数据：为什么平均名次会骗人，Plackett–Luce 在算什么</div>
+    <p>H 只有 3 个选项，HA 有 4 个：同一个角色在 HA 里的平均名次天然更大，所以跨条件比较平均名次是无效的。Plackett–Luce 把一个排序看成“先从所有角色里挑第 1，再从剩下的挑第 2……”，估计每个角色被挑中的“分量”，条件内加总为 1，这样 3 选项和 4 选项的条件可以放在同一把尺子上比。</p>
+  </div>
+  <div class="teach">
+    <div class="t">探索性检验的记账</div>
+    <p>探索阶段跑了 113 个检验。按 5% 的假阳性率，即使什么效应都没有也会有约 6 个 p &lt; .05。所以判断一个探索性发现，不只看它的 p，还看：方向是否在相关的结果变量上一致（E1 是），是否被同一个格子驱动（E8 是，剔除），换方法是否还在（E6 的位置交互不在，剔除）。全部检验都保存在 CSV 里，论文的补充材料应当附上。</p>
+  </div>
+  <div class="teach">
+    <div class="t">这个样本能看见多大的效应（灵敏度）</div>
+    <p><b>白话：</b>样本量决定了能可靠发现多小的差异。用 Cohen's d（差异除以 SD，0.2 小、0.5 中、0.8 大）来说：在 80% 的把握、α = .05 下，“有人 vs 仅 AI”（256 对 44）大约能发现 d ≥ 0.46 的差异，H vs HA（128 对 128）能发现 d ≥ 0.35，画像两个水平之间（约 85 对 85）能发现 d ≥ 0.43，而<b>单个条件对单个条件</b>（43 对 43）要 d ≥ 0.60 才看得见。这意味着 21 对两两比较里，很多真实存在的小差异都会“不显著”——不显著不等于没有效应，这是后面解读的基调。</p>
+  </div>
+</section>
+
+<section id="questions">
+  <div class="eyebrow">待决定事项</div>
+  <h2>待决定事项</h2>
+  <div class="q"><p><span class="n">1</span><b>主线。</b>两个可选：(a) 试用主线“把人带回来”；(b) 以残障起头的等价故事（见附录最后一段）。两者用的是同一批分析，区别在 Results 的顺序与 Discussion 的重点。选 (b) 需要 Study 2 的数据来回答“影片是否自带无残障信号”。</p></div>
+  <div class="q"><p><span class="n">2</span><b>Study 2 的数据。</b>如果已经开始收集，把导出给我，我先做“影片中立性”检查（无描述情况下，多少人认为操作员有残障、多少人认为是 AI），再决定主线。</p></div>
+  <div class="q"><p><span class="n">3</span><b>补人。</b>不建议往现有格子里加。若坚持要检验残障效应，应另开一个预注册的复现格，把告知做强（重复、可见），事先写明样本量与分析。</p></div>
+  <div class="q"><p><span class="n">4</span><b>格式与未写部分。</b>Markdown 草稿已给；需要 LaTeX/Word 或 Discussion 提纲的话告诉我。</p></div>
+</section>
+</main>
+</div>
+
+<script>
+(function(){
+  var KEY = "study1-workbook.open.v1", DEFAULT_OPEN = ["status"];
+  var open = new Set(DEFAULT_OPEN);
+  try { var s = localStorage.getItem(KEY); if (s) open = new Set(JSON.parse(s)); } catch (e) {}
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(Array.from(open))); } catch (e) {} }
+  var secs = Array.prototype.slice.call(document.querySelectorAll("main section[id]"));
+  function setSec(sec, isOpen){
+    var body = sec.querySelector(":scope > .sec-body"); if (!body) return;
+    body.hidden = !isOpen; sec.classList.toggle("collapsed", !isOpen);
+    var h2 = sec.querySelector(":scope > h2"); if (h2) h2.setAttribute("aria-expanded", String(isOpen));
+    if (isOpen) open.add(sec.id); else open.delete(sec.id); save();
+  }
+  secs.forEach(function(sec){
+    var h2 = sec.querySelector(":scope > h2"); if (!h2) return;
+    var body = document.createElement("div"); body.className = "sec-body";
+    var n = h2.nextSibling; while (n) { var nx = n.nextSibling; body.appendChild(n); n = nx; }
+    sec.appendChild(body);
+    var kids = Array.prototype.slice.call(body.childNodes), cur = null;
+    kids.forEach(function(k){
+      if (k.nodeType === 1 && k.tagName === "H3") {
+        var sub = document.createElement("div"); sub.className = "sub-body"; body.insertBefore(sub, k.nextSibling); cur = sub;
+        k.classList.add("tg3"); k.setAttribute("role", "button"); k.tabIndex = 0; k.setAttribute("aria-expanded", "true");
+        var toggle = function(){ sub.hidden = !sub.hidden; k.classList.toggle("closed", sub.hidden); k.setAttribute("aria-expanded", String(!sub.hidden)); };
+        k.addEventListener("click", toggle);
+        k.addEventListener("keydown", function(ev){ if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); } });
+      } else if (cur) { cur.appendChild(k); }
+    });
+    var chev = document.createElement("span"); chev.className = "chev"; chev.setAttribute("aria-hidden", "true"); h2.insertBefore(chev, h2.firstChild);
+    h2.setAttribute("role", "button"); h2.tabIndex = 0;
+    var tg = function(){ setSec(sec, body.hidden); };
+    h2.addEventListener("click", tg);
+    h2.addEventListener("keydown", function(ev){ if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); tg(); } });
+    var eb = sec.querySelector(":scope > .eyebrow"); if (eb) eb.addEventListener("click", tg);
+    setSec(sec, open.has(sec.id));
+  });
+  function reveal(id){
+    var el = document.getElementById(id); if (!el) return;
+    var sec = el.closest("section[id]"); if (sec) setSec(sec, true);
+    var sub = el.closest(".sub-body"); if (sub) { sub.hidden = false; var h = sub.previousElementSibling; if (h && h.classList) { h.classList.remove("closed"); h.setAttribute("aria-expanded", "true"); } }
+    if (el.tagName === "H3" && el.classList.contains("tg3")) { var sb = el.nextElementSibling; if (sb && sb.classList.contains("sub-body")) { sb.hidden = false; el.classList.remove("closed"); } }
+  }
+  document.querySelectorAll('nav.toc a[href^="#"]').forEach(function(a){
+    a.addEventListener("click", function(){ reveal(a.getAttribute("href").slice(1)); });
+  });
+  window.addEventListener("hashchange", function(){ reveal(location.hash.slice(1)); });
+  if (location.hash) { reveal(location.hash.slice(1)); setTimeout(function(){ var el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView(); }, 50); }
+  document.getElementById("expand-all").addEventListener("click", function(){
+    secs.forEach(function(sec){ setSec(sec, true); });
+    document.querySelectorAll(".sub-body").forEach(function(sb){ sb.hidden = false; }); document.querySelectorAll("h3.tg3").forEach(function(h){ h.classList.remove("closed"); h.setAttribute("aria-expanded", "true"); });
+  });
+  document.getElementById("collapse-all").addEventListener("click", function(){ secs.forEach(function(sec){ setSec(sec, false); }); });
+})();
+</script>
+
+<script>
+(function(){
+  var tip = document.createElement("div"); tip.id = "tip"; tip.setAttribute("role", "tooltip"); tip.hidden = true; document.body.appendChild(tip);
+  function show(el){
+    tip.textContent = el.getAttribute("data-tip"); tip.hidden = false;
+    var r = el.getBoundingClientRect(), w = Math.min(460, window.innerWidth - 16); tip.style.maxWidth = w + "px";
+    var x = Math.max(8, Math.min(r.left, window.innerWidth - tip.offsetWidth - 8)), y = r.bottom + 6;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+    if (y + tip.offsetHeight > window.innerHeight - 8) tip.style.top = Math.max(8, r.top - tip.offsetHeight - 6) + "px";
+  }
+  function hide(){ tip.hidden = true; }
+  function icOf(e){ return e.target && e.target.closest ? e.target.closest(".ic") : null; }
+  document.addEventListener("mouseover", function(e){ var el = icOf(e); if (el) show(el); });
+  document.addEventListener("mouseout", function(e){ var el = icOf(e); if (el && !(e.relatedTarget && el.contains(e.relatedTarget))) hide(); });
+  document.addEventListener("focusin", function(e){ var el = icOf(e); if (el) show(el); });
+  document.addEventListener("focusout", function(){ hide(); });
+  document.addEventListener("click", function(e){ var el = icOf(e); if (el) { e.stopPropagation(); e.preventDefault(); if (tip.hidden) show(el); else hide(); } else hide(); }, true);
+  window.addEventListener("scroll", hide, true);
+  window.addEventListener("keydown", function(e){ if (e.key === "Escape") hide(); });
+})();
+</script>

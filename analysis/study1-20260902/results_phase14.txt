@@ -1,0 +1,213 @@
+primary sample: 272 participants
+
+=== E1: pre-measured attitude x human-vs-AI moderation (LMM with interaction; post-hoc) ===
+                moderator  dv  slope_AI  slope_human  interaction  p_interaction  diff_at_minus1SD  p_minus1SD  diff_at_mean  p_mean  diff_at_plus1SD  p_plus1SD
+           GAAIS positive  OH     0.503        0.278       -0.225          0.019             0.442       0.014         0.122   0.430           -0.198      0.393
+           GAAIS positive AU1     0.478        0.226       -0.251          0.083             0.911       0.001         0.554   0.018            0.196      0.576
+           GAAIS positive CR1     0.281        0.096       -0.184          0.093             0.617       0.003         0.355   0.045            0.092      0.728
+           GAAIS positive CR2     0.377        0.103       -0.274          0.003             0.416       0.015         0.026   0.861           -0.364      0.101
+  NARS negative-to-robots  OH    -0.621       -0.345        0.276          0.070             0.007       0.978         0.307   0.046            0.607      0.004
+  NARS negative-to-robots AU1    -0.612       -0.304        0.308          0.171             0.389       0.270         0.724   0.001            1.058      0.001
+  NARS negative-to-robots CR1    -0.276       -0.125        0.151          0.376             0.300       0.263         0.464   0.007            0.628      0.009
+  NARS negative-to-robots CR2    -0.370       -0.174        0.195          0.174            -0.041       0.855         0.171   0.239            0.383      0.057
+GAAIS negative (reversed)  OH     0.405        0.251       -0.154          0.135             0.443       0.022         0.219   0.168           -0.005      0.984
+GAAIS negative (reversed) AU1     0.367        0.242       -0.124          0.410             0.829       0.003         0.649   0.005            0.469      0.185
+GAAIS negative (reversed) CR1     0.214        0.059       -0.154          0.180             0.638       0.003         0.414   0.019            0.190      0.481
+GAAIS negative (reversed) CR2     0.307        0.091       -0.217          0.026             0.409       0.025         0.095   0.525           -0.220      0.333
+  OH: ctrl(3) x GAAIS_pos LRT p = 0.056; slope A = 0.50, H = 0.26, HA = 0.30
+  AU1: ctrl(3) x GAAIS_pos LRT p = 0.091; slope A = 0.48, H = 0.14, HA = 0.30
+
+=== E2: BEL1 (post-treatment) moderation and believers-only sensitivity ===
+ dv                 analysis  interaction     p  diff_low_belief  p_low  diff_high_belief  p_high
+ OH human x BEL1 interaction       -0.210 0.073            0.833  0.001             0.191   0.381
+AU1 human x BEL1 interaction       -0.274 0.100            1.372  0.000             0.536   0.085
+CR1 human x BEL1 interaction       -0.262 0.036            1.013  0.000             0.213   0.359
+CR2 human x BEL1 interaction       -0.283 0.009            0.761  0.001            -0.102   0.611
+                                      diff                                                    p                                   
+sample                   believers BEL1>=5 disbelievers BEL1<=3 primary n=272 believers BEL1>=5 disbelievers BEL1<=3 primary n=272
+dv  contrast                                                                                                                      
+AU1 C1 human vs AI                   0.829                1.546         0.812             0.001                0.057         0.001
+    C2 H vs HA                       0.389               -0.413         0.150             0.037                0.330         0.377
+    C3 disclosed vs none            -0.315               -0.092        -0.289             0.119                0.841         0.112
+CR1 C1 human vs AI                   0.519                0.498         0.504             0.006                0.376         0.004
+    C2 H vs HA                       0.087               -0.230         0.014             0.552                0.433         0.912
+    C3 disclosed vs none            -0.204               -0.242        -0.213             0.198                0.444         0.114
+CR2 C1 human vs AI                   0.177                0.858         0.223             0.267                0.068         0.135
+    C2 H vs HA                      -0.041               -0.556        -0.137             0.741                0.023         0.209
+    C3 disclosed vs none            -0.102               -0.117        -0.110             0.445                0.657         0.342
+OH  C1 human vs AI                   0.404                0.881         0.396             0.025                0.094         0.020
+    C2 H vs HA                       0.009               -0.457        -0.076             0.951                0.096         0.539
+    C3 disclosed vs none            -0.163                0.136        -0.091             0.281                0.644         0.491
+n by sample: {'believers BEL1>=5': 206, 'disbelievers BEL1<=3': 46, 'primary n=272': 272} | A in believers: 30 | A in disbelievers: 3
+
+=== E3: OH1/OH2/OH3 C1 human vs AI, participant bootstrap (variance-robust) ===
+ dv  diff  ci_lo  ci_hi  p_boot
+OH1 0.248 -0.088  0.585   0.146
+OH2 0.380  0.030  0.756   0.036
+OH3 0.561 -0.062  1.176   0.085
+ OH 0.396 -0.019  0.826   0.060
+
+=== E4: disability disclosure x clip, x contact frequency, x SCM (within H/HA; exploratory) ===
+ dv  p_disab_x_clip  diff_REL  p_REL  diff_ADV  p_ADV  diff_COL  p_COL  int_BG_freq_disability  p_BG_freq_disability  disab_effect_low_BG_freq_disability  p_low_BG_freq_disability  disab_effect_high_BG_freq_disability  p_high_BG_freq_disability  int_SCM_warm  p_SCM_warm  disab_effect_low_SCM_warm  p_low_SCM_warm  disab_effect_high_SCM_warm  p_high_SCM_warm  int_SCM_comp  p_SCM_comp  disab_effect_low_SCM_comp  p_low_SCM_comp  disab_effect_high_SCM_comp  p_high_SCM_comp
+ OH           0.588    -0.124  0.398    -0.017  0.901    -0.131  0.378                  -0.005                 0.952                               -0.085                     0.625                                -0.100                      0.567         0.059       0.614                     -0.123           0.453                      -0.007            0.964        -0.154       0.196                      0.120           0.494                      -0.192            0.257
+AU1           0.777    -0.361  0.059    -0.251  0.156    -0.252  0.186                   0.040                 0.702                               -0.349                     0.131                                -0.226                      0.329         0.177       0.265                     -0.431           0.054                      -0.083            0.714        -0.111       0.487                     -0.113           0.633                      -0.338            0.138
+CR1           0.068    -0.231  0.070    -0.081  0.575    -0.326  0.014                   0.064                 0.399                               -0.311                     0.063                                -0.115                      0.490         0.085       0.449                     -0.273           0.087                      -0.105            0.516         0.059       0.607                     -0.233           0.172                      -0.113            0.491
+CR2           0.080    -0.232  0.066     0.041  0.775    -0.136  0.284                   0.063                 0.362                               -0.207                     0.173                                -0.015                      0.922         0.006       0.950                     -0.093           0.516                      -0.080            0.579        -0.104       0.315                      0.046           0.764                      -0.165            0.264
+CR3           0.254    -0.285  0.055    -0.062  0.714    -0.160  0.248                  -0.064                 0.481                               -0.068                     0.730                                -0.262                      0.185         0.126       0.358                     -0.272           0.159                      -0.024            0.901        -0.186       0.173                      0.053           0.793                      -0.325            0.095
+
+=== E5: TOST equivalence, participant-level means, bounds = +/- 0.35 SD (and 0.50 SD) ===
+ dv                    contrast  n_A  n_B      d  d90_lo  d90_hi  p_tost_035  p_tost_050
+ OH                  C2 H vs HA  118  118 -0.082  -0.296   0.133       0.020       0.001
+ OH        C3 disclosed vs none  159   77 -0.101  -0.330   0.127       0.040       0.003
+ OH C4 intellectual vs mobility   78   81  0.049  -0.212   0.310       0.030       0.003
+AU1                  C2 H vs HA  118  118  0.131  -0.083   0.346       0.047       0.003
+AU1        C3 disclosed vs none  159   77 -0.240  -0.469  -0.011       0.203       0.025
+AU1 C4 intellectual vs mobility   78   81 -0.164  -0.426   0.097       0.123       0.018
+CR1                  C2 H vs HA  118  118  0.016  -0.198   0.230       0.006       0.000
+CR1        C3 disclosed vs none  159   77 -0.246  -0.475  -0.017       0.217       0.029
+CR1 C4 intellectual vs mobility   78   81 -0.062  -0.324   0.199       0.036       0.003
+CR2                  C2 H vs HA  118  118 -0.171  -0.386   0.043       0.086       0.006
+CR2        C3 disclosed vs none  159   77 -0.138  -0.366   0.091       0.064       0.005
+CR2 C4 intellectual vs mobility   78   81 -0.003  -0.264   0.258       0.015       0.001
+ PE                  C2 H vs HA  118  118 -0.167  -0.382   0.047       0.081       0.006
+ PE        C3 disclosed vs none  159   77 -0.132  -0.360   0.097       0.063       0.005
+ PE C4 intellectual vs mobility   78   81  0.074  -0.187   0.335       0.042       0.004
+ HM                  C2 H vs HA  118  118 -0.038  -0.252   0.176       0.009       0.000
+ HM        C3 disclosed vs none  159   77 -0.255  -0.484  -0.026       0.234       0.032
+ HM C4 intellectual vs mobility   78   81  0.066  -0.195   0.327       0.038       0.003
+CR3                  C2 H vs HA  118  118  0.399   0.182   0.615       0.645       0.218
+CR3        C3 disclosed vs none  159   77 -0.164  -0.393   0.065       0.072       0.004
+CR3 C4 intellectual vs mobility   78   81  0.049  -0.212   0.310       0.029       0.002
+
+=== E6a: CR2, is the AI competence penalty specific to the REL clip? ===
+  human x REL-vs-other interaction: coef = 0.332, LRT p = 0.037
+clip  mean_human  mean_AI  OR_human  or_lo  or_hi  p_ordinal
+ REL       5.831    5.389     1.776  0.882  3.578      0.108
+ ADV       5.924    5.750     1.162  0.588  2.299      0.665
+ COL       5.831    5.778     1.167  0.591  2.304      0.657
+
+=== E6b: CR2 position x condition — what does the p = .012 look like? ===
+pos           1     2     3
+condition                  
+H1         5.82  5.67  6.13
+H2         5.74  5.64  5.85
+H3         5.82  5.95  5.52
+HA1        6.05  5.97  5.97
+HA2        6.00  5.95  5.77
+HA3        5.85  5.88  5.93
+A          5.67  5.53  5.72
+  human x pos LRT p = 0.514; ctrl(3) x pos p = 0.617; profile x pos (H/HA) p = 0.061
+
+=== E7a: blame vs credit x clip (HA, human operator), GEE with question and clip ===
+  HA human #1: blame vs credit OR = 1.21, p = 0.032; blame x clip interaction p (Wald) = 0.891
+clip  share_blame  share_credit  blame_only  credit_only  p_mcnemar_exact
+ REL        0.610         0.551          14            7            0.189
+ ADV        0.542         0.492          11            5            0.210
+ COL        0.508         0.475          12            8            0.503
+
+=== E7b: mean rank of each actor by control source (participant-level mean rank, Mann-Whitney) ===
+      question actor group_A group_B  mean_rank_A  mean_rank_B  p_mw
+responsibility  CTRL       H      HA        1.373        1.819   0.0
+responsibility   ORG       H      HA        2.260        2.749   0.0
+responsibility  USER       H      HA        2.367        3.105   0.0
+responsibility    AI      HA       A        2.328        1.574   0.0
+responsibility   ORG      HA       A        2.749        2.037   0.0
+responsibility  USER      HA       A        3.105        2.389   0.0
+        credit  CTRL       H      HA        1.367        1.853   0.0
+        credit   ORG       H      HA        2.339        2.782   0.0
+        credit  USER       H      HA        2.294        3.037   0.0
+        credit    AI      HA       A        2.328        1.574   0.0
+        credit   ORG      HA       A        2.782        2.028   0.0
+        credit  USER      HA       A        3.037        2.398   0.0
+
+=== E7c: Plackett-Luce worths per control source and question (participant bootstrap 95% CI) ===
+      question ctrl actor  worth  ci_lo  ci_hi  n_rankings
+responsibility    H  CTRL  0.682  0.617  0.751         354
+responsibility    H   ORG  0.187  0.147  0.228         354
+responsibility    H  USER  0.130  0.092  0.170         354
+responsibility   HA  CTRL  0.449  0.380  0.525         354
+responsibility   HA    AI  0.284  0.245  0.324         354
+responsibility   HA   ORG  0.178  0.144  0.214         354
+responsibility   HA  USER  0.089  0.062  0.117         354
+responsibility    A    AI  0.550  0.426  0.664         108
+responsibility    A   ORG  0.304  0.231  0.378         108
+responsibility    A  USER  0.146  0.091  0.222         108
+        credit    H  CTRL  0.687  0.615  0.753         354
+        credit    H   ORG  0.161  0.123  0.201         354
+        credit    H  USER  0.153  0.116  0.196         354
+        credit   HA  CTRL  0.443  0.383  0.508         354
+        credit   HA    AI  0.287  0.251  0.324         354
+        credit   HA   ORG  0.176  0.144  0.206         354
+        credit   HA  USER  0.095  0.070  0.123         354
+        credit    A    AI  0.543  0.416  0.692         108
+        credit    A   ORG  0.307  0.216  0.390         108
+        credit    A  USER  0.151  0.081  0.233         108
+
+=== E7d: who is #2 when the human operator is #1 (HA) ===
+actor        AI    ORG   USER
+question                     
+R1        0.673  0.209  0.117
+R2        0.642  0.246  0.112
+
+=== E8: HM (fun to converse) and disability disclosure — is it real, and is HA1 driving it? ===
+                                         spec   diff  ci_lo  ci_hi     p   n
+                            OLS, disab + ctrl -0.398 -0.826  0.030 0.068 236
+OLS + covariates (GAAIS, NARS, SCM_warm, age) -0.212 -0.585  0.160 0.263 235
+     within H only: disclosed vs none (Welch) -0.112    NaN    NaN 0.693 118
+    within HA only: disclosed vs none (Welch) -0.689    NaN    NaN 0.022 118
+                                 Mann-Whitney -0.333    NaN    NaN 0.096 236
+   participant bootstrap (equal-weight cells) -0.399 -0.805  0.002 0.054 236
+HM by condition: {'H1': 5.16, 'H2': 5.09, 'H3': 5.02, 'HA1': 5.61, 'HA2': 5.0, 'HA3': 4.85}
+
+=== PHASE 14 BOOKKEEPING ===
+       n_tests  n_sig
+block                
+E1          14      3
+E2          28      7
+E3           4      1
+E4          20      0
+E5          21     11
+E6           7      1
+E7          13     13
+E8           6      1
+total exploratory tests: 113 | p<.05: 37 | expected by chance: 5.7
+
+--- exploratory tests with p < .05 ---
+block    dv                                       test  estimate     p                             note
+   E1    OH        GAAIS_pos x human interaction (LRT)    -0.225 0.019  post-hoc (seen in 09-02 report)
+   E1   CR2        GAAIS_pos x human interaction (LRT)    -0.274 0.003  post-hoc (seen in 09-02 report)
+   E1   CR2        GAAIS_neg x human interaction (LRT)    -0.217 0.026  post-hoc (seen in 09-02 report)
+   E2   CR1             human x BEL1 interaction (LRT)    -0.262 0.036 sensitivity; BEL1 post-treatment
+   E2   CR2             human x BEL1 interaction (LRT)    -0.283 0.009 sensitivity; BEL1 post-treatment
+   E2    OH        C1 human vs AI in believers BEL1>=5     0.404 0.025                      sensitivity
+   E2   AU1        C1 human vs AI in believers BEL1>=5     0.829 0.001                      sensitivity
+   E2   AU1            C2 H vs HA in believers BEL1>=5     0.389 0.037                      sensitivity
+   E2   CR1        C1 human vs AI in believers BEL1>=5     0.519 0.006                      sensitivity
+   E2   CR2         C2 H vs HA in disbelievers BEL1<=3    -0.556 0.023                      sensitivity
+   E3   OH2                               C1 bootstrap     0.380 0.036                        secondary
+   E5    OH                  TOST C2 H vs HA bound .35    -0.082 0.020                        secondary
+   E5    OH        TOST C3 disclosed vs none bound .35    -0.101 0.040                        secondary
+   E5    OH TOST C4 intellectual vs mobility bound .35     0.049 0.030                        secondary
+   E5   AU1                  TOST C2 H vs HA bound .35     0.131 0.047                        secondary
+   E5   CR1                  TOST C2 H vs HA bound .35     0.016 0.006                        secondary
+   E5   CR1 TOST C4 intellectual vs mobility bound .35    -0.062 0.036                        secondary
+   E5   CR2 TOST C4 intellectual vs mobility bound .35    -0.003 0.015                        secondary
+   E5    PE TOST C4 intellectual vs mobility bound .35     0.074 0.042                        secondary
+   E5    HM                  TOST C2 H vs HA bound .35    -0.038 0.009                        secondary
+   E5    HM TOST C4 intellectual vs mobility bound .35     0.066 0.038                        secondary
+   E5   CR3 TOST C4 intellectual vs mobility bound .35     0.049 0.029                        secondary
+   E6   CR2           human x REL-vs-others (LRT df=1)     0.332 0.037                         post-hoc
+   E7 ranks          HA human #1 blame vs credit (GEE)     1.214 0.032                        secondary
+   E7 ranks             R1 CTRL mean rank H vs HA (MW)    -0.446 0.000                        secondary
+   E7 ranks              R1 ORG mean rank H vs HA (MW)    -0.489 0.000                        secondary
+   E7 ranks             R1 USER mean rank H vs HA (MW)    -0.737 0.000                        secondary
+   E7 ranks               R1 AI mean rank HA vs A (MW)     0.754 0.000                        secondary
+   E7 ranks              R1 ORG mean rank HA vs A (MW)     0.712 0.000                        secondary
+   E7 ranks             R1 USER mean rank HA vs A (MW)     0.716 0.000                        secondary
+   E7 ranks             R2 CTRL mean rank H vs HA (MW)    -0.486 0.000                        secondary
+   E7 ranks              R2 ORG mean rank H vs HA (MW)    -0.444 0.000                        secondary
+   E7 ranks             R2 USER mean rank H vs HA (MW)    -0.743 0.000                        secondary
+   E7 ranks               R2 AI mean rank HA vs A (MW)     0.754 0.000                        secondary
+   E7 ranks              R2 ORG mean rank HA vs A (MW)     0.755 0.000                        secondary
+   E7 ranks             R2 USER mean rank HA vs A (MW)     0.639 0.000                        secondary
+   E8    HM  within HA only: disclosed vs none (Welch)    -0.689 0.022                      exploratory

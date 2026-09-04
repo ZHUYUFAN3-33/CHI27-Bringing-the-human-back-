@@ -1,0 +1,114 @@
+block,dv,test,estimate,p,note
+E1,OH,GAAIS_pos x human interaction (LRT),-0.2247208517044548,0.019464516059088943,post-hoc (seen in 09-02 report)
+E1,AU1,GAAIS_pos x human interaction (LRT),-0.25142861603942085,0.08291256283574777,post-hoc (seen in 09-02 report)
+E1,CR1,GAAIS_pos x human interaction (LRT),-0.1844795211916552,0.09263763919465207,post-hoc (seen in 09-02 report)
+E1,CR2,GAAIS_pos x human interaction (LRT),-0.2742374202273955,0.003013947130314998,post-hoc (seen in 09-02 report)
+E1,OH,NARS x human interaction (LRT),0.27649666400233086,0.06950129471630317,post-hoc (seen in 09-02 report)
+E1,AU1,NARS x human interaction (LRT),0.30810476765128725,0.1707591573712247,post-hoc (seen in 09-02 report)
+E1,CR1,NARS x human interaction (LRT),0.15098245804036664,0.376325938909299,post-hoc (seen in 09-02 report)
+E1,CR2,NARS x human interaction (LRT),0.19534775455186365,0.17389094619974155,post-hoc (seen in 09-02 report)
+E1,OH,GAAIS_neg x human interaction (LRT),-0.1541265680739964,0.13527133496666321,post-hoc (seen in 09-02 report)
+E1,AU1,GAAIS_neg x human interaction (LRT),-0.12422322690900005,0.41048427575513,post-hoc (seen in 09-02 report)
+E1,CR1,GAAIS_neg x human interaction (LRT),-0.1544204818670851,0.1798616628230445,post-hoc (seen in 09-02 report)
+E1,CR2,GAAIS_neg x human interaction (LRT),-0.21665251148684825,0.025931941546065818,post-hoc (seen in 09-02 report)
+E1,OH,ctrl(3) x GAAIS_pos (LRT df=2),,0.05642471986195874,post-hoc
+E1,AU1,ctrl(3) x GAAIS_pos (LRT df=2),,0.09085899999091562,post-hoc
+E2,OH,human x BEL1 interaction (LRT),-0.21049894971957284,0.07275510909032568,sensitivity; BEL1 post-treatment
+E2,AU1,human x BEL1 interaction (LRT),-0.2744905577881766,0.10039790494625778,sensitivity; BEL1 post-treatment
+E2,CR1,human x BEL1 interaction (LRT),-0.2622492548557955,0.03620309632223562,sensitivity; BEL1 post-treatment
+E2,CR2,human x BEL1 interaction (LRT),-0.2828642870330892,0.008560061071535063,sensitivity; BEL1 post-treatment
+E2,OH,C1 human vs AI in believers BEL1>=5,0.40417198808003396,0.025305941926959702,sensitivity
+E2,OH,C2 H vs HA in believers BEL1>=5,0.00851426138782458,0.9510613125935486,sensitivity
+E2,OH,C3 disclosed vs none in believers BEL1>=5,-0.16251596424009923,0.28128066339775026,sensitivity
+E2,AU1,C1 human vs AI in believers BEL1>=5,0.8293103448275922,0.0006309029730380936,sensitivity
+E2,AU1,C2 H vs HA in believers BEL1>=5,0.38888888888890016,0.03682283477765339,sensitivity
+E2,AU1,C3 disclosed vs none in believers BEL1>=5,-0.3153735632184081,0.11943134370769097,sensitivity
+E2,CR1,C1 human vs AI in believers BEL1>=5,0.51872605363986,0.006305164662611207,sensitivity
+E2,CR1,C2 H vs HA in believers BEL1>=5,0.08668582375481425,0.5521305279225975,sensitivity
+E2,CR1,C3 disclosed vs none in believers BEL1>=5,-0.2040229885057851,0.19807579257117913,sensitivity
+E2,CR2,C1 human vs AI in believers BEL1>=5,0.17736270753514483,0.2669108915285119,sensitivity
+E2,CR2,C2 H vs HA in believers BEL1>=5,-0.04054916985947023,0.7409373841436444,sensitivity
+E2,CR2,C3 disclosed vs none in believers BEL1>=5,-0.1017720306514049,0.4453555986125096,sensitivity
+E2,OH,C1 human vs AI in disbelievers BEL1<=3,0.8806290417401542,0.09425400649751012,sensitivity
+E2,OH,C2 H vs HA in disbelievers BEL1<=3,-0.45673133450910763,0.09592990876748476,sensitivity
+E2,OH,C3 disclosed vs none in disbelievers BEL1<=3,0.13641975308641274,0.6442402269245389,sensitivity
+E2,AU1,C1 human vs AI in disbelievers BEL1<=3,1.545943562610233,0.05742845704622832,sensitivity
+E2,AU1,C2 H vs HA in disbelievers BEL1<=3,-0.41287477954144014,0.3303250242721151,sensitivity
+E2,AU1,C3 disclosed vs none in disbelievers BEL1<=3,-0.09179894179895187,0.8407107040055428,sensitivity
+E2,CR1,C1 human vs AI in disbelievers BEL1<=3,0.49770723104057135,0.37613847774703923,sensitivity
+E2,CR1,C2 H vs HA in disbelievers BEL1<=3,-0.22998236331568173,0.4327268336207417,sensitivity
+E2,CR1,C3 disclosed vs none in disbelievers BEL1<=3,-0.24153439153441278,0.44420844482528,sensitivity
+E2,CR2,C1 human vs AI in disbelievers BEL1<=3,0.858377425044094,0.06783660051869875,sensitivity
+E2,CR2,C2 H vs HA in disbelievers BEL1<=3,-0.5562610229276814,0.023198629527447986,sensitivity
+E2,CR2,C3 disclosed vs none in disbelievers BEL1<=3,-0.11719576719577923,0.6569466383820679,sensitivity
+E3,OH1,C1 bootstrap,0.24849097023359157,0.1455,secondary
+E3,OH2,C1 bootstrap,0.38007636351667085,0.036,secondary
+E3,OH3,C1 bootstrap,0.5606270732073018,0.085,secondary
+E3,OH,C1 bootstrap,0.3963981356525217,0.0605,secondary
+E4,OH,disab x clip (LRT df=2),,0.5878557039865859,exploratory
+E4,OH,disab x BG_freq_disability (LRT),-0.004784539586706066,0.9518555417646715,exploratory
+E4,OH,disab x SCM_warm (LRT),0.05861900498469227,0.6136156542371206,exploratory
+E4,OH,disab x SCM_comp (LRT),-0.15353533268767877,0.19554431791886362,exploratory
+E4,AU1,disab x clip (LRT df=2),,0.7767857924162761,exploratory
+E4,AU1,disab x BG_freq_disability (LRT),0.04028646573642656,0.7018556145412382,exploratory
+E4,AU1,disab x SCM_warm (LRT),0.1765915059503037,0.2649497811630258,exploratory
+E4,AU1,disab x SCM_comp (LRT),-0.110879406252624,0.48675707420805936,exploratory
+E4,CR1,disab x clip (LRT df=2),,0.06768823045417838,exploratory
+E4,CR1,disab x BG_freq_disability (LRT),0.06416918953799444,0.3993177685529842,exploratory
+E4,CR1,disab x SCM_warm (LRT),0.08531715786588052,0.4492236373371402,exploratory
+E4,CR1,disab x SCM_comp (LRT),0.05918314250221778,0.6071052355892692,exploratory
+E4,CR2,disab x clip (LRT df=2),,0.0804709485898768,exploratory
+E4,CR2,disab x BG_freq_disability (LRT),0.06306081563554489,0.3624954282291858,exploratory
+E4,CR2,disab x SCM_warm (LRT),0.006359940237677021,0.9499230877462358,exploratory
+E4,CR2,disab x SCM_comp (LRT),-0.10420076491509664,0.3153307403908051,exploratory
+E4,CR3,disab x clip (LRT df=2),,0.2542394691909404,exploratory
+E4,CR3,disab x BG_freq_disability (LRT),-0.06358367254193678,0.48074222351373896,exploratory
+E4,CR3,disab x SCM_warm (LRT),0.1256078555892974,0.3584793125396445,exploratory
+E4,CR3,disab x SCM_comp (LRT),-0.18638718382957337,0.17295400670330507,exploratory
+E5,OH,TOST C2 H vs HA bound .35,-0.08155521647597301,0.02016240113427707,secondary
+E5,OH,TOST C3 disclosed vs none bound .35,-0.10108649522382407,0.039866477334042826,secondary
+E5,OH,TOST C4 intellectual vs mobility bound .35,0.04918321586802739,0.02983039747351151,secondary
+E5,AU1,TOST C2 H vs HA bound .35,0.1313128317784752,0.04716885749103473,secondary
+E5,AU1,TOST C3 disclosed vs none bound .35,-0.23979077343274202,0.20264870314676187,secondary
+E5,AU1,TOST C4 intellectual vs mobility bound .35,-0.16446051367114362,0.12252792596299208,secondary
+E5,CR1,TOST C2 H vs HA bound .35,0.016225106403525508,0.00551027990288717,secondary
+E5,CR1,TOST C3 disclosed vs none bound .35,-0.2459850394255322,0.21703050471443225,secondary
+E5,CR1,TOST C4 intellectual vs mobility bound .35,-0.06249839511210798,0.03558237841987516,secondary
+E5,CR2,TOST C2 H vs HA bound .35,-0.17129926060971612,0.08564351908026879,secondary
+E5,CR2,TOST C3 disclosed vs none bound .35,-0.1375713165826609,0.06383952784212533,secondary
+E5,CR2,TOST C4 intellectual vs mobility bound .35,-0.002982005749596882,0.014984525988968227,secondary
+E5,PE,TOST C2 H vs HA bound .35,-0.16748164128483412,0.0811451905309302,secondary
+E5,PE,TOST C3 disclosed vs none bound .35,-0.13163510287073363,0.06273774936309975,secondary
+E5,PE,TOST C4 intellectual vs mobility bound .35,0.07361067633025403,0.041820331198203005,secondary
+E5,HM,TOST C2 H vs HA bound .35,-0.03772351927123323,0.008621386264727342,secondary
+E5,HM,TOST C3 disclosed vs none bound .35,-0.2547716137056099,0.23443880855780674,secondary
+E5,HM,TOST C4 intellectual vs mobility bound .35,0.06612692245418833,0.03772940607191742,secondary
+E5,CR3,TOST C2 H vs HA bound .35,0.39859748113119153,0.6453623702547227,secondary
+E5,CR3,TOST C3 disclosed vs none bound .35,-0.16420975886502265,0.0724510137181685,secondary
+E5,CR3,TOST C4 intellectual vs mobility bound .35,0.04878300423291645,0.029381128313169826,secondary
+E6,CR2,human x REL-vs-others (LRT df=1),0.33172911521901427,0.03737759106870775,post-hoc
+E6,CR2,ordinal logit human vs AI within REL,1.7763973998780371,0.10778464280400277,post-hoc simple effect
+E6,CR2,ordinal logit human vs AI within ADV,1.1623627135624979,0.665375151269876,post-hoc simple effect
+E6,CR2,ordinal logit human vs AI within COL,1.166600957856846,0.6572879360156507,post-hoc simple effect
+E6,CR2,human x pos (LRT),,0.5141802541628537,post-hoc
+E6,CR2,ctrl x pos (LRT),,0.6173671348681271,post-hoc
+E6,CR2,profile x pos (LRT),,0.060654435050097044,post-hoc
+E7,ranks,HA human #1 blame vs credit (GEE),1.2141105442833489,0.03165401643598503,secondary
+E7,ranks,R1 CTRL mean rank H vs HA (MW),-0.4463276836158192,0.00015433161416290912,secondary
+E7,ranks,R1 ORG mean rank H vs HA (MW),-0.4887005649717513,7.118492221732469e-09,secondary
+E7,ranks,R1 USER mean rank H vs HA (MW),-0.7372881355932202,1.71334337273459e-11,secondary
+E7,ranks,R1 AI mean rank HA vs A (MW),0.7536095417451354,2.2730619043397695e-08,secondary
+E7,ranks,R1 ORG mean rank HA vs A (MW),0.7115505335844321,9.360638473731798e-08,secondary
+E7,ranks,R1 USER mean rank HA vs A (MW),0.7156308851224105,4.824310703539196e-06,secondary
+E7,ranks,R2 CTRL mean rank H vs HA (MW),-0.48587570621468923,6.356989531323536e-06,secondary
+E7,ranks,R2 ORG mean rank H vs HA (MW),-0.44350282485875603,5.468491560936736e-07,secondary
+E7,ranks,R2 USER mean rank H vs HA (MW),-0.7429378531073452,7.200978214395296e-11,secondary
+E7,ranks,R2 AI mean rank HA vs A (MW),0.7536095417451358,2.0036839186565534e-07,secondary
+E7,ranks,R2 ORG mean rank HA vs A (MW),0.754708097928436,1.0300413212912786e-07,secondary
+E7,ranks,R2 USER mean rank HA vs A (MW),0.6385750156936592,3.659275796212056e-05,secondary
+E8,HM,"OLS, disab + ctrl",-0.3984643032184284,0.06790462532322199,exploratory
+E8,HM,"OLS + covariates (GAAIS, NARS, SCM_warm, age)",-0.2124249360072172,0.2626228986635014,exploratory
+E8,HM,within H only: disclosed vs none (Welch),-0.11176025100075648,0.6934220303875713,exploratory
+E8,HM,within HA only: disclosed vs none (Welch),-0.689035087719299,0.021882688846582093,exploratory
+E8,HM,Mann-Whitney,-0.3333333333333339,0.09607568923155438,exploratory
+E8,HM,participant bootstrap (equal-weight cells),-0.39926530287570117,0.0535,exploratory

@@ -1,0 +1,102 @@
+human cells, primary sample: 236 participants; 708 rows; disclosed 159 no mention 77
+
+=== D1: does the disclosure effect fade across presentation positions? (disab x position, within H/HA) ===
+ dv  p_disab_x_pos  eff_pos1  p_pos1  eff_pos2  p_pos2  eff_pos3  p_pos3
+ OH          0.026    -0.034   0.811     0.036   0.800    -0.277   0.054
+AU1          0.364    -0.154   0.421    -0.334   0.081    -0.370   0.053
+CR1          0.321    -0.110   0.425    -0.264   0.057    -0.264   0.056
+CR2          0.033    -0.083   0.528     0.035   0.790    -0.283   0.031
+CR3          0.071    -0.099   0.536    -0.055   0.729    -0.341   0.034
+
+=== D2: first clip only (one row per participant, right after the disclosure) ===
+ dv  mean_disclosed  mean_none   diff  ci_lo  ci_hi      d  p_ols_hc3  p_welch
+ OH           5.658      5.693 -0.030 -0.299  0.239 -0.036      0.827    0.801
+AU1           5.182      5.325 -0.156 -0.544  0.232 -0.097      0.432    0.469
+CR1           5.509      5.610 -0.116 -0.390  0.159 -0.101      0.409    0.467
+CR2           5.855      5.935 -0.086 -0.353  0.182 -0.084      0.529    0.555
+CR3           5.723      5.831 -0.096 -0.449  0.257 -0.081      0.596    0.551
+
+=== D3: warmth minus competence gap (SCM 'paternalistic' pattern would predict a LARGER gap after disclosure) ===
+  gap (CR1-CR2): disclosed -0.21 vs none -0.10; disab effect -0.102 [-0.25, +0.05], LRT p = 0.177
+  intellectual vs none: gap effect -0.130, p = 0.076
+  mobility vs none: gap effect -0.076, p = 0.383
+
+=== D4: attribution within HA and within H separately, by disclosure (GEE logit, participant clusters) ===
+ctrl actor       question  share_none  share_disclosed    OR  ci_lo  ci_hi     p
+   H  CTRL responsibility       0.752            0.709 0.803  0.416  1.551 0.514
+   H  CTRL         credit       0.735            0.700 0.849  0.442  1.629 0.621
+   H   ORG responsibility       0.051            0.101 2.102  0.698  6.330 0.187
+   H   ORG         credit       0.068            0.114 1.828  0.598  5.588 0.290
+   H  USER responsibility       0.197            0.190 0.957  0.475  1.928 0.901
+   H  USER         credit       0.197            0.186 0.902  0.462  1.763 0.763
+  HA  CTRL responsibility       0.561            0.550 0.968  0.519  1.806 0.919
+  HA  CTRL         credit       0.553            0.483 0.758  0.409  1.404 0.378
+  HA    AI responsibility       0.175            0.133 0.678  0.299  1.537 0.352
+  HA    AI         credit       0.211            0.142 0.593  0.275  1.278 0.183
+  HA   ORG responsibility       0.114            0.092 0.791  0.291  2.153 0.646
+  HA   ORG         credit       0.079            0.100 1.318  0.478  3.634 0.594
+  HA  USER responsibility       0.149            0.225 1.636  0.718  3.728 0.242
+  HA  USER         credit       0.158            0.275 1.873  0.831  4.221 0.130
+  HA operator credit #1 by profile: {'HA1': 0.553, 'HA2': 0.521, 'HA3': 0.447}
+
+=== D5: belief in the description by profile (was 'intellectual disability' harder to believe?) ===
+BEL1 by condition: {'H1': 5.41, 'H2': 4.85, 'H3': 5.15, 'HA1': 5.03, 'HA2': 5.08, 'HA3': 5.46, 'A': 5.44}
+  profile effect on BEL1 within H/HA: p = 0.349
+  H2 (4.85) vs other human cells (5.23): Welch p = 0.183  [post-hoc, 1 of 6 cells]
+  intellectual (4.96) vs other human cells (5.27): p = 0.168
+  share BEL1 <= 3 by condition: {'H1': 15.4, 'H2': 23.1, 'H3': 22.5, 'HA1': 18.4, 'HA2': 17.9, 'HA3': 12.2, 'A': 8.3}
+
+=== D6: dwell time on the disclosure page by condition (was the profile sentence read?) ===
+{'H1': 39.6, 'H2': 38.7, 'H3': 42.0, 'HA1': 43.0, 'HA2': 56.6, 'HA3': 51.8, 'A': 41.9} (median seconds)
+  Kruskal-Wallis across the 6 human cells: p = 0.031; disclosed median 45.7s vs none 40.2s, Mann-Whitney p = 0.023
+  AU1: disab x log(dwell) interaction p = 0.491
+  CR1: disab x log(dwell) interaction p = 0.793
+
+=== D7: how much evidence FOR the null? BIC-approximate Bayes factors (BF01) for the pooled disclosure effect ===
+ dv  BF01
+ OH 20.28
+AU1  6.02
+CR1  5.53
+CR2 15.98
+CR3 13.24
+ PE  9.63
+ HM  2.83
+  (BF01 = evidence for 'no disclosure effect' relative to 'some effect'; 3-10 = moderate, >10 = strong; BIC approximation = unit-information prior)
+
+=== D8: what would more participants do? ===
+  OH: observed d = -0.10, z = -0.69, p = 0.491
+      if the SAME effect held with 1.5x the human-cell sample (n = 354): p ~ 0.399
+      if the SAME effect held with 2x the human-cell sample (n = 472): p ~ 0.330
+      if the SAME effect held with 3x the human-cell sample (n = 708): p ~ 0.233
+      80% power at d = 0.10 with 2:1 allocation needs 1148 no-mention + 2295 disclosed = 3442 human-cell participants (have 236)
+      80% power at d = 0.35 with 2:1 allocation needs 97 no-mention + 193 disclosed = 289 human-cell participants (have 236)
+  AU1: observed d = -0.24, z = -1.59, p = 0.112
+      if the SAME effect held with 1.5x the human-cell sample (n = 354): p ~ 0.051
+      if the SAME effect held with 2x the human-cell sample (n = 472): p ~ 0.024
+      if the SAME effect held with 3x the human-cell sample (n = 708): p ~ 0.006
+      80% power at d = 0.24 with 2:1 allocation needs 204 no-mention + 407 disclosed = 610 human-cell participants (have 236)
+      80% power at d = 0.35 with 2:1 allocation needs 97 no-mention + 193 disclosed = 289 human-cell participants (have 236)
+  CR1: observed d = -0.25, z = -1.58, p = 0.114
+      if the SAME effect held with 1.5x the human-cell sample (n = 354): p ~ 0.053
+      if the SAME effect held with 2x the human-cell sample (n = 472): p ~ 0.025
+      if the SAME effect held with 3x the human-cell sample (n = 708): p ~ 0.006
+      80% power at d = 0.25 with 2:1 allocation needs 194 no-mention + 387 disclosed = 581 human-cell participants (have 236)
+      80% power at d = 0.35 with 2:1 allocation needs 97 no-mention + 193 disclosed = 289 human-cell participants (have 236)
+  CR2: observed d = -0.14, z = -0.95, p = 0.342
+      if the SAME effect held with 1.5x the human-cell sample (n = 354): p ~ 0.245
+      if the SAME effect held with 2x the human-cell sample (n = 472): p ~ 0.179
+      if the SAME effect held with 3x the human-cell sample (n = 708): p ~ 0.100
+      80% power at d = 0.14 with 2:1 allocation needs 609 no-mention + 1217 disclosed = 1826 human-cell participants (have 236)
+      80% power at d = 0.35 with 2:1 allocation needs 97 no-mention + 193 disclosed = 289 human-cell participants (have 236)
+  HM: observed d = -0.26, z = -1.78, p = 0.076
+      if the SAME effect held with 1.5x the human-cell sample (n = 354): p ~ 0.029
+      if the SAME effect held with 2x the human-cell sample (n = 472): p ~ 0.012
+      if the SAME effect held with 3x the human-cell sample (n = 708): p ~ 0.002
+      80% power at d = 0.26 with 2:1 allocation needs 181 no-mention + 361 disclosed = 541 human-cell participants (have 236)
+      80% power at d = 0.35 with 2:1 allocation needs 97 no-mention + 193 disclosed = 289 human-cell participants (have 236)
+
+sweep tests: 31, p<.05: 3, expected by chance ~ 1.6
+block    dv                                          test  estimate     p
+   D1    OH                   disab x position (LRT df=2)       NaN 0.026
+   D1   CR2                   disab x position (LRT df=2)       NaN 0.033
+   D6 dwell disclosure-page dwell, disclosed vs none (MW)       NaN 0.023

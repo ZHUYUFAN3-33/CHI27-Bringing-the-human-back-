@@ -8,3 +8,6 @@ exports/
 
 # local copy of the Fly Postgres superuser credentials — never commit
 .pg-credentials.txt
+
+# raw data exports downloaded as archives — never commit
+study1-data-*.zip

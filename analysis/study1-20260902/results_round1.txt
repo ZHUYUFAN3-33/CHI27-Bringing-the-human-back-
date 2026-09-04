@@ -1,0 +1,383 @@
+primary sample: 272 participants, 816 clip rows; by condition: {'H1': 39, 'H2': 39, 'H3': 40, 'HA1': 38, 'HA2': 39, 'HA3': 41, 'A': 36}
+
+=== PRIMARY LMMs: variance components, ICC, omnibus LRTs ===
+ dv  n_rows  n_participants  var_participant  var_residual   icc  resid_skew  resid_kurtosis  p_condition_omnibus  p_clip  p_position
+ OH     816             272            0.777         0.395 0.663      -0.695           2.122                0.326   0.000       0.645
+AU1     816             272            1.485         0.674 0.688      -0.493           1.635                0.004   0.000       0.000
+CR1     816             272            0.823         0.361 0.695      -0.353           2.973                0.075   0.000       0.000
+CR2     816             272            0.555         0.432 0.562      -0.841           2.585                0.572   0.074       0.652
+OH1     816             272            0.526         0.550 0.489      -0.965           2.445                0.738   0.000       0.691
+OH2     816             272            0.490         0.728 0.402      -0.958           1.999                0.322   0.000       0.276
+OH3     816             272            2.097         0.601 0.777      -0.412           4.158                0.316   0.000       0.956
+CR3     708             236            0.878         0.469 0.652      -1.059           4.866                0.041   0.181       0.000
+
+--- fixed effects, OH composite ---
+                                      estimate     se       z      p  ci_lo  ci_hi
+Intercept                                5.473  0.159  34.488  0.000  5.162  5.784
+C(condition, Treatment('H1'))[T.A]      -0.398  0.220  -1.805  0.071 -0.829  0.034
+C(condition, Treatment('H1'))[T.H2]     -0.091  0.216  -0.422  0.673 -0.514  0.332
+C(condition, Treatment('H1'))[T.H3]     -0.027  0.214  -0.126  0.900 -0.447  0.393
+C(condition, Treatment('H1'))[T.HA1]     0.119  0.217   0.548  0.584 -0.307  0.545
+C(condition, Treatment('H1'))[T.HA2]     0.071  0.216   0.330  0.741 -0.352  0.494
+C(condition, Treatment('H1'))[T.HA3]    -0.080  0.213  -0.374  0.708 -0.498  0.338
+C(segment, Treatment('REL'))[T.ADV]      0.362  0.054   6.722  0.000  0.257  0.468
+C(segment, Treatment('REL'))[T.COL]      0.196  0.054   3.639  0.000  0.090  0.302
+C(pos, Treatment(1))[T.2]               -0.050  0.054  -0.929  0.353 -0.156  0.056
+C(pos, Treatment(1))[T.3]               -0.021  0.054  -0.382  0.703 -0.126  0.085
+Group Var                                1.967  0.244   8.062  0.000  1.489  2.445
+
+=== PAIRWISE MAP: number of comparisons and raw p<.05 per DV ===
+      n_pairs  raw_sig  holm_sig  bh_sig
+dv                                      
+AU1        21        4         3       3
+BEL1       21        0         0       0
+CR1        21        4         0       0
+CR2        21        0         0       0
+CR3        15        4         1       1
+HM         21        2         0       0
+OH         21        2         0       0
+OH1        21        0         0       0
+OH2        21        3         0       0
+OH3        21        2         0       0
+PE         21        0         0       0
+total comparisons: 225 | raw p<.05: 21 | expected by chance at 5%: 11.2
+
+--- all pairs with raw p < .05 ---
+ dv   A   B  mean_A  mean_B  diff  ci_lo  ci_hi     d  p_raw  p_holm  p_bh direction
+AU1  H3   A   5.700   4.611 1.089  0.500  1.678 0.742  0.000   0.006 0.004    H3 > A
+AU1 HA1   A   5.684   4.611 1.073  0.477  1.669 0.735  0.000   0.008 0.004   HA1 > A
+AU1  H1   A   5.547   4.611 0.936  0.344  1.528 0.590  0.002   0.037 0.014    H1 > A
+AU1  H2   A   5.248   4.611 0.637  0.044  1.229 0.393  0.035   0.632 0.184    H2 > A
+CR1  H1   A   5.846   5.185 0.661  0.221  1.101 0.539  0.003   0.068 0.055    H1 > A
+CR1 HA1   A   5.816   5.185 0.631  0.188  1.073 0.569  0.005   0.105 0.055   HA1 > A
+CR1 HA3   A   5.691   5.185 0.506  0.071  0.941 0.446  0.023   0.429 0.158   HA3 > A
+CR1  H2   A   5.641   5.185 0.456  0.016  0.896 0.392  0.042   0.761 0.222    H2 > A
+CR3  H1 HA3   6.274   5.602 0.672  0.226  1.118 0.604  0.003   0.047 0.047  H1 > HA3
+CR3  H3 HA3   6.108   5.602 0.507  0.064  0.950 0.435  0.025   0.350 0.172  H3 > HA3
+CR3  H1 HA2   6.274   5.786 0.487  0.036  0.939 0.520  0.034   0.448 0.172  H1 > HA2
+CR3  H1 HA1   6.274   5.816 0.458  0.003  0.912 0.555  0.048   0.581 0.181  H1 > HA1
+ HM HA1   A   5.614   4.806 0.808  0.074  1.543 0.490  0.032   0.671 0.390   HA1 > A
+ HM HA1 HA3   5.614   4.854 0.760  0.049  1.472 0.479  0.037   0.743 0.390 HA1 > HA3
+ OH HA1   A   5.754   5.238 0.517  0.082  0.951 0.495  0.020   0.415 0.349   HA1 > A
+ OH HA2   A   5.707   5.238 0.469  0.037  0.901 0.449  0.033   0.666 0.349   HA2 > A
+OH2  H1   A   5.863   5.426 0.437  0.050  0.825 0.435  0.027   0.568 0.236    H1 > A
+OH2 HA1   A   5.851   5.426 0.425  0.035  0.815 0.453  0.033   0.656 0.236   HA1 > A
+OH2 HA2   A   5.846   5.426 0.420  0.032  0.808 0.448  0.034   0.656 0.236   HA2 > A
+OH3 HA1   A   5.596   4.769 0.828  0.137  1.519 0.525  0.019   0.395 0.395   HA1 > A
+OH3 HA2   A   5.496   4.769 0.727  0.041  1.414 0.460  0.038   0.758 0.398   HA2 > A
+
+=== CONTROL-SOURCE PAIRS (3 per DV) ===
+ dv  A  B  n_A  n_B  mean_A  mean_B   diff  ci_lo  ci_hi      d   d_lo  d_hi  p_raw  p_holm
+ OH  H HA  118  118   5.596   5.669 -0.076 -0.319  0.167 -0.085 -0.340 0.171  0.539   0.539
+ OH  H  A  118   36   5.596   5.238  0.358  0.003  0.714  0.354 -0.021 0.730  0.048   0.097
+ OH HA  A  118   36   5.669   5.238  0.435  0.079  0.790  0.456  0.079 0.832  0.017   0.050
+AU1  H HA  118  118   5.500   5.342  0.150 -0.183  0.484  0.125 -0.130 0.380  0.377   0.377
+AU1  H  A  118   36   5.500   4.611  0.887  0.399  1.375  0.642  0.262 1.022  0.000   0.001
+AU1 HA  A  118   36   5.342   4.611  0.737  0.249  1.225  0.526  0.149 0.904  0.003   0.006
+CR1  H HA  118  118   5.695   5.681  0.014 -0.234  0.262  0.016 -0.239 0.271  0.912   0.912
+CR1  H  A  118   36   5.695   5.185  0.511  0.148  0.873  0.461  0.084 0.838  0.006   0.017
+CR1 HA  A  118   36   5.681   5.185  0.497  0.134  0.859  0.514  0.137 0.892  0.007   0.017
+CR2  H HA  118  118   5.794   5.929 -0.137 -0.350  0.077 -0.173 -0.428 0.083  0.209   0.419
+CR2  H  A  118   36   5.794   5.639  0.155 -0.157  0.467  0.166 -0.208 0.539  0.330   0.419
+CR2 HA  A  118   36   5.929   5.639  0.292 -0.020  0.604  0.375 -0.001 0.751  0.067   0.201
+OH1  H HA  118  118   5.740   5.794 -0.054 -0.269  0.161 -0.066 -0.322 0.189  0.622   0.622
+OH1  H  A  118   36   5.740   5.519  0.221 -0.093  0.536  0.249 -0.125 0.623  0.167   0.335
+OH1 HA  A  118   36   5.794   5.519  0.276 -0.039  0.590  0.338 -0.037 0.713  0.086   0.257
+OH2  H HA  118  118   5.799   5.811 -0.013 -0.231  0.206 -0.015 -0.271 0.240  0.910   0.910
+OH2  H  A  118   36   5.799   5.426  0.374  0.054  0.693  0.415  0.039 0.791  0.022   0.053
+OH2 HA  A  118   36   5.811   5.426  0.386  0.067  0.706  0.451  0.075 0.828  0.018   0.053
+OH3  H HA  118  118   5.249   5.404 -0.162 -0.549  0.225 -0.112 -0.368 0.143  0.412   0.412
+OH3  H  A  118   36   5.249   4.769  0.480 -0.086  1.045  0.294 -0.081 0.669  0.096   0.193
+OH3 HA  A  118   36   5.404   4.769  0.642  0.076  1.207  0.431  0.055 0.807  0.026   0.079
+
+=== THEORY-DRIVEN CONTRASTS ===
+  dv                              contrast  n_A  n_B  mean_A  mean_B   diff  ci_lo  ci_hi      d  p_raw  p_holm_4dv  p_bh_primary12    status
+  OH          C1 human-involved vs AI-only  236   36   5.633   5.238  0.396  0.062  0.731  0.419  0.020       0.040           0.080   primary
+  OH                            C2 H vs HA  118  118   5.596   5.669 -0.076 -0.319  0.167 -0.085  0.539       1.000           0.588   primary
+  OH C3 disability disclosed vs no mention  159   77   5.603   5.694 -0.091 -0.351  0.168 -0.101  0.491       0.685           0.588   primary
+  OH           C4 intellectual vs mobility   78   81   5.625   5.582  0.043 -0.253  0.340  0.049  0.774       1.000             NaN secondary
+  OH        C5a intellectual vs no mention   78   77   5.625   5.694 -0.070 -0.370  0.231 -0.077  0.650       0.817             NaN secondary
+  OH            C5b mobility vs no mention   81   77   5.582   5.694 -0.113 -0.410  0.184 -0.124  0.457       1.000             NaN secondary
+ AU1          C1 human-involved vs AI-only  236   36   5.421   4.611  0.812  0.353  1.270  0.619  0.001       0.002           0.006   primary
+ AU1                            C2 H vs HA  118  118   5.500   5.342  0.150 -0.183  0.484  0.125  0.377       1.000           0.502   primary
+ AU1 C3 disability disclosed vs no mention  159   77   5.327   5.615 -0.289 -0.645  0.067 -0.241  0.112       0.446           0.271   primary
+ AU1           C4 intellectual vs mobility   78   81   5.222   5.428 -0.209 -0.616  0.197 -0.167  0.313       1.000             NaN secondary
+ AU1        C5a intellectual vs no mention   78   77   5.222   5.615 -0.393 -0.805  0.018 -0.325  0.061       0.244             NaN secondary
+ AU1            C5b mobility vs no mention   81   77   5.428   5.615 -0.184 -0.592  0.224 -0.163  0.376       1.000             NaN secondary
+ CR1          C1 human-involved vs AI-only  236   36   5.688   5.185  0.504  0.163  0.844  0.520  0.004       0.011           0.023   primary
+ CR1                            C2 H vs HA  118  118   5.695   5.681  0.014 -0.234  0.262  0.016  0.912       1.000           0.912   primary
+ CR1 C3 disability disclosed vs no mention  159   77   5.618   5.831 -0.213 -0.478  0.051 -0.247  0.114       0.446           0.271   primary
+ CR1           C4 intellectual vs mobility   78   81   5.590   5.646 -0.056 -0.358  0.246 -0.062  0.717       1.000             NaN secondary
+ CR1        C5a intellectual vs no mention   78   77   5.590   5.831 -0.241 -0.547  0.065 -0.296  0.122       0.366             NaN secondary
+ CR1            C5b mobility vs no mention   81   77   5.646   5.831 -0.185 -0.488  0.118 -0.211  0.230       0.921             NaN secondary
+ CR2          C1 human-involved vs AI-only  236   36   5.862   5.639  0.223 -0.070  0.517  0.268  0.135       0.135           0.271   primary
+ CR2                            C2 H vs HA  118  118   5.794   5.929 -0.137 -0.350  0.077 -0.173  0.209       0.838           0.359   primary
+ CR2 C3 disability disclosed vs no mention  159   77   5.826   5.935 -0.110 -0.338  0.117 -0.139  0.342       0.685           0.502   primary
+ CR2           C4 intellectual vs mobility   78   81   5.825   5.827 -0.002 -0.262  0.258 -0.002  0.990       1.000             NaN secondary
+ CR2        C5a intellectual vs no mention   78   77   5.825   5.935 -0.111 -0.374  0.152 -0.143  0.408       0.817             NaN secondary
+ CR2            C5b mobility vs no mention   81   77   5.827   5.935 -0.109 -0.370  0.151 -0.136  0.411       1.000             NaN secondary
+ OH1          C1 human-involved vs AI-only  236   36   5.767   5.519  0.248 -0.047  0.544  0.297  0.099         NaN             NaN secondary
+ OH1                            C2 H vs HA  118  118   5.740   5.794 -0.054 -0.269  0.161 -0.066  0.622         NaN             NaN secondary
+ OH1 C3 disability disclosed vs no mention  159   77   5.748   5.805 -0.057 -0.287  0.172 -0.071  0.623         NaN             NaN secondary
+ OH1           C4 intellectual vs mobility   78   81   5.722   5.774 -0.051 -0.313  0.211 -0.064  0.701         NaN             NaN secondary
+ OH1        C5a intellectual vs no mention   78   77   5.722   5.805 -0.083 -0.348  0.182 -0.099  0.539         NaN             NaN secondary
+ OH1            C5b mobility vs no mention   81   77   5.774   5.805 -0.032 -0.295  0.231 -0.039  0.812         NaN             NaN secondary
+ OH2          C1 human-involved vs AI-only  236   36   5.805   5.426  0.380  0.080  0.680  0.448  0.013         NaN             NaN secondary
+ OH2                            C2 H vs HA  118  118   5.799   5.811 -0.013 -0.231  0.206 -0.015  0.910         NaN             NaN secondary
+ OH2 C3 disability disclosed vs no mention  159   77   5.780   5.857 -0.077 -0.310  0.156 -0.094  0.519         NaN             NaN secondary
+ OH2           C4 intellectual vs mobility   78   81   5.808   5.753  0.054 -0.212  0.321  0.069  0.688         NaN             NaN secondary
+ OH2        C5a intellectual vs no mention   78   77   5.808   5.857 -0.049 -0.319  0.220 -0.060  0.720         NaN             NaN secondary
+ OH2            C5b mobility vs no mention   81   77   5.753   5.857 -0.104 -0.371  0.163 -0.126  0.446         NaN             NaN secondary
+ OH3          C1 human-involved vs AI-only  236   36   5.326   4.769  0.561  0.029  1.092  0.371  0.039         NaN             NaN secondary
+ OH3                            C2 H vs HA  118  118   5.249   5.404 -0.162 -0.549  0.225 -0.112  0.412         NaN             NaN secondary
+ OH3 C3 disability disclosed vs no mention  159   77   5.281   5.420 -0.140 -0.552  0.273 -0.097  0.507         NaN             NaN secondary
+ OH3           C4 intellectual vs mobility   78   81   5.346   5.218  0.127 -0.344  0.598  0.088  0.597         NaN             NaN secondary
+ OH3        C5a intellectual vs no mention   78   77   5.346   5.420 -0.076 -0.553  0.401 -0.055  0.755         NaN             NaN secondary
+ OH3            C5b mobility vs no mention   81   77   5.218   5.420 -0.203 -0.676  0.270 -0.136  0.400         NaN             NaN secondary
+ CR3                            C2 H vs HA  118  118   6.136   5.732  0.401  0.142  0.661  0.396  0.002         NaN             NaN secondary
+ CR3 C3 disability disclosed vs no mention  159   77   5.878   6.048 -0.164 -0.441  0.113 -0.159  0.245         NaN             NaN secondary
+ CR3           C4 intellectual vs mobility   78   81   5.906   5.852  0.051 -0.265  0.367  0.046  0.752         NaN             NaN secondary
+ CR3        C5a intellectual vs no mention   78   77   5.906   6.048 -0.139 -0.459  0.182 -0.147  0.396         NaN             NaN secondary
+ CR3            C5b mobility vs no mention   81   77   5.852   6.048 -0.190 -0.507  0.128 -0.183  0.241         NaN             NaN secondary
+  PE          C1 human-involved vs AI-only  236   36   5.114   4.868  0.249 -0.272  0.771  0.168  0.349         NaN             NaN secondary
+  PE                            C2 H vs HA  118  118   4.996   5.233 -0.244 -0.623  0.136 -0.172  0.209         NaN             NaN secondary
+  PE C3 disability disclosed vs no mention  159   77   5.053   5.240 -0.189 -0.593  0.216 -0.133  0.361         NaN             NaN secondary
+  PE           C4 intellectual vs mobility   78   81   5.106   5.003  0.103 -0.359  0.565  0.074  0.664         NaN             NaN secondary
+  PE        C5a intellectual vs no mention   78   77   5.106   5.240 -0.138 -0.605  0.330 -0.095  0.565         NaN             NaN secondary
+  PE            C5b mobility vs no mention   81   77   5.003   5.240 -0.240 -0.704  0.223 -0.169  0.311         NaN             NaN secondary
+  HM          C1 human-involved vs AI-only  236   36   5.117   4.806  0.316 -0.249  0.882  0.196  0.274         NaN             NaN secondary
+  HM                            C2 H vs HA  118  118   5.088   5.147 -0.068 -0.479  0.344 -0.043  0.747         NaN             NaN secondary
+  HM C3 disability disclosed vs no mention  159   77   4.987   5.385 -0.399 -0.838  0.039 -0.256  0.076         NaN             NaN secondary
+  HM           C4 intellectual vs mobility   78   81   5.043   4.934  0.108 -0.394  0.609  0.066  0.674         NaN             NaN secondary
+  HM        C5a intellectual vs no mention   78   77   5.043   5.385 -0.345 -0.853  0.162 -0.227  0.183         NaN             NaN secondary
+  HM            C5b mobility vs no mention   81   77   4.934   5.385 -0.453 -0.956  0.050 -0.297  0.079         NaN             NaN secondary
+BEL1          C1 human-involved vs AI-only  236   36   5.165   5.444 -0.282 -0.817  0.253 -0.185  0.302         NaN             NaN secondary
+BEL1                            C2 H vs HA  118  118   5.136   5.195 -0.053 -0.443  0.336 -0.034  0.788         NaN             NaN secondary
+BEL1 C3 disability disclosed vs no mention  159   77   5.138   5.221 -0.084 -0.499  0.331 -0.054  0.691         NaN             NaN secondary
+BEL1           C4 intellectual vs mobility   78   81   4.962   5.309 -0.345 -0.819  0.129 -0.227  0.155         NaN             NaN secondary
+BEL1        C5a intellectual vs no mention   78   77   4.962   5.221 -0.257 -0.737  0.224 -0.158  0.296         NaN             NaN secondary
+BEL1            C5b mobility vs no mention   81   77   5.309   5.221  0.088 -0.387  0.564  0.058  0.716         NaN             NaN secondary
+
+=== INTERACTIONS (likelihood-ratio tests) ===
+ dv                                  interaction     p   chi2  df
+ OH             clip x control source (2x2 df=4) 0.387  4.141   4
+ OH                    clip x human-vs-AI (df=2) 0.132  4.057   2
+ OH                 position x condition (df=12) 0.066 20.071  12
+ OH control source x profile, within H/HA (df=2) 0.724  0.645   2
+ OH           clip x profile, within H/HA (df=4) 0.384  4.169   4
+ OH      profile main effect, within H/HA (df=2) 0.726  0.640   2
+AU1             clip x control source (2x2 df=4) 0.702  2.185   4
+AU1                    clip x human-vs-AI (df=2) 0.658  0.838   2
+AU1                 position x condition (df=12) 0.320 13.708  12
+AU1 control source x profile, within H/HA (df=2) 0.180  3.430   2
+AU1           clip x profile, within H/HA (df=4) 0.851  1.362   4
+AU1      profile main effect, within H/HA (df=2) 0.124  4.169   2
+CR1             clip x control source (2x2 df=4) 0.415  3.931   4
+CR1                    clip x human-vs-AI (df=2) 0.674  0.788   2
+CR1                 position x condition (df=12) 0.562 10.614  12
+CR1 control source x profile, within H/HA (df=2) 0.773  0.515   2
+CR1           clip x profile, within H/HA (df=4) 0.112  7.499   4
+CR1      profile main effect, within H/HA (df=2) 0.191  3.312   2
+CR2             clip x control source (2x2 df=4) 0.183  6.218   4
+CR2                    clip x human-vs-AI (df=2) 0.051  5.941   2
+CR2                 position x condition (df=12) 0.012 25.647  12
+CR2 control source x profile, within H/HA (df=2) 0.984  0.033   2
+CR2           clip x profile, within H/HA (df=4) 0.153  6.701   4
+CR2      profile main effect, within H/HA (df=2) 0.601  1.020   2
+OH1             clip x control source (2x2 df=4) 0.283  5.045   4
+OH1                    clip x human-vs-AI (df=2) 0.088  4.871   2
+OH1                 position x condition (df=12) 0.433 12.162  12
+OH1 control source x profile, within H/HA (df=2) 0.929  0.146   2
+OH1           clip x profile, within H/HA (df=4) 0.486  3.450   4
+OH1      profile main effect, within H/HA (df=2) 0.812  0.417   2
+OH2             clip x control source (2x2 df=4) 0.472  3.541   4
+OH2                    clip x human-vs-AI (df=2) 0.211  3.115   2
+OH2                 position x condition (df=12) 0.114 18.056  12
+OH2 control source x profile, within H/HA (df=2) 0.909  0.190   2
+OH2           clip x profile, within H/HA (df=4) 0.519  3.237   4
+OH2      profile main effect, within H/HA (df=2) 0.720  0.657   2
+OH3             clip x control source (2x2 df=4) 0.932  0.847   4
+OH3                    clip x human-vs-AI (df=2) 0.676  0.783   2
+OH3                 position x condition (df=12) 0.283 14.283  12
+OH3 control source x profile, within H/HA (df=2) 0.462  1.545   2
+OH3           clip x profile, within H/HA (df=4) 0.362  4.340   4
+OH3      profile main effect, within H/HA (df=2) 0.664  0.820   2
+CR3 control source x profile, within H/HA (df=2) 0.674  0.790   2
+CR3           clip x profile, within H/HA (df=4) 0.291  4.967   4
+CR3      profile main effect, within H/HA (df=2) 0.472  1.501   2
+
+--- simple effects: human vs AI within each clip (Welch t on rows; exploratory follow-up of the interaction test) ---
+ dv clip  mean_human  mean_AI  diff     d  p_raw  n_human  n_AI
+ OH  REL       5.470    4.898 0.572 0.505  0.029      236    36
+ OH  ADV       5.802    5.463 0.339 0.339  0.134      236    36
+ OH  COL       5.626    5.352 0.274 0.251  0.211      236    36
+AU1  REL       5.432    4.694 0.738 0.480  0.047      236    36
+AU1  ADV       5.597    4.806 0.792 0.546  0.026      236    36
+AU1  COL       5.233    4.333 0.900 0.616  0.009      236    36
+CR1  REL       5.780    5.278 0.502 0.472  0.071      236    36
+CR1  ADV       5.725    5.278 0.447 0.400  0.093      236    36
+CR1  COL       5.559    5.000 0.559 0.509  0.044      236    36
+CR2  REL       5.831    5.389 0.442 0.443  0.078      236    36
+CR2  ADV       5.924    5.750 0.174 0.173  0.422      236    36
+CR2  COL       5.831    5.778 0.053 0.055  0.777      236    36
+
+=== PARTICIPANT-LEVEL DVs (OLS/ANOVA) ===
+  dv  p_condition_omnibus  p_ctrl_HHA  p_profile  p_ctrl_x_profile
+  PE                0.610       0.197      0.569             0.549
+  HM                0.395       0.757      0.173             0.413
+BEL1                0.451       0.773      0.348             0.313
+BEL1 by condition (credibility check; should NOT differ): {'H1': 5.41, 'H2': 4.85, 'H3': 5.15, 'HA1': 5.03, 'HA2': 5.08, 'HA3': 5.46, 'A': 5.44}
+
+=== ATTRIBUTION RANKS (RQ4) ===
+       question                                                                            test  estimate  ci_lo  ci_hi  p_raw  share_H  share_HA
+ responsibility                       human operator ranked #1: HA vs H (odds ratio, GEE logit)     0.474  0.307  0.733  0.001    0.723     0.554
+ responsibility    human operator ranked #1: disability disclosed vs no mention (OR, GEE logit)     0.894  0.570  1.402  0.624    0.658     0.629
+ responsibility                                           AI ranked #1: A vs HA (OR, GEE logit)     7.855  4.104 15.032  0.000    0.147     0.574
+         credit                       human operator ranked #1: HA vs H (odds ratio, GEE logit)     0.416  0.270  0.639  0.000    0.712     0.506
+         credit    human operator ranked #1: disability disclosed vs no mention (OR, GEE logit)     0.797  0.509  1.249  0.322    0.645     0.591
+         credit                                           AI ranked #1: A vs HA (OR, GEE logit)     7.781  4.039 14.990  0.000    0.164     0.602
+blame vs credit HA: CTRL #1 for responsibility minus credit (participant-level share, Wilcoxon)     0.048    NaN    NaN  0.024    0.554     0.506
+blame vs credit  H: CTRL #1 for responsibility minus credit (participant-level share, Wilcoxon)     0.011    NaN    NaN  0.536    0.723     0.712
+blame vs credit    A: AI #1 for responsibility minus credit (participant-level share, Wilcoxon)    -0.028    NaN    NaN  0.433    0.574     0.602
+blame vs credit   HA: AI #1 for responsibility minus credit (participant-level share, Wilcoxon)    -0.017    NaN    NaN  0.491    0.147     0.164
+
+=== VARIANCE HETEROGENEITY (participant means, Levene on medians) ===
+ dv  sd_H  sd_HA  sd_A  levene_p
+ OH 0.941  0.859 1.218     0.014
+AU1 1.191  1.218 1.883     0.002
+CR1 0.974  0.753 1.468     0.000
+CR2 0.896  0.671 1.061     0.002
+
+=== ROBUSTNESS OF THE KEY CONTRASTS ===
+ dv                              contrast                                                                                                    spec   diff  ci_lo  ci_hi      d  p_raw   n
+ OH          C1 human-involved vs AI-only                                                                        sample: primary (AT1+AV1, n=272)  0.396  0.062  0.731  0.419  0.020 272
+ OH                            C2 H vs HA                                                                        sample: primary (AT1+AV1, n=272) -0.076 -0.319  0.167 -0.085  0.539 272
+ OH C3 disability disclosed vs no mention                                                                        sample: primary (AT1+AV1, n=272) -0.091 -0.351  0.168 -0.101  0.491 272
+ OH           C4 intellectual vs mobility                                                                        sample: primary (AT1+AV1, n=272)  0.043 -0.253  0.340  0.049  0.774 272
+ OH          C1 human-involved vs AI-only                                                                           sample: all completes (n=300)  0.322  0.016  0.628  0.338  0.039 300
+ OH                            C2 H vs HA                                                                           sample: all completes (n=300) -0.096 -0.331  0.138 -0.106  0.421 300
+ OH C3 disability disclosed vs no mention                                                                           sample: all completes (n=300) -0.082 -0.332  0.169 -0.090  0.523 300
+ OH           C4 intellectual vs mobility                                                                           sample: all completes (n=300)  0.055 -0.230  0.340  0.061  0.706 300
+ OH          C1 human-involved vs AI-only                                                                 sample: primary minus 3x straightliners  0.403  0.065  0.741  0.428  0.019 257
+ OH                            C2 H vs HA                                                                 sample: primary minus 3x straightliners -0.111 -0.361  0.139 -0.124  0.384 257
+ OH C3 disability disclosed vs no mention                                                                 sample: primary minus 3x straightliners -0.088 -0.354  0.177 -0.098  0.515 257
+ OH           C4 intellectual vs mobility                                                                 sample: primary minus 3x straightliners  0.007 -0.298  0.312  0.008  0.962 257
+ OH          C1 human-involved vs AI-only                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age  0.325  0.049  0.601  0.343  0.021 271
+ OH                            C2 H vs HA                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.102 -0.301  0.097 -0.113  0.315 271
+ OH C3 disability disclosed vs no mention                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age  0.075 -0.144  0.294  0.083  0.502 271
+ OH           C4 intellectual vs mobility                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.037 -0.279  0.205 -0.042  0.762 271
+ OH          C1 human-involved vs AI-only                                                                              participant means: Welch t  0.395    NaN    NaN    NaN  0.069 272
+ OH          C1 human-involved vs AI-only                                                                         participant means: Mann-Whitney  0.389    NaN    NaN    NaN  0.063 272
+ OH                            C2 H vs HA                                                                              participant means: Welch t -0.073    NaN    NaN    NaN  0.532 272
+ OH                            C2 H vs HA                                                                         participant means: Mann-Whitney -0.111    NaN    NaN    NaN  0.517 272
+ OH C3 disability disclosed vs no mention                                                                              participant means: Welch t -0.091    NaN    NaN    NaN  0.475 272
+ OH C3 disability disclosed vs no mention                                                                         participant means: Mann-Whitney  0.000    NaN    NaN    NaN  0.428 272
+ OH           C4 intellectual vs mobility                                                                              participant means: Welch t  0.044    NaN    NaN    NaN  0.757 272
+ OH           C4 intellectual vs mobility                                                                         participant means: Mann-Whitney -0.056    NaN    NaN    NaN  0.836 272
+AU1          C1 human-involved vs AI-only                                                                        sample: primary (AT1+AV1, n=272)  0.812  0.353  1.270  0.619  0.001 272
+AU1                            C2 H vs HA                                                                        sample: primary (AT1+AV1, n=272)  0.150 -0.183  0.484  0.125  0.377 272
+AU1 C3 disability disclosed vs no mention                                                                        sample: primary (AT1+AV1, n=272) -0.289 -0.645  0.067 -0.241  0.112 272
+AU1           C4 intellectual vs mobility                                                                        sample: primary (AT1+AV1, n=272) -0.209 -0.616  0.197 -0.167  0.313 272
+AU1          C1 human-involved vs AI-only                                                                           sample: all completes (n=300)  0.626  0.214  1.038  0.484  0.003 300
+AU1                            C2 H vs HA                                                                           sample: all completes (n=300)  0.129 -0.187  0.445  0.109  0.423 300
+AU1 C3 disability disclosed vs no mention                                                                           sample: all completes (n=300) -0.253 -0.590  0.084 -0.215  0.141 300
+AU1           C4 intellectual vs mobility                                                                           sample: all completes (n=300) -0.186 -0.570  0.198 -0.151  0.343 300
+AU1          C1 human-involved vs AI-only                                                                 sample: primary minus 3x straightliners  0.819  0.352  1.285  0.622  0.001 257
+AU1                            C2 H vs HA                                                                 sample: primary minus 3x straightliners  0.138 -0.206  0.483  0.114  0.431 257
+AU1 C3 disability disclosed vs no mention                                                                 sample: primary minus 3x straightliners -0.305 -0.672  0.062 -0.254  0.103 257
+AU1           C4 intellectual vs mobility                                                                 sample: primary minus 3x straightliners -0.288 -0.709  0.133 -0.230  0.180 257
+AU1          C1 human-involved vs AI-only                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age  0.800  0.377  1.223  0.614  0.000 271
+AU1                            C2 H vs HA                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age  0.153 -0.153  0.458  0.128  0.327 271
+AU1 C3 disability disclosed vs no mention                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.097 -0.433  0.238 -0.082  0.570 271
+AU1           C4 intellectual vs mobility                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.318 -0.689  0.053 -0.257  0.093 271
+AU1          C1 human-involved vs AI-only                                                                              participant means: Welch t  0.810    NaN    NaN    NaN  0.017 272
+AU1          C1 human-involved vs AI-only                                                                         participant means: Mann-Whitney  0.667    NaN    NaN    NaN  0.023 272
+AU1                            C2 H vs HA                                                                              participant means: Welch t  0.158    NaN    NaN    NaN  0.314 272
+AU1                            C2 H vs HA                                                                         participant means: Mann-Whitney  0.000    NaN    NaN    NaN  0.269 272
+AU1 C3 disability disclosed vs no mention                                                                              participant means: Welch t -0.288    NaN    NaN    NaN  0.071 272
+AU1 C3 disability disclosed vs no mention                                                                         participant means: Mann-Whitney -0.333    NaN    NaN    NaN  0.097 272
+AU1           C4 intellectual vs mobility                                                                              participant means: Welch t -0.206    NaN    NaN    NaN  0.303 272
+AU1           C4 intellectual vs mobility                                                                         participant means: Mann-Whitney -0.333    NaN    NaN    NaN  0.334 272
+CR1          C1 human-involved vs AI-only                                                                        sample: primary (AT1+AV1, n=272)  0.504  0.163  0.844  0.520  0.004 272
+CR1                            C2 H vs HA                                                                        sample: primary (AT1+AV1, n=272)  0.014 -0.234  0.262  0.016  0.912 272
+CR1 C3 disability disclosed vs no mention                                                                        sample: primary (AT1+AV1, n=272) -0.213 -0.478  0.051 -0.247  0.114 272
+CR1           C4 intellectual vs mobility                                                                        sample: primary (AT1+AV1, n=272) -0.056 -0.358  0.246 -0.062  0.717 272
+CR1          C1 human-involved vs AI-only                                                                           sample: all completes (n=300)  0.395  0.086  0.703  0.410  0.012 300
+CR1                            C2 H vs HA                                                                           sample: all completes (n=300)  0.018 -0.218  0.255  0.021  0.879 300
+CR1 C3 disability disclosed vs no mention                                                                           sample: all completes (n=300) -0.201 -0.454  0.051 -0.231  0.118 300
+CR1           C4 intellectual vs mobility                                                                           sample: all completes (n=300) -0.039 -0.327  0.248 -0.043  0.789 300
+CR1          C1 human-involved vs AI-only                                                                 sample: primary minus 3x straightliners  0.512  0.167  0.857  0.530  0.004 257
+CR1                            C2 H vs HA                                                                 sample: primary minus 3x straightliners -0.007 -0.262  0.248 -0.008  0.959 257
+CR1 C3 disability disclosed vs no mention                                                                 sample: primary minus 3x straightliners -0.224 -0.495  0.047 -0.260  0.105 257
+CR1           C4 intellectual vs mobility                                                                 sample: primary minus 3x straightliners -0.103 -0.415  0.208 -0.115  0.517 257
+CR1          C1 human-involved vs AI-only                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age  0.550  0.236  0.864  0.583  0.001 271
+CR1                            C2 H vs HA                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.010 -0.237  0.217 -0.012  0.932 271
+CR1 C3 disability disclosed vs no mention                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.176 -0.425  0.073 -0.211  0.166 271
+CR1           C4 intellectual vs mobility                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.154 -0.429  0.122 -0.180  0.274 271
+CR1          C1 human-involved vs AI-only                                                                              participant means: Welch t  0.503    NaN    NaN    NaN  0.052 272
+CR1          C1 human-involved vs AI-only                                                                         participant means: Mann-Whitney  0.500    NaN    NaN    NaN  0.092 272
+CR1                            C2 H vs HA                                                                              participant means: Welch t  0.014    NaN    NaN    NaN  0.901 272
+CR1                            C2 H vs HA                                                                         participant means: Mann-Whitney  0.333    NaN    NaN    NaN  0.435 272
+CR1 C3 disability disclosed vs no mention                                                                              participant means: Welch t -0.213    NaN    NaN    NaN  0.065 272
+CR1 C3 disability disclosed vs no mention                                                                         participant means: Mann-Whitney -0.333    NaN    NaN    NaN  0.098 272
+CR1           C4 intellectual vs mobility                                                                              participant means: Welch t -0.056    NaN    NaN    NaN  0.693 272
+CR1           C4 intellectual vs mobility                                                                         participant means: Mann-Whitney  0.000    NaN    NaN    NaN  0.379 272
+CR2          C1 human-involved vs AI-only                                                                        sample: primary (AT1+AV1, n=272)  0.223 -0.070  0.517  0.268  0.135 272
+CR2                            C2 H vs HA                                                                        sample: primary (AT1+AV1, n=272) -0.137 -0.350  0.077 -0.173  0.209 272
+CR2 C3 disability disclosed vs no mention                                                                        sample: primary (AT1+AV1, n=272) -0.110 -0.338  0.117 -0.139  0.342 272
+CR2           C4 intellectual vs mobility                                                                        sample: primary (AT1+AV1, n=272) -0.002 -0.262  0.258 -0.002  0.990 272
+CR2          C1 human-involved vs AI-only                                                                           sample: all completes (n=300)  0.158 -0.112  0.427  0.188  0.251 300
+CR2                            C2 H vs HA                                                                           sample: all completes (n=300) -0.134 -0.340  0.072 -0.166  0.203 300
+CR2 C3 disability disclosed vs no mention                                                                           sample: all completes (n=300) -0.113 -0.334  0.107 -0.140  0.314 300
+CR2           C4 intellectual vs mobility                                                                           sample: all completes (n=300)  0.031 -0.220  0.282  0.038  0.807 300
+CR2          C1 human-involved vs AI-only                                                                 sample: primary minus 3x straightliners  0.232 -0.065  0.530  0.279  0.126 257
+CR2                            C2 H vs HA                                                                 sample: primary minus 3x straightliners -0.173 -0.393  0.047 -0.219  0.122 257
+CR2 C3 disability disclosed vs no mention                                                                 sample: primary minus 3x straightliners -0.106 -0.340  0.128 -0.134  0.373 257
+CR2           C4 intellectual vs mobility                                                                 sample: primary minus 3x straightliners -0.026 -0.294  0.242 -0.033  0.850 257
+CR2          C1 human-involved vs AI-only                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age  0.244 -0.024  0.513  0.295  0.075 271
+CR2                            C2 H vs HA                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.161 -0.355  0.033 -0.204  0.104 271
+CR2 C3 disability disclosed vs no mention                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.034 -0.247  0.179 -0.043  0.754 271
+CR2           C4 intellectual vs mobility                                                             adjusted for GAAIS_pos, NARS, SCM_warm, age -0.072 -0.308  0.163 -0.092  0.548 271
+CR2          C1 human-involved vs AI-only                                                                              participant means: Welch t  0.223    NaN    NaN    NaN  0.234 272
+CR2          C1 human-involved vs AI-only                                                                         participant means: Mann-Whitney  0.333    NaN    NaN    NaN  0.287 272
+CR2                            C2 H vs HA                                                                              participant means: Welch t -0.136    NaN    NaN    NaN  0.190 272
+CR2                            C2 H vs HA                                                                         participant means: Mann-Whitney  0.000    NaN    NaN    NaN  0.413 272
+CR2 C3 disability disclosed vs no mention                                                                              participant means: Welch t -0.109    NaN    NaN    NaN  0.323 272
+CR2 C3 disability disclosed vs no mention                                                                         participant means: Mann-Whitney  0.000    NaN    NaN    NaN  0.259 272
+CR2           C4 intellectual vs mobility                                                                              participant means: Welch t -0.002    NaN    NaN    NaN  0.985 272
+CR2           C4 intellectual vs mobility                                                                         participant means: Mann-Whitney  0.000    NaN    NaN    NaN  0.940 272
+AU1          C1 human-involved vs AI-only                                            ordinal GEE, global odds ratio (odds ratio of higher rating)  2.227  1.173  4.229    NaN  0.014 272
+AU1 C3 disability disclosed vs no mention                                            ordinal GEE, global odds ratio (odds ratio of higher rating)  0.701  0.467  1.054    NaN  0.088 236
+AU1                            C2 H vs HA                                   ordinal GEE, global odds ratio (odds ratio of higher rating, HA vs H)  0.808  0.546  1.197    NaN  0.288 236
+CR1          C1 human-involved vs AI-only          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  2.353  1.088  5.092    NaN  0.030 272
+CR1 C3 disability disclosed vs no mention          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  0.656  0.420  1.027    NaN  0.065 236
+CR1                            C2 H vs HA ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating, HA vs H)  0.976  0.635  1.500    NaN  0.911 236
+CR2          C1 human-involved vs AI-only          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  1.535  0.789  2.986    NaN  0.207 272
+CR2 C3 disability disclosed vs no mention          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  0.792  0.501  1.250    NaN  0.316 236
+CR2                            C2 H vs HA ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating, HA vs H)  1.333  0.880  2.018    NaN  0.175 236
+OH1          C1 human-involved vs AI-only          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  1.570  0.878  2.809    NaN  0.128 272
+OH1 C3 disability disclosed vs no mention          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  0.896  0.578  1.387    NaN  0.621 236
+OH1                            C2 H vs HA ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating, HA vs H)  1.110  0.746  1.652    NaN  0.607 236
+OH2          C1 human-involved vs AI-only          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  1.903  1.062  3.410    NaN  0.031 272
+OH2 C3 disability disclosed vs no mention          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  0.866  0.565  1.327    NaN  0.508 236
+OH2                            C2 H vs HA ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating, HA vs H)  1.023  0.698  1.497    NaN  0.909 236
+OH3          C1 human-involved vs AI-only          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  1.838  0.941  3.590    NaN  0.075 272
+OH3 C3 disability disclosed vs no mention          ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating)  0.844  0.525  1.356    NaN  0.483 236
+OH3                            C2 H vs HA ordinal GEE, independence working correlation, cluster-robust SE (odds ratio of higher rating, HA vs H)  1.207  0.779  1.869    NaN  0.400 236
+
+done; results in /Users/Zhu/Desktop/CHI27/study1-survey/exports/20260902T104106Z/analysis/results
+
+=== BOOTSTRAP (variance-robust) CHECK OF THE KEY CONTRASTS ===
+ dv                              contrast                                                          spec   diff  ci_lo  ci_hi   d  p_raw   n
+ OH          C1 human-involved vs AI-only participant cluster bootstrap (4000), equal-weight cell means  0.396 -0.011  0.809 NaN  0.055 272
+ OH                            C2 H vs HA participant cluster bootstrap (4000), equal-weight cell means -0.076 -0.302  0.141 NaN  0.504 272
+ OH C3 disability disclosed vs no mention participant cluster bootstrap (4000), equal-weight cell means -0.091 -0.330  0.162 NaN  0.488 272
+AU1          C1 human-involved vs AI-only participant cluster bootstrap (4000), equal-weight cell means  0.812  0.180  1.424 NaN  0.012 272
+AU1                            C2 H vs HA participant cluster bootstrap (4000), equal-weight cell means  0.150 -0.150  0.442 NaN  0.332 272
+AU1 C3 disability disclosed vs no mention participant cluster bootstrap (4000), equal-weight cell means -0.289 -0.596  0.016 NaN  0.066 272
+CR1          C1 human-involved vs AI-only participant cluster bootstrap (4000), equal-weight cell means  0.504  0.034  1.007 NaN  0.031 272
+CR1                            C2 H vs HA participant cluster bootstrap (4000), equal-weight cell means  0.014 -0.204  0.231 NaN  0.884 272
+CR1 C3 disability disclosed vs no mention participant cluster bootstrap (4000), equal-weight cell means -0.213 -0.430  0.011 NaN  0.064 272
+CR2          C1 human-involved vs AI-only participant cluster bootstrap (4000), equal-weight cell means  0.223 -0.134  0.595 NaN  0.213 272
+CR2                            C2 H vs HA participant cluster bootstrap (4000), equal-weight cell means -0.137 -0.332  0.059 NaN  0.166 272
+CR2 C3 disability disclosed vs no mention participant cluster bootstrap (4000), equal-weight cell means -0.110 -0.320  0.109 NaN  0.320 272
