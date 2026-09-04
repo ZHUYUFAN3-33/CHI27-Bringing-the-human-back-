@@ -321,15 +321,18 @@ T_D2 = table(rows, ["结果变量（第一段影片）","告知 vs 不提及","�
 ACTN2 = {"CTRL":"人类操作员","AI":"AI","ORG":"OriHime/提供方","USER":"影片中的人"}
 rows = [[f"<b>{r.ctrl}</b> · {ACTN2[r.actor]}", "责任" if r.question == "responsibility" else "功劳", f"{100*r.share_none:.0f}% → {100*r.share_disclosed:.0f}%", f"{r.OR:.2f} {cifmt(r.ci_lo, r.ci_hi)}", pfmt(r.p)] for r in D4.itertuples()]
 T_D4 = table(rows, ["控制来源 · 角色","问题","排第 1：不提及 → 告知","优势比 [95% CI]","p"], cls="num")
-rows = [[f"<b>{DVN[r.dv]}</b>", f"{r.BF01:.1f}", "强" if r.BF01 > 10 else ("中等" if r.BF01 > 3 else "弱")] for r in D7.itertuples()]
-T_D7 = table(rows, ["结果变量","BF01（支持无效应）","证据强度"], cls="num")
+rows = [[f"<b>{DVN[r.dv]}</b>", int(r.n_units), f"{r.BF01:.1f}", "强" if r.BF01 > 10 else ("中等" if r.BF01 > 3 else "弱"), "–" if pd.isna(r.BF01_rows) else f"{r.BF01_rows:.1f}"] for r in D7.itertuples()]
+T_D7 = table(rows, ["结果变量","独立单位 n","BF01（参与者单位，支持无效应）","证据强度","BF01 按影片行（已弃用）"], cls="num")
+AN = rcsv("ranks_common_anchor.csv"); ACTN3 = {"CTRL":"人类操作员","AI":"AI 系统"}
+rows = [[f"<b>{ACTN3[r.actor]}</b> 排在提供方和影片中人之前", "责任" if r.question == "responsibility" else "功劳", f"{r.group_A} {100*r.share_A:.1f}% → {r.group_B} {100*r.share_B:.1f}%", f"{r.OR:.2f} {cifmt(r.ci_lo, r.ci_hi)}", pfmt(r.p)] for r in AN.itertuples()]
+T_ANCHOR = table(rows, ["共同锚点指标","问题","比例","优势比 [95% CI]","p"], cls="num")
 rows = [["<b>AU1 / CR1（d ≈ −.24）</b>", "236", ".11", "354 → ≈ .05；472 → ≈ .025；708 → ≈ .006", "610"], ["<b>OH（d ≈ −.10）</b>", "236", ".49", "708 → ≈ .23", "3442"], ["<b>HM（d ≈ −.26）</b>", "236", ".076", "472 → ≈ .012", "541"]]
 T_D8 = table(rows, ["结果变量","现有人类格子人数","现在的 p","效应不变时加人后的 p","80% 功效所需人数（2:1 分配）"], cls="num")
 bk = DTL.groupby("block").agg(n=("p","size"), sig=("p", lambda p: int((p < .05).sum())))
 BN = {"D1":"告知 × 位置","D2":"只看第一段","D3":"温暖减能力","D4":"HA/H 内归因","D5":"相信程度","D6":"停留时间"}
 rows = [[f"<b>{b}</b> {BN.get(b, b)}", int(r.n), int(r.sig)] for b, r in bk.iterrows()]
 T_D_BOOK = table(rows, ["模块","检验数","p &lt; .05"], cls="num", foot=["合计", int(bk.n.sum()), int(bk.sig.sum())])
-subs3.update({"T_D1": T_D1, "T_D1M": T_D1M, "T_D2": T_D2, "T_D4": T_D4, "T_D7": T_D7, "T_D8": T_D8, "T_D_BOOK": T_D_BOOK})
+subs3.update({"T_ANCHOR": T_ANCHOR, "T_D1": T_D1, "T_D1M": T_D1M, "T_D2": T_D2, "T_D4": T_D4, "T_D7": T_D7, "T_D8": T_D8, "T_D_BOOK": T_D_BOOK})
 out3 = out2
 for k, v in subs3.items(): out3 = out3.replace("[[" + k + "]]", v)
 left = re.findall(r"\[\[[A-Z0-9_]+\]\]", out3); assert not left, left

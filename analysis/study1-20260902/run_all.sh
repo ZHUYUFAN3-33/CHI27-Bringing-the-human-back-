@@ -14,3 +14,5 @@ $PY paper_numbers.py > /dev/null
 $PY figures_paper.py
 $PY build_workbook.py
 echo "done"
+$PY attribution_common_anchor.py
+$PY exploration_disability.py > results_disability_sweep.txt

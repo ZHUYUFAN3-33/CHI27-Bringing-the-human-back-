@@ -53,15 +53,15 @@ BEL1 by condition: {'H1': 5.41, 'H2': 4.85, 'H3': 5.15, 'HA1': 5.03, 'HA2': 5.08
   CR1: disab x log(dwell) interaction p = 0.793
 
 === D7: how much evidence FOR the null? BIC-approximate Bayes factors (BF01) for the pooled disclosure effect ===
- dv  BF01
- OH 20.28
-AU1  6.02
-CR1  5.53
-CR2 15.98
-CR3 13.24
- PE  9.63
- HM  2.83
-  (BF01 = evidence for 'no disclosure effect' relative to 'some effect'; 3-10 = moderate, >10 = strong; BIC approximation = unit-information prior)
+ dv  n_units  BF01  BF01_rows
+ OH      236 11.71      20.28
+AU1      236  3.48       6.02
+CR1      236  3.19       5.53
+CR2      236  9.23      15.98
+CR3      236  7.64      13.24
+ PE      236  9.63        NaN
+ HM      236  2.83        NaN
+  (BF01 = evidence for 'no disclosure effect' vs 'some effect', participant units; 3-10 moderate, >10 strong; BIC approximation = unit-information prior. BF01_rows = the superseded clip-row version.)
 
 === D8: what would more participants do? ===
   OH: observed d = -0.10, z = -0.69, p = 0.491

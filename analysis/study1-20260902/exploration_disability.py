@@ -92,15 +92,20 @@ for dv in ["AU1","CR1"]:
     print(f"  {dv}: disab x log(dwell) interaction p = {pf(lrt(full, red, 1))}"); log("D6", dv, "disab x log dwell (LRT)", lrt(full, red, 1))
 
 print("\n=== D7: how much evidence FOR the null? BIC-approximate Bayes factors (BF01) for the pooled disclosure effect ===")
+# Unit correction after the 2026-09-04 cross-review: disclosure is a between-participant variable, so the independent
+# information units are the 236 participants, not the 708 clip rows. BF01 is computed on participant-level means
+# (OLS, disab + control source vs control source only); the clip-row LMM version is kept as BF01_rows for the record.
 d7 = []
+Pm = LH.groupby(["pid","condition","ctrl"], as_index=False)[["OH","AU1","CR1","CR2","CR3"]].mean(); Pm["disab"] = Pm.condition.isin(DIS).astype(int)
 for dv in ["OH","AU1","CR1","CR2","CR3","PE","HM"]:
     if dv in ["PE","HM"]:
-        m1 = smf.ols(f"{dv} ~ disab + C(ctrl)", wh).fit(); m0 = smf.ols(f"{dv} ~ C(ctrl)", wh).fit()
+        d = wh; m1 = smf.ols(f"{dv} ~ disab + C(ctrl)", d).fit(); m0 = smf.ols(f"{dv} ~ C(ctrl)", d).fit(); bf_rows = np.nan
     else:
-        m1 = lmm(LH, dv, "disab + is_HA + C(segment) + C(pos)", reml=False); m0 = lmm(LH, dv, "is_HA + C(segment) + C(pos)", reml=False)
-    bf01 = np.exp((m1.bic - m0.bic)/2) if hasattr(m1, "bic") else np.nan
-    d7.append(dict(dv=dv, BF01=bf01)); 
-D7 = pd.DataFrame(d7); D7.to_csv(os.path.join(OUT, "d7_bayes_factors.csv"), index=False); print(D7.round(2).to_string(index=False)); print("  (BF01 = evidence for 'no disclosure effect' relative to 'some effect'; 3-10 = moderate, >10 = strong; BIC approximation = unit-information prior)")
+        d = Pm.dropna(subset=[dv]); m1 = smf.ols(f"{dv} ~ disab + C(ctrl)", d).fit(); m0 = smf.ols(f"{dv} ~ C(ctrl)", d).fit()
+        r1 = lmm(LH, dv, "disab + is_HA + C(segment) + C(pos)", reml=False); r0 = lmm(LH, dv, "is_HA + C(segment) + C(pos)", reml=False); bf_rows = np.exp((r1.bic - r0.bic)/2)
+    d7.append(dict(dv=dv, n_units=int(m1.nobs), BF01=np.exp((m1.bic - m0.bic)/2), BF01_rows=bf_rows))
+D7 = pd.DataFrame(d7); D7.to_csv(os.path.join(OUT, "d7_bayes_factors.csv"), index=False); print(D7.round(2).to_string(index=False))
+print("  (BF01 = evidence for 'no disclosure effect' vs 'some effect', participant units; 3-10 moderate, >10 strong; BIC approximation = unit-information prior. BF01_rows = the superseded clip-row version.)")
 
 print("\n=== D8: what would more participants do? ===")
 CON = pd.read_csv(os.path.join(OUT, "contrasts.csv"))

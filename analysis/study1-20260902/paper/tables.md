@@ -93,3 +93,25 @@
 | credit | H | 0.69 [0.62, 0.75] | – | 0.16 [0.12, 0.20] | 0.15 [0.12, 0.20] |
 | credit | HA | 0.44 [0.38, 0.51] | 0.29 [0.25, 0.32] | 0.18 [0.14, 0.21] | 0.09 [0.07, 0.12] |
 | credit | A | – | 0.54 [0.42, 0.69] | 0.31 [0.22, 0.39] | 0.15 [0.08, 0.23] |
+
+
+**Table 7.** Attribution with a common anchor (added after the cross-review): share of rankings in which the actor was placed ahead of both actors offered in every condition (OriHime or its provider; the person in the video), with GEE logistic odds ratios.
+
+| Actor | Question | Share | OR (95% CI) | p |
+|---|---|---|---|---|
+| Human operator | responsibility | H 72.3% → HA 60.7% | 0.59 [0.36, 0.93] | .022 |
+| Human operator | credit | H 71.2% → HA 60.2% | 0.61 [0.39, 0.96] | .032 |
+| AI system | responsibility | HA 52.0% → A 57.4% | 1.24 [0.69, 2.25] | .471 |
+| AI system | credit | HA 48.9% → A 60.2% | 1.60 [0.86, 2.96] | .139 |
+
+**Table 8.** BIC-approximated Bayes factors for the null (BF01) on the pooled disclosure contrast, computed on participant-level means (n = 236; unit-information prior). The clip-row version reported in an earlier draft overstated the evidence by about 1.7×.
+
+| Outcome | BF01 (participant units) |
+|---|---|
+| OriHime evaluation | 11.7 |
+| Felt genuine | 3.5 |
+| Controller warm | 3.2 |
+| Controller competent | 9.2 |
+| Operator in control | 7.6 |
+| Performance expectancy | 9.6 |
+| Hedonic motivation | 2.8 |

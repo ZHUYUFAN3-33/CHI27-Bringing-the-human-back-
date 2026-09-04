@@ -14,7 +14,7 @@ bash run_all.sh
 | 3 | `descriptives.py`, `figures_descriptive.py` | `descriptives_report.txt`, `figures/fig1-5` |
 | 4 | `inferential_primary.py` | `results/models_primary.csv`, `pairwise_all.csv`, `pairwise_ctrl.csv`, `contrasts.csv`, `interactions.csv`, `simple_effects_clip.csv`, `participant_level_anova.csv`, `ranks_tests.csv`, `robustness.csv`, `bootstrap_contrasts.csv`, `variance_check.csv`; `results_round1.txt` |
 | 5 | `figures_round1.py` | `figures/fig6-7` |
-| 6 | `exploration_phase14.py` | `results/e1_*.csv` ... `e8_*.csv`, `phase14_test_log.csv`; `results_phase14.txt` |
+| 6 | `exploration_phase14.py`, `attribution_common_anchor.py` | `results/e1_*.csv` ... `e8_*.csv`, `phase14_test_log.csv`, `ranks_common_anchor.csv`; `results_phase14.txt`; `exploration_disability.py` → `results/d*.csv`, `results_disability_sweep.txt` |
 | 7 | `figures_phase14.py` | `figures/fig8-9` |
 | 8 | `paper_numbers.py`, `figures_paper.py` | `paper/numbers_sheet.md`, `paper/tables.md`, `paper/figures/*.png|pdf` |
 | 9 | `build_workbook.py` | `workbook.html` (the Chinese analysis workbook; same content as the published Artifact) |
