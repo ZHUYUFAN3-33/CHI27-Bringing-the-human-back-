@@ -11,3 +11,4 @@ exports/
 
 # raw data exports downloaded as archives — never commit
 study1-data-*.zip
+__pycache__/
