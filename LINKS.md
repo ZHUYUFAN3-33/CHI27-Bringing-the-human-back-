@@ -258,10 +258,17 @@ information · about OriHime · consent (one page), three clips, a closing
 question with the background block, finish. The only randomised factor is the
 clip order, balanced across the same six permutations.
 
-**There is no free text anywhere.** An instructed-response check rides the clip
-shown **second**, whichever clip that is, scored on the server against a key the
-browser never receives; that check and the playback telemetry are the whole of
-the quality evidence.
+**There is no free text anywhere.** Two checks are scored on the server against
+keys the browser never receives: an instructed-response item on the clip shown
+**second**, and a video-comprehension question on the clip shown **third**,
+after that clip's judgements. Page one no longer names the three control
+arrangements — naming three of them before three clips invited a one-of-each
+matching strategy — and the categories now appear once, as the options of the
+control question itself.
+
+**[STUDY2_PLAN.md](STUDY2_PLAN.md) is the frozen analysis plan** and says what
+this study claims: a supplementary no-disclosure perception study, not a
+replication of Study 1's causal effect. Read it before writing anything up.
 The background block is asked last, where it cannot colour a judgement: age,
 gender, AI-use frequency, contact with people with disabilities, and the five
 positive GAAIS items — the same ids Study 1 uses, so the two samples can be
@@ -350,9 +357,17 @@ node scripts/s2-browser-test.mjs https://study1-survey.fly.dev $ADMIN_TOKEN
 video gate and records nothing. It needs Playwright:
 `npm install --no-save playwright && npx playwright install chromium`.
 
-**Sample size.** The analysis plan asks for 250–300 people. The allocation
-targets ship at 0, which means uncapped; set them from the dashboard, or let the
-Connect quota be the stop.
+**Sample size.** 300 usable participants, about 330 recruited completers. The
+allocation targets ship at 0, which means uncapped, and stay there so no order
+cell closes early; let the Connect quota be the stop. `python3
+analysis/study2/precision.py` regenerates the precision table.
+
+**Before recruitment opens**, three things still need the research team, and all
+three are in STUDY2_PLAN.md §8: the debrief still carries
+`[TO BE COMPLETED BY THE RESEARCH TEAM]` where it must say how each clip was
+actually controlled (`s2-plan-check.mjs` warns while it does); every `AV1`
+comprehension option has to be checked against the final audio; and the new
+consent, anti-matching and debrief text needs ethics approval.
 
 ---
 

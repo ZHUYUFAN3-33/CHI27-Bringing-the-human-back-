@@ -118,10 +118,16 @@ export default async function s2ParticipantRoutes(app) {
 
     /* One row per platform participant: a return visit gets its own row back. */
     if (!isTest && ext.pid) {
+      /* Matched on lower(external_pid), not on the text as it arrived. A
+         platform id that comes back with different casing is the same person,
+         and treating it as a new one would both duplicate their row and slip
+         them past the Study 1 exclusion below. The partial unique index in
+         db/s2-schema.sql is on the same expression, so two starts racing under
+         one id cannot both insert. */
       const { rows: prior } = await q(
         `UPDATE s2_participants SET last_seen_at = now()
           WHERE id = (SELECT id FROM s2_participants
-                       WHERE external_pid = $1 AND NOT is_test
+                       WHERE lower(external_pid) = lower($1) AND NOT is_test
                        ORDER BY started_at DESC LIMIT 1)
           RETURNING *`,
         [ext.pid]
@@ -137,7 +143,8 @@ export default async function s2ParticipantRoutes(app) {
          exclusion list is the first line; this is the second. */
       if (config.s2ExcludeStudy1) {
         const { rows: s1 } = await q(
-          `SELECT 1 FROM participants WHERE external_pid = $1 AND NOT is_test LIMIT 1`, [ext.pid]
+          `SELECT 1 FROM participants
+            WHERE lower(external_pid) = lower($1) AND NOT is_test LIMIT 1`, [ext.pid]
         );
         if (s1.length) {
           req.log.info({ external_pid: ext.pid }, "s2 start refused: took part in study 1");
@@ -365,11 +372,16 @@ export default async function s2ParticipantRoutes(app) {
     const required = items.filter(i => i.required);
     const missing = required.filter(i => !got.has(i.id)).map(i => i.id);
 
-    /* The instructed-response check, scored here against the key the browser
-       was never sent. Not answering it is not passing it. Null only if the
-       instrument carries no check at all. */
-    const check = items.find(i => i.group === "attention");
-    const attentionPass = check ? Number(got.get(check.id)) === check.expected : null;
+    /* Both checks are scored here, against keys the browser was never sent.
+       Not answering one is not passing it. Null only if the instrument carries
+       no such check at all — which is what keeps rows collected under an
+       earlier instrument out of the failure counts rather than in them. */
+    const scored = group => {
+      const it = items.find(i => i.group === group);
+      return it ? Number(got.get(it.id)) === it.expected : null;
+    };
+    const attentionPass = scored("attention");
+    const comprehensionPass = scored("comprehension");
 
     const { rows } = await withTx(async client => {
       await client.query(
@@ -379,7 +391,7 @@ export default async function s2ParticipantRoutes(app) {
           client: req.body ?? {},
           derived: {
             missing, itemsExpected: required.length, itemsStored: got.size,
-            attentionItem: check?.id ?? null, attentionPass
+            attentionPass, comprehensionPass
           }
         })]
       );
@@ -389,10 +401,11 @@ export default async function s2ParticipantRoutes(app) {
                 page_key = 'finish', page_index = GREATEST(page_index, 5),
                 complete_pass = $2,
                 attention_pass = $3,
+                comprehension_pass = $4,
                 answered_count = (SELECT COUNT(*) FROM s2_responses WHERE participant_id = $1)
           WHERE id = $1
           RETURNING short_code`,
-        [p.id, missing.length === 0, attentionPass]
+        [p.id, missing.length === 0, attentionPass, comprehensionPass]
       );
       if (p.status !== "completed" && !p.is_test) {
         await client.query(`UPDATE s2_allocation SET completed = completed + 1 WHERE cell = $1`, [p.seg_order]);
@@ -400,7 +413,8 @@ export default async function s2ParticipantRoutes(app) {
       return upd;
     });
 
-    req.log.info({ pid: p.id, order: p.seg_order, missing: missing.length, attentionPass }, "s2 completed");
+    req.log.info({ pid: p.id, order: p.seg_order, missing: missing.length,
+                   attentionPass, comprehensionPass }, "s2 completed");
     const code = completionFor({ short_code: rows[0]?.short_code ?? p.short_code });
     return { ok: true, shortCode: rows[0]?.short_code ?? p.short_code,
              completionCode: code.code, redirectUrl: code.redirectUrl, missing };

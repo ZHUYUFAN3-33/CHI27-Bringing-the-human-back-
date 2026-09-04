@@ -27,7 +27,13 @@ import {
   SCALE, FREQ, GENDER, GAAIS, ATTENTION_CHECK_VALUE
 } from "./instrument.js";
 
-export const S2_VERSION = "s2-v3";
+/* Study 1's per-clip comprehension bank, reused rather than restated: a recut
+   clip changes the question in one place. Each entry is { options, correct }. */
+const AV1_BANK = Object.fromEntries(
+  ["REL", "ADV", "COL"].map(k => [k, SEGMENTS[k].av1])
+);
+
+export const S2_VERSION = "s2-v4";
 
 /* The seven-point agreement scale, the frequency options and the GAAIS items
    are Study 1's, imported rather than restated: the two studies only compare
@@ -61,35 +67,22 @@ export const S2_CLIPS = Object.fromEntries(
 
 /* ---------------------------------------------------------------- wording */
 
-/* The three ways OriHime can be controlled, as described on page one. Written
-   to match the framing text of Study 1's three control conditions, so the two
-   studies describe the same arrangements in the same terms. Which of them
-   applies to a clip is never said. */
-export const S2_CONTROL_METHODS = [
-  {
-    key: "H",
-    label: "A human operator",
-    text: "A trained person controls OriHime in real time and chooses what it says and does. No AI system is involved."
-  },
-  {
-    key: "HA",
-    label: "A human operator with AI assistance",
-    text: "An AI system can suggest wording or movements, but a trained person accepts, changes or rejects the suggestions and makes the final decisions."
-  },
-  {
-    key: "A",
-    label: "An AI system",
-    text: "There is no human operator. The AI system generates OriHime’s responses and controls its movements in real time."
-  }
-];
-
+/* Page one introduces OriHime and says nothing about how it can be controlled.
+   The earlier draft taught exactly three control arrangements and then showed
+   exactly three clips, and restated all three above every control question —
+   an arrangement that invites a one-of-each matching strategy and makes
+   "spontaneous inference" the wrong name for what comes out. The categories
+   now appear once, as the options of the question that asks for them. */
 export const S2_ABOUT = {
   head: "About OriHime",
   intro: "OriHime is a robot that communicates through speech, head movements, and gestures. In the clips you will see, OriHime is talking with a person in an office.",
-  methodsLead: "OriHime can be controlled in one of **three ways**:",
-  /* Accurate as written: nothing here claims that the clips differ, only that
-     the control arrangement is not disclosed. */
-  after: "**We will not tell you how OriHime is controlled in the clips you are about to see.** There are no right or wrong answers: we are interested in your own impression of what you see and hear."
+  /* Said before the clips and again beside the control question: three clips
+     is not a hint that three different arrangements are on show. */
+  after:
+    "**We will not tell you how OriHime is controlled in the clips you are about to see.** " +
+    "The videos may use the same control arrangement or different arrangements, and the number of videos does not correspond to any number of control methods.\n\n" +
+    "There are no right or wrong answers: we are interested in your own impression of what you see and hear. " +
+    "**Please answer from the videos themselves — please do not look OriHime up while taking part.**"
 };
 
 /* The information sheet. Same headed-section shape as Study 1's INFO_PAGE, so
@@ -116,7 +109,7 @@ export const S2_INFO = {
       body:
         "We record your answers, how long each page took, and whether each clip played through, together with the participant number your recruitment platform gives us. **We do not record your name, and we do not store your IP address.**\n\n" +
         "Responses are held on a secured server during collection and kept on access-controlled Keio University storage afterwards, reachable only by the authorised researchers. They are retained until **31 August 2036**, then deleted or irreversibly anonymised.\n\n" +
-        "Results are reported in aggregate, and the responses may be shared as an anonymous dataset alongside a published paper. Your written descriptions may be quoted in publications; they carry no name."
+        "Results are reported in aggregate, and the responses may be shared as an anonymous dataset alongside a published paper. This study asks only multiple-choice and rating questions, so there is nothing you write in your own words for us to quote."
     },
     {
       key: "voluntary",
@@ -136,15 +129,34 @@ export const S2_INFO = {
 
 /* Shown on the last page, after the answers are in. It explains the one thing
    that was withheld and nothing more. */
+/* The debrief has to say what was withheld, what the truth actually was, why it
+   was withheld, and how this study relates to Study 1. The old one said only
+   the first of those, which is a partial debrief rather than a debrief.
+
+   THE SECOND PARAGRAPH IS A PLACEHOLDER. Only the PI knows how each clip was
+   actually produced, and nobody can be debriefed with a guess. Replace
+   S2_DEBRIEF_PLACEHOLDER with the true arrangement, have the whole page
+   approved with the ethics materials, and clear it off the pre-recruitment
+   checklist in LINKS.md. scripts/s2-plan-check.mjs prints a warning while the
+   marker is still here. */
+export const S2_DEBRIEF_PLACEHOLDER = "[TO BE COMPLETED BY THE RESEARCH TEAM]";
+
 export const S2_DEBRIEF = [
-  "In this study we did not say how OriHime was controlled in each clip, because we wanted to learn what impression the interaction itself gives. Every participant saw the same three clips, in a random order.",
-  "Your answers have been recorded. Thank you for taking part."
+  "**What we did not tell you.** We did not say how OriHime was controlled in the videos you watched. We withheld it on purpose: the study asks what impression the interaction itself gives, and knowing the answer in advance would have replaced that impression with a fact. Every participant saw the same three videos, in a random order, and answered the same questions.",
+
+  `**How OriHime was actually controlled.** ${S2_DEBRIEF_PLACEHOLDER}`,
+
+  "**Why this study exists.** It accompanies an earlier study in which people were told how OriHime was controlled before they watched the same videos. Comparing what people are told with what people assume when they are told nothing is what lets us say whether a description agreed with, or worked against, the impression the videos already give. Your answers are the second half of that comparison.",
+
+  "**Your data.** Your answers have been recorded against the participant number your recruitment platform gave us, and no name. If you would like them removed, send us the completion code shown on this page. Thank you for taking part."
 ];
 
-/* Restated directly above the control question, and not earlier: the open
-   description comes first so that it is not shaped by the list. */
+/* Sits directly above the control question, after the genuineness rating, so
+   the answer options cannot colour that rating. It no longer restates the
+   three arrangements — that repetition was the matching cue — and carries the
+   anti-matching sentence instead. */
 export const S2_REMINDER =
-  "OriHime may be controlled by a human operator, by a human operator with AI assistance, or entirely by an AI system. We have not said which applies to this clip.";
+  "We have not said how OriHime is controlled in this video. It may be the same arrangement as in the other videos, or a different one.";
 
 /* Item wording. The option order of WHO follows the order the three methods
    are introduced on page one. */
@@ -157,6 +169,11 @@ export const S2_ITEMS = {
      genuine" can be set beside Study 1's C1 effect. */
   AU1: { stem: "This interaction felt genuine, rather than like the execution of a program." },
 
+  /* The options are the control categories, and this is the only place they
+     appear: page one no longer teaches them. Each corresponds to one of Study
+     1's three control conditions (H, HA, A) in the same terms Study 1 framed
+     them, which is what lets the two studies be set side by side — but the
+     correspondence is documented in the analysis plan, not shown to anyone. */
   WHO: {
     stem: "Who do you think is controlling OriHime in this video?",
     options: [
@@ -187,10 +204,42 @@ export const S2_ITEMS = {
   CONF_DIS: { stem: "How confident are you in that judgement?" },
 
   /* Instructed-response check, on the middle clip only, the position Study 1
-     gives it. With the open descriptions gone this is the only quality
-     evidence the questionnaire itself produces, the playback telemetry aside.
-     Its answer key never leaves the server. */
-  AT1: { stem: "To show that you are reading carefully, please select “Disagree” for this item." }
+     gives it. It evidences that the page was read. Its answer key never leaves
+     the server. */
+  AT1: { stem: "To show that you are reading carefully, please select “Disagree” for this item." },
+
+  /* Video comprehension, on the clip shown LAST and after that clip's three
+     judgements. Playback duration says a video played, not that anyone
+     watched it, and in a study whose whole subject is what people infer from
+     watching, that distinction is the difference between a usable sample and
+     an assumed one.
+     Placed last so that learning the study checks comprehension cannot change
+     how the earlier clips were watched; asked after the judgements so it
+     cannot direct attention to the detail it asks about.
+     The options and the key are Study 1's AV1 bank for whichever clip landed
+     in that position, read from shared/instrument.js so there is one source of
+     truth. THEY ARE WRITTEN FROM THE SHOOTING SCRIPT, NOT FROM THE CUT: every
+     option has to be checked against the final audio before recruitment opens,
+     exactly as Study 1's known limitations already say. */
+  AV1: { stem: "Which of the following happened in the video you just watched?" }
+};
+
+/* Asked at the very end, after every judgement. OriHime is publicly associated
+   with remote participation by people who are hospitalised or have physical
+   disabilities, so a participant who already knows the product may answer the
+   disability question from what they knew before rather than from the clip.
+   These two items make that visible. They are for prespecified stratified
+   description and sensitivity analysis — never a post-hoc exclusion chosen
+   after the fact. */
+export const S2_FAMILIARITY = {
+  heard: {
+    stem: "Before today, had you heard of OriHime?",
+    options: ["No", "Yes, but only vaguely", "Yes, I was familiar with it"]
+  },
+  control: {
+    stem: "Before today, did you know how OriHime is usually controlled?",
+    options: ["No", "Not sure", "Yes"]
+  }
 };
 
 /* Asked once at the end. Whether people think the three clips were controlled
@@ -276,8 +325,6 @@ export function buildS2Plan(order) {
     about: {
       head: S2_ABOUT.head,
       intro: S2_ABOUT.intro,
-      methodsLead: S2_ABOUT.methodsLead,
-      methods: S2_CONTROL_METHODS.map(m => ({ label: m.label, text: m.text })),
       after: S2_ABOUT.after
     },
     consentIntro: "Please confirm all three before continuing.",
@@ -323,6 +370,15 @@ export function buildS2Plan(order) {
         { ...meta, group: "attention", expected: ATTENTION_CHECK_VALUE }));
     }
 
+    /* Video comprehension on the clip shown last, after its judgements. The
+       position is fixed in advance rather than sampled, so every participant
+       is checked on one clip and each clip is checked equally often across the
+       six orders. Its key is stripped with AT1's. */
+    if (i === 2) {
+      items.push(mc(q("AV1"), S2_ITEMS.AV1.stem, AV1_BANK[seg].options,
+        { ...meta, group: "comprehension", expected: AV1_BANK[seg].correct }));
+    }
+
     pages.push({
       key: `clip_${pos}`,
       kind: "segment",
@@ -352,6 +408,10 @@ export function buildS2Plan(order) {
       mc("BG_gender", S2_BACKGROUND.gender, GENDER),
       mc("BG_freq_ai", S2_BACKGROUND.freqAi, FREQ),
       mc("BG_freq_disability", S2_BACKGROUND.freqDisability, FREQ),
+      mc("BG_orihime_familiar", S2_FAMILIARITY.heard.stem, S2_FAMILIARITY.heard.options,
+        { group: "familiarity" }),
+      mc("BG_orihime_control_knowledge", S2_FAMILIARITY.control.stem, S2_FAMILIARITY.control.options,
+        { group: "familiarity" }),
       matrix("__gaais", S2_BACKGROUND.gaaisLead,
         S2_GAAIS.map(g => likert(`GAAIS_${String(g.n).padStart(2, "0")}`, g.text, { group: "gaais" })))
     ]
@@ -431,7 +491,7 @@ export function s2AllItemIds() {
     AU1: 0, AU1_CONF: 1,
     WHO: 2, WHO_CONF: 3,
     DIS: 4, DIS_CONF: 5,
-    AT1: 6
+    AT1: 6, AV1: 7
   };
   /* Split on the FIRST underscore only: REL_WHO_CONF is segment REL, code
      WHO_CONF, and must not collapse onto REL_WHO. */
@@ -445,7 +505,10 @@ export function s2AllItemIds() {
     /* Asked order, not alphabetical: a reader opening wide.csv should meet the
        background columns in the order the page put them. */
     if (seg === "BG") {
-      const bgRank = { age: 0, gender: 1, freq_ai: 2, freq_disability: 3 };
+      const bgRank = {
+        age: 0, gender: 1, freq_ai: 2, freq_disability: 3,
+        orihime_familiar: 4, orihime_control_knowledge: 5
+      };
       return [3, bgRank[code] ?? 9, id];
     }
     if (seg === "GAAIS") return [4, 0, id];

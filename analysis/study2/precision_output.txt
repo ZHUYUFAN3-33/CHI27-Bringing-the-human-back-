@@ -1,0 +1,86 @@
+Study 2 (Track A) — precision and power
+========================================================================
+
+1. Worst-case precision of one proportion (Wilson 95%, p = .50)
+   The estimand: P(human involved), P(AI only), P(can't tell), per clip.
+
+     usable n    half-width
+          200          6.9 pp
+          250          6.2 pp
+          270          5.9 pp
+          300          5.6 pp
+          330          5.4 pp
+          385          5.0 pp
+          400          4.9 pp
+
+2. Precision away from .50, at n = 300 (the recommended target)
+
+    true share    half-width
+          20%          4.5 pp
+          30%          5.2 pp
+          40%          5.5 pp
+          50%          5.6 pp
+          60%          5.5 pp
+          70%          5.2 pp
+          80%          4.5 pp
+
+3. The 'majority' rule: Wilson 95% lower bound above 50%
+   Power at a given true share, and the n that reaches 80%.
+
+    true share   power @300   n for 80%
+          55%         43%         777
+          60%         94%         198
+          65%        100%          89
+          70%        100%          48
+          75%        100%          29
+
+   A true share of .55 needs a sample this study will not have, so a
+   'majority' claim is only in reach if the real split is lopsided.
+   Report the interval either way; the majority rule decides wording,
+   not whether there is a result.
+
+4. The conditional disability denominator
+   DIS is interpretable only among people who inferred a person is
+   involved, and that share is itself an outcome. At 300 usable:
+
+    infer a human   denominator   half-width @ p=.50
+             30%            90                10.1 pp
+             40%           120                 8.8 pp
+             50%           150                 7.9 pp
+             60%           180                 7.2 pp
+             75%           225                 6.5 pp
+             90%           270                 5.9 pp
+
+   This is why the primary disability reporting is the full WHO x DIS
+   table over everyone, with the conditional estimate as the second
+   step rather than the only one.
+
+5. Within-person clip differences (exact McNemar, simulated power)
+   Same people answer all three clips, so the comparison is paired.
+   rho is how strongly one person's two answers move together.
+
+       n   clip A   clip B    rho    power
+     200      50%      60%    0.0     46%
+     200      50%      60%    0.3     60%
+     200      50%      60%    0.6     76%
+     200      50%      65%    0.0     83%
+     200      50%      65%    0.3     92%
+     200      50%      65%    0.6     98%
+     300      50%      60%    0.0     65%
+     300      50%      60%    0.3     78%
+     300      50%      60%    0.6     92%
+     300      50%      65%    0.0     95%
+     300      50%      65%    0.3     98%
+     300      50%      65%    0.6    100%
+
+   At n = 300 a ten-point paired difference reaches 80% power only
+   once the two answers are correlated (78% at rho = .3, 92% at .6);
+   under independence it is 65%. A fifteen-point difference is
+   comfortable throughout. So clip differences are powered for a
+   sizeable gap, not for a small one, and the plan treats them as a
+   secondary question reported with intervals either way.
+
+========================================================================
+Recommendation: 300 usable participants, recruit about 330 completers
+to absorb 8-10% loss to the two prespecified quality checks. At 300
+usable, no proportion is reported less precisely than +/-5.6 points.

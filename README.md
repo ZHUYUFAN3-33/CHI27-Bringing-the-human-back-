@@ -29,7 +29,11 @@ involved has a disability — each one rated and then followed by how confident
 the participant is in that answer; a closing question and the background block;
 a finish page. The clip order is the only randomised factor. The instrument is
 `shared/s2-instrument.js`, the server side `src/s2/`, the participant runtime
-`public/s2/`. See [LINKS.md](LINKS.md#study-2--who-is-controlling-orihime).
+`public/s2/`. See [LINKS.md](LINKS.md#study-2--who-is-controlling-orihime), and
+**[STUDY2_PLAN.md](STUDY2_PLAN.md)** for what it claims and what it does not:
+Study 2 is a supplementary no-disclosure perception study, not a replication of
+Study 1's causal effect, and it has no randomised control-source manipulation to
+be one with.
 
 Study 2 shares Study 1's seven-point scale, its GAAIS items, its background item
 ids and the wording of `AU1`, all imported from `shared/instrument.js` rather

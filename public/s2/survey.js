@@ -224,11 +224,10 @@ function renderIntro(p) {
     fig.innerHTML = '<img src="/orihime.jpg" width="1600" height="899" alt="OriHime, a small white tabletop robot, on a table beside a seated person">';
     card.append(fig);
     card.append(el("p", null, md(a.intro)));
-    card.append(el("p", null, md(a.methodsLead)));
-    const ol = el("ol", "methods");
-    a.methods.forEach(m => ol.append(el("li", null, `<b>${esc(m.label)}</b><span>${md(m.text)}</span>`)));
-    card.append(ol);
-    card.append(el("p", null, md(a.after)));
+    /* No list of control arrangements here any more: naming three of them
+       before three clips was a matching cue. a.after carries the sentence that
+       says so, over two paragraphs. */
+    paragraphs(a.after).forEach(par => card.append(el("p", null, md(par))));
     pageEl.append(card);
   }
 

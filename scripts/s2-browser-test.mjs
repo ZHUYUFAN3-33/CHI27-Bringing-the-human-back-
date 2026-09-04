@@ -67,7 +67,9 @@ for (let i = 0; i < 6; i++) {
     headings: document.querySelectorAll(".seam").length,
     numbers: document.querySelectorAll('input[type="number"]').length,
     areas: document.querySelectorAll("textarea").length,
-    notes: document.querySelectorAll(".note").length
+    radios: document.querySelectorAll('input[type="radio"]').length,
+    notes: document.querySelectorAll(".note").length,
+    methods: document.querySelectorAll("ol.methods li").length
   })));
 }
 shape.forEach((s, i) => console.log(
@@ -84,18 +86,28 @@ check("each clip page carries four seven-point items, five on the middle clip",
 check("the attention check rides the middle clip and only the middle clip",
   clips[1].tables === clips[0].tables + 1,
   clips.map(s => s.tables).join("/"));
-check("s2-v3 asks for no free text anywhere",
+/* Radio counts per clip page: AU1, its confidence, WHO's confidence and DIS's
+   confidence are seven buttons each, WHO and DIS four each — 36. The middle
+   clip adds AT1 (seven), the last adds the four-option comprehension check. */
+check("the comprehension check rides the last clip and only the last clip",
+  clips[0].radios === 36 && clips[1].radios === 43 && clips[2].radios === 40,
+  clips.map(s => s.radios).join("/"));
+check("the instrument asks for no free text anywhere",
   shape.every(s => s.areas === 0));
-check("the reminder of the three control methods is on every clip page",
+check("the note above the control question is on every clip page",
   clips.every(s => s.notes === 1));
 check("every seven-point table is a stem column plus seven points",
   shape.every(s => s.cols % 8 === 0));
 check("the background page carries the five GAAIS rows, the age box and the seam",
   shape[4].rows === 5 && shape[4].numbers === 1 && shape[4].headings === 1);
+/* Page one must no longer teach a list of control arrangements: three of them
+   named before three clips is the matching cue the design review called out. */
+check("page one names no list of control arrangements",
+  shape[0].methods === 0, `${shape[0].methods} listed`);
 
 /* ---- the unanswered count sees through the matrix blocks ---------------- */
 
-for (const [idx, label, want] of [[1, "clip 1", 6], [2, "clip 2", 7], [4, "background", 10]]) {
+for (const [idx, label, want] of [[1, "clip 1", 6], [2, "clip 2", 7], [3, "clip 3", 7], [4, "background", 12]]) {
   await page.evaluate(n => window.__previewGoto(n), idx);
   await page.waitForTimeout(250);
   check(`${label}: ${want} required items counted while the page is blank`,

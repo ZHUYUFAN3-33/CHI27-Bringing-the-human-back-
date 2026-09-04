@@ -64,6 +64,12 @@ CREATE INDEX IF NOT EXISTS participants_status_idx    ON participants (status);
 CREATE INDEX IF NOT EXISTS participants_cell_idx      ON participants (cell);
 CREATE INDEX IF NOT EXISTS participants_started_idx   ON participants (started_at DESC);
 CREATE INDEX IF NOT EXISTS participants_ext_pid_idx   ON participants (external_pid) WHERE external_pid IS NOT NULL;
+-- Study 2 refuses anyone who already has a Study 1 row, matching on
+-- lower(external_pid); this is the index that lookup reads. Deliberately not
+-- unique: Study 1 already holds collected data, and a unique index that failed
+-- to build would take the whole app down on boot.
+CREATE INDEX IF NOT EXISTS participants_ext_pid_lower_idx
+  ON participants (lower(external_pid)) WHERE external_pid IS NOT NULL;
 CREATE INDEX IF NOT EXISTS participants_lastseen_idx  ON participants (last_seen_at DESC);
 
 -- -----------------------------------------------------------------------------

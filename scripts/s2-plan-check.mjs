@@ -42,7 +42,11 @@ for (const o of m.S2_ORDER_KEYS) {
       flat.push(it);
     }
     const codes = flat.map(it => it.id.slice(it.id.indexOf("_") + 1));
-    const want = i === 1 ? [...CLIP_CODES, "AT1"] : CLIP_CODES;
+    /* The middle clip carries the instructed-response check, the last one the
+       video-comprehension check; the first carries neither. */
+    const want = i === 1 ? [...CLIP_CODES, "AT1"]
+               : i === 2 ? [...CLIP_CODES, "AV1"]
+               : CLIP_CODES;
     if (codes.join(",") !== want.join(",")) die(`${o} ${c.key}: items are ${codes.join(",")}`);
     if (!c.video?.id || !c.video?.duration) die(`${o} ${c.key}: no clip`);
   });
@@ -61,8 +65,25 @@ for (const o of m.S2_ORDER_KEYS) {
   if (checks.length !== 1) die(`${o}: ${checks.length} attention checks, expected 1`);
   if (!Number.isInteger(checks[0].expected)) die(`${o}: attention check has no answer key`);
 
+  const comp = items.filter(i => i.group === "comprehension");
+  if (comp.length !== 1) die(`${o}: ${comp.length} comprehension checks, expected 1`);
+  if (!Number.isInteger(comp[0].expected)) die(`${o}: comprehension check has no answer key`);
+  if (comp[0].segPosition !== 3) die(`${o}: comprehension check is on clip ${comp[0].segPosition}, expected 3`);
+
+  /* Prior familiarity with OriHime is asked of everyone, at the end. */
+  const fam = items.filter(i => i.group === "familiarity");
+  if (fam.length !== 2) die(`${o}: ${fam.length} familiarity items, expected 2`);
+
   const pub = m.publicS2Plan(plan);
   if (JSON.stringify(pub).includes('"expected"')) die(`${o}: an answer key reached the public plan`);
   if (pub.scale?.length !== 7) die(`${o}: the public plan carries no seven-point scale`);
 }
+/* Not a failure — the study is meant to be walked and previewed long before
+   the debrief is finalised — but it must never reach recruitment like this. */
+if (m.S2_DEBRIEF.some(par => par.includes(m.S2_DEBRIEF_PLACEHOLDER))) {
+  console.log("WARNING: the debrief still carries its placeholder. Only the PI can say how each");
+  console.log("         clip was actually controlled; fill S2_DEBRIEF in and have the page");
+  console.log("         approved with the ethics materials before recruitment opens.");
+}
+
 console.log(`s2 plan ok: ${m.S2_ORDER_KEYS.length} orders, ${PAGES} pages, ${all.size} stored items`);

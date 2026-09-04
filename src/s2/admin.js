@@ -45,16 +45,19 @@ export default async function s2AdminRoutes(app) {
            COUNT(*) FILTER (WHERE status = 'screened_out')              AS screened_out,
            COUNT(*) FILTER (WHERE status = 'completed'
                               AND COALESCE(complete_pass, TRUE)
-                              AND COALESCE(attention_pass, TRUE))       AS usable,
+                              AND COALESCE(attention_pass, TRUE)
+                              AND COALESCE(comprehension_pass, TRUE))   AS usable,
            COUNT(*) FILTER (WHERE status = 'completed'
                               AND attention_pass IS FALSE)              AS attention_fail,
+           COUNT(*) FILTER (WHERE status = 'completed'
+                              AND comprehension_pass IS FALSE)          AS comprehension_fail,
            ROUND(percentile_cont(0.5) WITHIN GROUP (
              ORDER BY EXTRACT(EPOCH FROM (last_answer_at - first_answer_at))
            ) FILTER (WHERE status = 'completed'))                       AS median_seconds
          FROM s2_participants WHERE NOT is_test`),
       s2AllocationSnapshot(),
       q(`SELECT id, short_code, seg_order, status, source, external_pid, answered_count,
-                complete_pass, attention_pass, started_at, completed_at, last_seen_at
+                complete_pass, attention_pass, comprehension_pass, started_at, completed_at, last_seen_at
            FROM s2_participants WHERE NOT is_test
           ORDER BY started_at DESC LIMIT 40`),
       q(`SELECT COUNT(*) AS n FROM s2_participants

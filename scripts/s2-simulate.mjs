@@ -103,7 +103,14 @@ function answersFor(page) {
     } else if (it.type === "number") {
       out.push({ ...base, num: 18 + rnd(50), text: null, latencyMs: 4000 + rnd(6000) });
     } else {
-      out.push({ ...base, num: rnd(it.options.length), text: null, latencyMs: 3000 + rnd(9000) });
+      /* The comprehension check has one right answer out of four; four in five
+         simulated participants get it, so both branches of the flag are
+         exercised without making the sample look broken. The key is not in the
+         plan the browser receives, so the simulator does not know it either —
+         option 0 stands in, which is the real key for some clips and not for
+         others, and that is fine for a smoke test. */
+      const guess = it.id.endsWith("_AV1") && Math.random() < 0.8 ? 0 : rnd(it.options.length);
+      out.push({ ...base, num: guess, text: null, latencyMs: 3000 + rnd(9000) });
     }
   }
   return out;

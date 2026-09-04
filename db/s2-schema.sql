@@ -45,17 +45,28 @@ CREATE TABLE IF NOT EXISTS s2_participants (
   -- derived on completion
   complete_pass    BOOLEAN,                         -- every required item present at submit
   attention_pass   BOOLEAN,                         -- instructed-response check, scored server-side
+  comprehension_pass BOOLEAN,                       -- video-comprehension check, scored server-side
   text_chars       INTEGER NOT NULL DEFAULT 0       -- free-text characters; unused in s2-v3, which asks none
 );
 
 -- CREATE TABLE IF NOT EXISTS does not add columns to an existing deployment.
 ALTER TABLE s2_participants
   ADD COLUMN IF NOT EXISTS attention_pass BOOLEAN;
+ALTER TABLE s2_participants
+  ADD COLUMN IF NOT EXISTS comprehension_pass BOOLEAN;
 
 CREATE INDEX IF NOT EXISTS s2_participants_status_idx   ON s2_participants (status);
 CREATE INDEX IF NOT EXISTS s2_participants_order_idx    ON s2_participants (seg_order);
 CREATE INDEX IF NOT EXISTS s2_participants_started_idx  ON s2_participants (started_at DESC);
 CREATE INDEX IF NOT EXISTS s2_participants_ext_pid_idx  ON s2_participants (external_pid) WHERE external_pid IS NOT NULL;
+-- One countable row per platform id, matched without regard to case. This is
+-- what makes two starts racing under one id impossible rather than merely
+-- unlikely, and it is the index the rejoin and the Study 1 exclusion read.
+-- Safe to create here because Study 2 has collected nothing; if it ever holds
+-- two countable rows for one id this statement fails the boot, which is the
+-- correct outcome -- the duplicate has to be resolved by hand.
+CREATE UNIQUE INDEX IF NOT EXISTS s2_participants_ext_pid_uniq
+  ON s2_participants (lower(external_pid)) WHERE external_pid IS NOT NULL AND NOT is_test;
 CREATE INDEX IF NOT EXISTS s2_participants_lastseen_idx ON s2_participants (last_seen_at DESC);
 
 CREATE TABLE IF NOT EXISTS s2_responses (
@@ -128,7 +139,8 @@ SELECT a.cell,
        COUNT(p.id) FILTER (WHERE p.status = 'screened_out' AND NOT p.is_test) AS screened_out,
        COUNT(p.id) FILTER (WHERE p.status = 'completed'    AND NOT p.is_test
                              AND COALESCE(p.complete_pass, TRUE)
-                             AND COALESCE(p.attention_pass, TRUE))              AS usable
+                             AND COALESCE(p.attention_pass, TRUE)
+                             AND COALESCE(p.comprehension_pass, TRUE))          AS usable
 FROM s2_allocation a
 LEFT JOIN s2_participants p ON p.seg_order = a.cell
 GROUP BY a.cell, a.seg_order, a.enabled, a.target, a.assigned
