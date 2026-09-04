@@ -250,17 +250,18 @@ belongs in the limitations.
 A second study on a **fresh sample**, served by the same app under `/s2`.
 Nobody is told how OriHime is controlled: page one says only that there are
 three ways it can be. Each of the three clips is then followed by the same
-questions — an open description (at least 30 characters), the two evaluation
-items `AU1` and `OH2` carried over verbatim from Study 1, who they think is
-controlling the robot and how confident they are in that, and whether a person
-involved is thought to have a disability. The last two are optional
-follow-ups: what made them think so, and what kind of disability. Six pages:
+three questions, each one rated and then followed by how confident the
+participant is in that answer: whether the interaction felt genuine (`AU1`,
+carried over verbatim from Study 1), who they think is controlling the robot,
+and whether a person involved is thought to have a disability. Six pages:
 information · about OriHime · consent (one page), three clips, a closing
 question with the background block, finish. The only randomised factor is the
 clip order, balanced across the same six permutations.
 
-An instructed-response check rides the clip shown **second**, whichever clip
-that is, and is scored on the server against a key the browser never receives.
+**There is no free text anywhere.** An instructed-response check rides the clip
+shown **second**, whichever clip that is, scored on the server against a key the
+browser never receives; that check and the playback telemetry are the whole of
+the quality evidence.
 The background block is asked last, where it cannot colour a judgement: age,
 gender, AI-use frequency, contact with people with disabilities, and the five
 positive GAAIS items — the same ids Study 1 uses, so the two samples can be
@@ -292,8 +293,9 @@ https://study1-survey.fly.dev/s2/preview?token=<TOKEN>&order=O3
 ```
 
 The dashboard shows, live, how the two forced-choice questions are being
-answered per clip (or per position shown), the length of the open descriptions,
-the most recent descriptions in full, allocation over the six orders, drop-off,
+answered per clip (or per position shown), the mean and median of the four
+seven-point items per clip, how many failed the attention check, allocation over
+the six orders, drop-off,
 and the export panel. The preview renders the six pages for any clip order and
 records nothing. **There is no wording editor for Study 2**: its text lives in
 `shared/s2-instrument.js` and changes with a deploy.
@@ -306,9 +308,9 @@ https://study1-survey.fly.dev/api/s2/export/wide.csv?token=<TOKEN>
 
 | path | one row per |
 |---|---|
-| `/api/s2/export/participants.csv` | participant — order, `pos_REL/ADV/COL`, status, `complete_pass`, `attention_pass`, `text_chars` |
-| `/api/s2/export/responses.csv` | answer (long); the descriptions are in `value_text` |
-| `/api/s2/export/wide.csv` | participant, one column per item (`E1–E3`, `REL_IMP/AU1/OH2/AT1/WHO/CONF/WHY/DIS/DIS_KIND`, `ADV_…`, `COL_…`, `SAME`, `BG_*`, `GAAIS_*`) |
+| `/api/s2/export/participants.csv` | participant — order, `pos_REL/ADV/COL`, status, `complete_pass`, `attention_pass` |
+| `/api/s2/export/responses.csv` | answer (long); `value_num` is the code, `value_text` the label shown |
+| `/api/s2/export/wide.csv` | participant, one column per item (`E1–E3`, `REL_AU1/AU1_CONF/WHO/WHO_CONF/DIS/DIS_CONF/AT1`, `ADV_…`, `COL_…`, `SAME`, `BG_*`, `GAAIS_*`) |
 | `/api/s2/export/page_times.csv` | page visit |
 | `/api/s2/export/video_events.csv` | player event |
 | `/api/s2/export/codebook.csv` | item — coding and stem |
@@ -316,8 +318,8 @@ https://study1-survey.fly.dev/api/s2/export/wide.csv?token=<TOKEN>
 
 Same query parameters as Study 1: `include_test=1`, `status=`, `usable_only=1`
 (completed, every required item answered, attention check passed), `since=`,
-`labels=1`. `text_chars` counts the three open descriptions only, not the
-optional follow-ups. All at once:
+`labels=1` (the wide file writes the option or scale label instead of the
+number). All at once:
 
 ```bash
 ADMIN_TOKEN=<TOKEN> ./scripts/s2-export.sh

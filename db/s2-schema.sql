@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS s2_participants (
   -- derived on completion
   complete_pass    BOOLEAN,                         -- every required item present at submit
   attention_pass   BOOLEAN,                         -- instructed-response check, scored server-side
-  text_chars       INTEGER NOT NULL DEFAULT 0       -- characters typed across the three descriptions
+  text_chars       INTEGER NOT NULL DEFAULT 0       -- free-text characters; unused in s2-v3, which asks none
 );
 
 -- CREATE TABLE IF NOT EXISTS does not add columns to an existing deployment.

@@ -10,7 +10,7 @@ import {
 const PARTICIPANT_COLUMNS = [
   "id", "short_code", "seg_order", "pos_REL", "pos_ADV", "pos_COL", "instrument_ver", "status",
   "screen_out_reason", "source", "external_pid", "external_study", "external_session", "is_test",
-  "complete_pass", "attention_pass", "text_chars", "answered_count", "started_at", "first_answer_at", "last_answer_at",
+  "complete_pass", "attention_pass", "answered_count", "started_at", "first_answer_at", "last_answer_at",
   "completed_at", "last_seen_at", "timezone", "ui_language", "screen_w", "screen_h", "ip_hash", "user_agent"
 ];
 
@@ -126,7 +126,7 @@ export default async function s2ExportRoutes(app) {
     const { where, params } = filters(req.query);
     const itemIds = s2AllItemIds();
     const meta = ["participant_id", "short_code", "seg_order", "pos_REL", "pos_ADV", "pos_COL",
-                  "status", "source", "external_pid", "is_test", "complete_pass", "attention_pass", "text_chars",
+                  "status", "source", "external_pid", "is_test", "complete_pass", "attention_pass",
                   "duration_s", "answered_count", "started_at", "completed_at", "instrument_ver"];
     const labels = /^(1|true|yes)$/i.test(String(req.query.labels ?? ""));
     const out = beginCsv(reply, labels ? "s2_wide_labels" : "s2_wide");
@@ -146,7 +146,7 @@ export default async function s2ExportRoutes(app) {
           ? Math.round((Date.parse(p.last_answer_at) - Date.parse(p.first_answer_at)) / 1000) : null;
         const metaVals = [
           p.id, p.short_code, p.seg_order, pos.pos_REL, pos.pos_ADV, pos.pos_COL,
-          p.status, p.source, p.external_pid, p.is_test, p.complete_pass, p.attention_pass, p.text_chars,
+          p.status, p.source, p.external_pid, p.is_test, p.complete_pass, p.attention_pass,
           dur, p.answered_count, p.started_at, p.completed_at, p.instrument_ver
         ];
         const itemVals = itemIds.map(id => {

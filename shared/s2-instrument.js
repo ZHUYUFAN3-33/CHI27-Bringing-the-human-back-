@@ -3,10 +3,14 @@
    -----------------------------------------------------------------------------
    A perception study on a fresh sample. Nobody is told how OriHime is
    controlled: page one says only that there are three ways it can be, and each
-   of the three clips is followed by the same questions — an open description,
-   two evaluation items carried over verbatim from Study 1, who the participant
-   thinks is controlling the robot and how confident they are in that, and
-   whether a person involved is thought to have a disability.
+   of the three clips is followed by the same three questions, each one rated
+   and then followed by how confident the participant is in that answer —
+   whether the interaction felt genuine, who they think is controlling the
+   robot, and whether a person involved is thought to have a disability.
+
+   There is no free text anywhere. The instructed-response check on the middle
+   clip is therefore the only quality evidence the questionnaire itself
+   produces; the playback telemetry is the other.
 
    Six pages: intro (information, about OriHime, consent) · three clips · a
    closing question with the background block · finish. The only thing
@@ -23,7 +27,7 @@ import {
   SCALE, FREQ, GENDER, GAAIS, ATTENTION_CHECK_VALUE
 } from "./instrument.js";
 
-export const S2_VERSION = "s2-v2";
+export const S2_VERSION = "s2-v3";
 
 /* The seven-point agreement scale, the frequency options and the GAAIS items
    are Study 1's, imported rather than restated: the two studies only compare
@@ -145,26 +149,13 @@ export const S2_REMINDER =
 /* Item wording. The option order of WHO follows the order the three methods
    are introduced on page one. */
 export const S2_ITEMS = {
-  IMP: {
-    stem: "What does the interaction in this video look like to you? Please describe it in your own words.",
-    /* Thirty characters, not ten: ten lets “it was fine” through, and the open
-       description is the only material the cue coding has to work with. */
-    minLength: 30,
-    maxLength: 2000
-  },
-
-  /* The two evaluation items are Study 1’s, word for word and on the same
-     seven-point scale, so “do people who spontaneously read the controller as
-     an AI also find the interaction less genuine” can be set beside Study 1’s
-     C1 effect. Asked before the three control methods are restated, so the
-     option list cannot steer them. */
+  /* The impression item. It replaces the open description the first draft
+     asked for: three questions per clip, each one a rating that a confidence
+     score can sensibly follow, was the brief. The wording is Study 1's, word
+     for word and on the same seven-point scale, so "do people who
+     spontaneously read the controller as an AI also find the interaction less
+     genuine" can be set beside Study 1's C1 effect. */
   AU1: { stem: "This interaction felt genuine, rather than like the execution of a program." },
-  OH2: { stem: "In this interaction, OriHime was useful for this task." },
-  BLOCK_LEAD: "Please answer the following about the interaction you have just watched.",
-
-  /* Instructed-response check, on the middle clip only, exactly where Study 1
-     puts it. Its answer key never leaves the server. */
-  AT1: { stem: "To show that you are reading carefully, please select “Disagree” for this item." },
 
   WHO: {
     stem: "Who do you think is controlling OriHime in this video?",
@@ -175,6 +166,7 @@ export const S2_ITEMS = {
       "I can’t tell"
     ]
   },
+
   DIS: {
     stem: "If a person is involved in controlling OriHime in this video, do you think that person has a disability?",
     options: [
@@ -185,27 +177,20 @@ export const S2_ITEMS = {
     ]
   },
 
-  /* Confidence is asked immediately after the judgement and before the reason:
-     writing out a justification is known to inflate how sure people say they
-     are, so the reason comes second. It separates a held impression from a
-     shrug, which is what the “weak default” rule in the analysis plan needs. */
-  CONF: { stem: "How confident are you in that judgement?" },
+  /* One confidence item after each of the three, worded for what it follows —
+     a rating is not a judgement, and an item that says "that judgement" under
+     an agreement scale reads as a mistake. Confidence separates a held
+     impression from a shrug, which is what the "weak default is treated as
+     near neutral" rule in the analysis plan needs to be decidable at all. */
+  CONF_AU1: { stem: "How confident are you in that rating?" },
+  CONF_WHO: { stem: "How confident are you in that judgement?" },
+  CONF_DIS: { stem: "How confident are you in that judgement?" },
 
-  /* Optional, and deliberately so: a required “why” turns into noise from the
-     people who have no reason to give. */
-  WHY: {
-    stem: "What made you think so?",
-    maxLength: 500
-  },
-
-  /* Only meaningful after “Yes” on DIS, but shown to everyone: the client has
-     no conditional-display logic, and an optional box that most people leave
-     empty costs less than the branching would. The wording carries the
-     condition so it reads correctly to the people it does not apply to. */
-  DIS_KIND: {
-    stem: "If you answered “Yes” above, what kind of disability do you have in mind?",
-    maxLength: 500
-  }
+  /* Instructed-response check, on the middle clip only, the position Study 1
+     gives it. With the open descriptions gone this is the only quality
+     evidence the questionnaire itself produces, the playback telemetry aside.
+     Its answer key never leaves the server. */
+  AT1: { stem: "To show that you are reading carefully, please select “Disagree” for this item." }
 };
 
 /* Asked once at the end. Whether people think the three clips were controlled
@@ -263,16 +248,6 @@ const matrix = (id, instruction, rows, extra = {}) =>
 const heading = (eyebrow, title, text) =>
   ({ type: "heading", eyebrow, title, text });
 
-/* Free text in a box that grows, not a one-line input: the open description is
-   the richest thing this study collects. */
-const longText = (id, stem, extra = {}) =>
-  ({ id, type: "text", multiline: true, stem, required: true, ...extra });
-
-/* The optional follow-ups. Not required, and with no minimum: an empty box is
-   a legitimate answer and simply never reaches the database. */
-const optionalText = (id, stem, extra = {}) =>
-  ({ id, type: "text", multiline: true, stem, required: false, ...extra });
-
 /* Renders a panel of text and stores nothing. */
 const note = text => ({ type: "note", text });
 
@@ -322,34 +297,31 @@ export function buildS2Plan(order) {
     const q = code => `${seg}_${code}`;
     const meta = { segment: seg, segPosition: pos };
 
-    /* The evaluation block. It sits between the open description and the
-       restatement of the three control methods: after, so the description is
-       the participant's own unprompted words; before, so the list of methods
-       cannot colour a judgement of how genuine the interaction felt. */
-    const evalRows = [
-      likert(q("AU1"), S2_ITEMS.AU1.stem, meta),
-      likert(q("OH2"), S2_ITEMS.OH2.stem, meta)
-    ];
-    /* The attention check rides in the middle clip, whichever content that is —
-       the same position Study 1 gives it. `expected` is stripped before the
-       plan is sent to the browser. */
-    if (i === 1) {
-      evalRows.push(likert(q("AT1"), S2_ITEMS.AT1.stem,
-        { ...meta, group: "attention", expected: ATTENTION_CHECK_VALUE }));
-    }
-
+    /* Three questions, each one a rating with its own confidence item.
+       AU1 comes before the three control methods are restated, so the option
+       list cannot colour a judgement of how genuine the interaction felt;
+       WHO and DIS come after it. Each confidence item sits immediately under
+       the answer it is about — asked later, it measures a memory of the
+       judgement rather than the judgement. */
     const items = [
-      longText(q("IMP"), S2_ITEMS.IMP.stem,
-        { ...meta, minLength: S2_ITEMS.IMP.minLength, maxLength: S2_ITEMS.IMP.maxLength }),
-      matrix(q("__eval"), S2_ITEMS.BLOCK_LEAD, evalRows, meta),
+      likert(q("AU1"), S2_ITEMS.AU1.stem, meta),
+      confidence(q("AU1_CONF"), S2_ITEMS.CONF_AU1.stem, { ...meta, group: "confidence" }),
       note(S2_REMINDER),
       mc(q("WHO"), S2_ITEMS.WHO.stem, S2_ITEMS.WHO.options, { ...meta, group: "who" }),
-      confidence(q("CONF"), S2_ITEMS.CONF.stem, { ...meta, group: "confidence" }),
-      optionalText(q("WHY"), S2_ITEMS.WHY.stem, { ...meta, maxLength: S2_ITEMS.WHY.maxLength }),
+      confidence(q("WHO_CONF"), S2_ITEMS.CONF_WHO.stem, { ...meta, group: "confidence" }),
       mc(q("DIS"), S2_ITEMS.DIS.stem, S2_ITEMS.DIS.options, { ...meta, group: "disability" }),
-      optionalText(q("DIS_KIND"), S2_ITEMS.DIS_KIND.stem,
-        { ...meta, maxLength: S2_ITEMS.DIS_KIND.maxLength })
+      confidence(q("DIS_CONF"), S2_ITEMS.CONF_DIS.stem, { ...meta, group: "confidence" })
     ];
+
+    /* The attention check rides the middle clip, whichever content that is —
+       the same position Study 1 gives it. It goes last on the page rather than
+       hidden in a block of agreement rows, because after the cut there is no
+       such block left on a clip page. `expected` is stripped before the plan
+       reaches the browser. */
+    if (i === 1) {
+      items.push(likert(q("AT1"), S2_ITEMS.AT1.stem,
+        { ...meta, group: "attention", expected: ATTENTION_CHECK_VALUE }));
+    }
 
     pages.push({
       key: `clip_${pos}`,
@@ -456,11 +428,13 @@ export function s2AllItemIds() {
      across a row of wide.csv. AT1 only exists on whichever clip fell in the
      middle, so each participant fills exactly one of the three AT1 columns. */
   const codeRank = {
-    IMP: 0, AU1: 1, OH2: 2, AT1: 3,
-    WHO: 4, CONF: 5, WHY: 6, DIS: 7, DIS_KIND: 8
+    AU1: 0, AU1_CONF: 1,
+    WHO: 2, WHO_CONF: 3,
+    DIS: 4, DIS_CONF: 5,
+    AT1: 6
   };
-  /* Split on the FIRST underscore only: REL_DIS_KIND is segment REL, code
-     DIS_KIND, and must not collapse onto REL_DIS. */
+  /* Split on the FIRST underscore only: REL_WHO_CONF is segment REL, code
+     WHO_CONF, and must not collapse onto REL_WHO. */
   const rank = id => {
     if (/^E\d/.test(id)) return [0, 0, id];
     const cut = id.indexOf("_");

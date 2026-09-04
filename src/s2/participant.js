@@ -321,13 +321,10 @@ export default async function s2ParticipantRoutes(app) {
                 page_index      = GREATEST(page_index, COALESCE($3, 0)),
                 last_seen_at    = now(),
                 answered_count  = (SELECT COUNT(*) FROM s2_responses WHERE participant_id = $1),
-                /* The three open descriptions only. The optional "why" and
-                   "what kind of disability" boxes are text too, and counting
-                   them would inflate the one number the dashboard uses to spot
-                   a participant who typed nothing worth reading. */
-                text_chars      = (SELECT COALESCE(SUM(LENGTH(value_text)), 0) FROM s2_responses
-                                    WHERE participant_id = $1 AND item_type = 'text'
-                                      AND right(item_id, 4) = '_IMP'),
+                /* text_chars is left at its default: s2-v3 collects no free
+                   text at all. The column stays so that re-introducing an open
+                   question is an instrument change and not a migration; the
+                   sum over item_type = 'text' comes back with it. */
                 first_answer_at = LEAST(first_answer_at, (SELECT MIN(answered_at) FROM s2_responses WHERE participant_id = $1)),
                 last_answer_at  = GREATEST(last_answer_at, (SELECT MAX(answered_at) FROM s2_responses WHERE participant_id = $1))
           WHERE id = $1`,

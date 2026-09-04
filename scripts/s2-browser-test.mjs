@@ -2,14 +2,14 @@
    every page for a chosen clip order, opens no video gate and records nothing,
    so the whole instrument can be walked without a participant row.
  *
- * What it is for. The v2 instrument brought four item types the Study 2 client
- * had never rendered — seven-point items, the matrix block that groups them, a
- * heading and a number box. A matrix block has no id of its own, so any walk
- * over a page's items that forgets to descend into its rows gets the unanswered
- * count wrong in one of two directions: the block itself counted as a missing
- * item, and the Next button never lights; or its rows never counted, and Next
- * lights while the page is still blank. Preview does not disable Next, but it
- * prints that count, which is missingOn() read straight off the page.
+ * What it is for. Study 2 brought four item types its client had never
+ * rendered — seven-point items, the matrix block that groups them, a heading
+ * and a number box. A matrix block has no id of its own, so any walk over a
+ * page's items that forgets to descend into its rows gets the unanswered count
+ * wrong in one of two directions: the block itself counted as a missing item,
+ * and the Next button never lights; or its rows never counted, and Next lights
+ * while the page is still blank. Preview does not disable Next, but it prints
+ * that count, which is missingOn() read straight off the page.
  *
  *   npm install --no-save playwright && npx playwright install chromium
  *   node scripts/s2-browser-test.mjs http://127.0.0.1:8080 $ADMIN_TOKEN
@@ -75,15 +75,17 @@ shape.forEach((s, i) => console.log(
   `${s.areas} text box(es) · ${s.numbers} number · ${s.headings} heading · ${s.notes} note`));
 
 const clips = [shape[1], shape[2], shape[3]];
-/* Two tables on a clip page: the evaluation block, and the lone confidence
-   item rendered as a one-row table. */
-check("each clip page carries the evaluation block and the confidence item",
-  clips.every(s => s.tables === 2));
-check("the attention check rides the middle clip and only the middle clip",
-  clips[0].rows === 3 && clips[1].rows === 4 && clips[2].rows === 3,
+/* Every seven-point item on a clip page is a lone item, so each renders as its
+   own one-row table: AU1 and three confidence items, plus AT1 on the middle
+   clip. */
+check("each clip page carries four seven-point items, five on the middle clip",
+  clips[0].rows === 4 && clips[1].rows === 5 && clips[2].rows === 4,
   clips.map(s => s.rows).join("/"));
-check("each clip page carries the description and the two optional follow-ups",
-  clips.every(s => s.areas === 3));
+check("the attention check rides the middle clip and only the middle clip",
+  clips[1].tables === clips[0].tables + 1,
+  clips.map(s => s.tables).join("/"));
+check("s2-v3 asks for no free text anywhere",
+  shape.every(s => s.areas === 0));
 check("the reminder of the three control methods is on every clip page",
   clips.every(s => s.notes === 1));
 check("every seven-point table is a stem column plus seven points",
@@ -109,15 +111,6 @@ for (const [idx, label, want] of [[1, "clip 1", 6], [2, "clip 2", 7], [4, "backg
   });
   await page.waitForTimeout(200);
 
-  if (await page.locator("textarea").count()) {
-    const ta = page.locator("textarea").first();
-    await ta.fill("too short");
-    await page.waitForTimeout(150);
-    check(`${label}: a description under the floor still counts as unanswered`,
-      await missing(page) === 1, `saw ${await missing(page)}`);
-    await ta.fill("The robot talks with a woman at a desk and seems to follow what she says.");
-    await page.waitForTimeout(150);
-  }
   check(`${label}: nothing outstanding once every required item is answered`,
     await missing(page) === 0, `saw ${await missing(page)}`);
 }

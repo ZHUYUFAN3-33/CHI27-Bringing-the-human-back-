@@ -87,11 +87,11 @@
     <div class="scroll"><table id="tallyWho" class="tally"></table></div>
     <div class="scroll"><table id="tallyDis" class="tally"></table></div>
   </div>
-  <div class="scroll" style="margin-top:14px"><table id="tallyText" class="tally"></table></div>
+  <div class="scroll" style="margin-top:14px"><table id="tallyRatings" class="tally"></table></div>
   <p class="note">
     Counts are of completed, non-test participants. Each cell is <code>n (% of that column)</code>.
-    The open descriptions are summarised by length here and readable in full below and in
-    <code>responses.csv</code>.
+    The seven-point items are summarised as mean and median below; the attention check is left out
+    of that table, since the mean of an instructed response says nothing.
   </p>
 
   <h2>Allocation — 6 clip orders</h2>
@@ -117,15 +117,12 @@
   <h2>Most recent participants</h2>
   <div class="scroll"><table id="recent"></table></div>
 
-  <h2>Most recent descriptions</h2>
-  <div class="scroll"><table id="recenttext"></table></div>
-
   <h2>Export</h2>
   <div class="row" id="exports"></div>
   <p class="note">
     <code>wide.csv</code> is one row per participant with one column per item; <code>pos_REL</code>,
     <code>pos_ADV</code>, <code>pos_COL</code> say where each clip was shown. <code>responses.csv</code> is long
-    format, with the descriptions in <code>value_text</code>. Add <code>?include_test=1</code> to include test
+    format, one row per answer. Add <code>?include_test=1</code> to include test
     rows, <code>?usable_only=1</code> for the analysis sample, or <code>?labels=1</code> on the wide file for
     option text instead of indices.
   </p>
@@ -153,9 +150,7 @@ function tiles(d) {
     ["In progress",      n(t.in_progress), "plain", `${n(d.activeNow)} active in last 5 min`],
     ["Screened out",     n(t.screened_out), "plain", "ineligible or declined"],
     ["Failed attention", n(t.attention_fail), t.attention_fail > 0 ? "warn" : "plain", "instructed-response check"],
-    ["Thin descriptions", n(t.thin_text), t.thin_text > 0 ? "warn" : "plain", "under 90 characters in total"],
-    ["Median duration",  mins, "plain", "first to last answer"],
-    ["Median text",      t.median_text_chars != null ? n(t.median_text_chars) + " ch" : "—", "plain", "characters across the three descriptions"]
+    ["Median duration",  mins, "plain", "first to last answer"]
   ].map(([k, v, cls, note]) =>
     `<div class="tile"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div><div class="n">${note}</div></div>`
   ).join("");
@@ -198,18 +193,28 @@ function tallyTable(elId, code, caption) {
   $(elId).innerHTML = head + body;
 }
 
-function tallyText() {
-  const rows = TALLY?.text ?? [];
-  $("#tallyText").innerHTML = `<caption>Open descriptions — length in characters</caption>
-    <tr><th>clip</th><th class="num">n</th><th class="num">median</th><th class="num">mean</th></tr>` +
-    rows.map(r => `<tr><td>${esc(r.segment)}</td><td class="num">${n(r.n)}</td>
-      <td class="num">${n(r.median_chars)}</td><td class="num">${n(r.mean_chars)}</td></tr>`).join("");
+/* The seven-point items, per clip. One column per item so a clip reads across:
+   how genuine it felt, and how sure people were of each of the three answers. */
+function tallyRatings() {
+  const rows = TALLY?.ratings ?? [];
+  const codes = ["AU1", "AU1_CONF", "WHO_CONF", "DIS_CONF"];
+  const label = { AU1: "felt genuine", AU1_CONF: "confidence · genuine",
+                  WHO_CONF: "confidence · who", DIS_CONF: "confidence · disability" };
+  const clips = [...new Set(rows.map(r => r.segment))].sort();
+  const at = (seg, code) => rows.find(r => r.segment === seg && r.code === code);
+  $("#tallyRatings").innerHTML =
+    `<caption>Seven-point items — mean (median), 1–7</caption>` +
+    `<tr><th>clip</th>${codes.map(c => `<th class="num">${label[c]}</th>`).join("")}</tr>` +
+    clips.map(seg => `<tr><td>${esc(seg)}</td>` + codes.map(c => {
+      const r = at(seg, c);
+      return `<td class="num">${r ? `${r.mean} <span class="muted">(${r.median})</span>` : "—"}</td>`;
+    }).join("") + `</tr>`).join("");
 }
 
 function tallies() {
   tallyTable("#tallyWho", "WHO", "Who do you think is controlling OriHime in this video?");
   tallyTable("#tallyDis", "DIS", "If a person is involved… do you think that person has a disability?");
-  tallyText();
+  tallyRatings();
 }
 
 function cellTable(cells) {
@@ -259,7 +264,7 @@ function syncTargetControl(cells) {
 
 function recentTable(rows) {
   const head = `<tr><th>started</th><th>code</th><th>order</th><th>status</th>
-    <th class="num">items</th><th class="num">text chars</th><th>complete</th><th>attention</th><th>external id</th></tr>`;
+    <th class="num">items</th><th>complete</th><th>attention</th><th>external id</th></tr>`;
   $("#recent").innerHTML = head + rows.map(r => {
     const st = r.status === "completed" ? "ok" : r.status === "screened_out" ? "bad" : "warn";
     const cp = r.complete_pass == null ? "" : `<span class="pill ${r.complete_pass ? "ok" : "bad"}">${r.complete_pass ? "all items" : "missing"}</span>`;
@@ -269,24 +274,11 @@ function recentTable(rows) {
       <td>${esc(r.short_code)}</td><td>${esc(r.seg_order)}</td>
       <td><span class="pill ${st}">${esc(r.status)}</span></td>
       <td class="num">${n(r.answered_count)}</td>
-      <td class="num" style="color:${r.text_chars < 60 && r.status === "completed" ? "var(--signal)" : "inherit"}">${n(r.text_chars)}</td>
       <td>${cp}</td>
       <td>${ap}</td>
       <td>${esc(r.external_pid ?? "")}</td>
     </tr>`;
   }).join("");
-}
-
-function recentText(rows) {
-  const head = `<tr><th>when</th><th>code</th><th>clip</th><th>description</th><th>who</th><th>disability</th></tr>`;
-  $("#recenttext").innerHTML = head + rows.map(r => `<tr>
-      <td>${new Date(r.answered_at).toLocaleString()}</td>
-      <td>${esc(r.short_code)}</td>
-      <td>${esc(r.segment)} <span style="color:var(--dim)">#${esc(r.seg_position)}</span></td>
-      <td class="wrap">${esc(r.value_text)}</td>
-      <td class="wrap" style="max-width:180px">${esc(r.who ?? "—")}</td>
-      <td class="wrap" style="max-width:160px">${esc(r.disability ?? "—")}</td>
-    </tr>`).join("");
 }
 
 function dropTable(pages) {
@@ -323,14 +315,13 @@ function panel(name, fn) {
 }
 
 async function load() {
-  let sum, drop, tally, text;
+  let sum, drop, tally;
   try {
     if (!DESIGN) DESIGN = await api("/api/s2/admin/design").catch(() => null);
-    [sum, drop, tally, text] = await Promise.all([
+    [sum, drop, tally] = await Promise.all([
       api("/api/s2/admin/summary").catch(e => ({ error: e.message })),
       api("/api/s2/admin/dropoff").catch(e => ({ error: e.message })),
-      api("/api/s2/admin/tally").catch(e => ({ error: e.message })),
-      api("/api/s2/admin/recent-text?limit=30").catch(e => ({ error: e.message }))
+      api("/api/s2/admin/tally").catch(e => ({ error: e.message }))
     ]);
   } catch (e) {
     $("#sub").textContent = "could not reach the server: " + e.message;
@@ -348,7 +339,6 @@ async function load() {
     sum?.recent && panel("recent",  () => recentTable(sum.recent)),
     drop?.pages && panel("dropoff", () => dropTable(drop.pages)),
     TALLY       && panel("tally",   tallies),
-    text?.rows  && panel("text",    () => recentText(text.rows)),
     panel("exports", exportLinks)
   ].filter(Boolean);
   if (broken.length) $("#sub").textContent += "  ·  panels failed: " + broken.join(", ");

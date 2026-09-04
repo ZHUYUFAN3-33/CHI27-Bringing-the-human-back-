@@ -6,7 +6,7 @@ import {
   s2AllocationSnapshot, reconcileS2Allocation, setS2CellTarget, setS2AllTargets, setS2CellEnabled
 } from "./allocation.js";
 import {
-  buildS2Plan, publicS2Plan, s2PlanItems, S2_ORDER_KEYS, S2_ORDERS, S2_ITEMS, S2_CONFIDENCE,
+  buildS2Plan, publicS2Plan, s2PlanItems, S2_ORDER_KEYS, S2_ORDERS, S2_ITEMS, S2_CONFIDENCE, S2_SCALE,
   S2_SEGMENT_KEYS, S2_VERSION
 } from "../../shared/s2-instrument.js";
 
@@ -30,8 +30,8 @@ export default async function s2AdminRoutes(app) {
     segments: S2_SEGMENT_KEYS,
     items: {
       WHO: S2_ITEMS.WHO, DIS: S2_ITEMS.DIS,
-      IMP: { stem: S2_ITEMS.IMP.stem, minLength: S2_ITEMS.IMP.minLength },
-      CONF: { stem: S2_ITEMS.CONF.stem, options: S2_CONFIDENCE }
+      AU1: { stem: S2_ITEMS.AU1.stem, options: S2_SCALE },
+      CONF: { stem: S2_ITEMS.CONF_WHO.stem, options: S2_CONFIDENCE }
     },
     instrumentVersion: S2_VERSION
   }));
@@ -48,16 +48,13 @@ export default async function s2AdminRoutes(app) {
                               AND COALESCE(attention_pass, TRUE))       AS usable,
            COUNT(*) FILTER (WHERE status = 'completed'
                               AND attention_pass IS FALSE)              AS attention_fail,
-           COUNT(*) FILTER (WHERE status = 'completed' AND text_chars < 90) AS thin_text,
            ROUND(percentile_cont(0.5) WITHIN GROUP (
              ORDER BY EXTRACT(EPOCH FROM (last_answer_at - first_answer_at))
-           ) FILTER (WHERE status = 'completed'))                       AS median_seconds,
-           ROUND(percentile_cont(0.5) WITHIN GROUP (ORDER BY text_chars)
-             FILTER (WHERE status = 'completed'))                       AS median_text_chars
+           ) FILTER (WHERE status = 'completed'))                       AS median_seconds
          FROM s2_participants WHERE NOT is_test`),
       s2AllocationSnapshot(),
       q(`SELECT id, short_code, seg_order, status, source, external_pid, answered_count,
-                text_chars, complete_pass, attention_pass, started_at, completed_at, last_seen_at
+                complete_pass, attention_pass, started_at, completed_at, last_seen_at
            FROM s2_participants WHERE NOT is_test
           ORDER BY started_at DESC LIMIT 40`),
       q(`SELECT COUNT(*) AS n FROM s2_participants
@@ -93,7 +90,7 @@ export default async function s2AdminRoutes(app) {
   /* The study's headline numbers: how the two forced-choice items were
      answered, per clip and per position, among completed participants. */
   app.get("/api/s2/admin/tally", async () => {
-    const [bySegment, byPosition, text] = await Promise.all([
+    const [bySegment, byPosition, ratings] = await Promise.all([
       q(`SELECT r.segment, split_part(r.item_id, '_', 2) AS code, r.value_num::int AS option, COUNT(*)::int AS n
            FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
           WHERE NOT p.is_test AND p.status = 'completed' AND r.item_type = 'mc' AND r.segment IS NOT NULL
@@ -102,32 +99,25 @@ export default async function s2AdminRoutes(app) {
            FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
           WHERE NOT p.is_test AND p.status = 'completed' AND r.item_type = 'mc' AND r.segment IS NOT NULL
           GROUP BY 1, 2, 3 ORDER BY 1, 2, 3`),
-      q(`SELECT r.segment, COUNT(*)::int AS n,
-                ROUND(AVG(LENGTH(r.value_text)))::int AS mean_chars,
-                ROUND(percentile_cont(0.5) WITHIN GROUP (ORDER BY LENGTH(r.value_text)))::int AS median_chars
+      /* The seven-point items, per clip: how genuine the interaction felt and
+         how confident people were in each of the three answers. With the open
+         descriptions gone these are the only continuous signal there is to
+         watch while collection runs. AT1 is excluded — it measures attention,
+         not an impression, and its mean means nothing. */
+      q(`SELECT r.segment, split_part(r.item_id, '_', 2)
+                  || CASE WHEN r.item_id LIKE '%\_CONF' THEN '_CONF' ELSE '' END AS code,
+                COUNT(*)::int AS n,
+                ROUND(AVG(r.value_num)::numeric, 2)::float8 AS mean,
+                ROUND(percentile_cont(0.5) WITHIN GROUP (ORDER BY r.value_num)::numeric, 1)::float8 AS median
            FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
           WHERE NOT p.is_test AND p.status = 'completed'
-            AND r.item_type = 'text' AND right(r.item_id, 4) = '_IMP'
-          GROUP BY 1 ORDER BY 1`)
+            AND r.item_type = 'likert7' AND r.item_id NOT LIKE '%\_AT1'
+            /* Clip items only: the GAAIS rows are seven-point too, but they
+               carry no segment and belong to the background block. */
+            AND r.segment IS NOT NULL
+          GROUP BY 1, 2 ORDER BY 1, 2`)
     ]);
-    return { bySegment: bySegment.rows, byPosition: byPosition.rows, text: text.rows };
-  });
-
-  /* The most recent open descriptions, so the team can read what is coming in
-     without pulling an export. */
-  app.get("/api/s2/admin/recent-text", async (req) => {
-    const limit = Math.min(200, Number(req.query.limit) || 30);
-    const { rows } = await q(
-      `SELECT p.short_code, p.seg_order, r.segment, r.seg_position, r.value_text, r.answered_at,
-              w.value_text AS who, d.value_text AS disability
-         FROM s2_responses r
-         JOIN s2_participants p ON p.id = r.participant_id
-         LEFT JOIN s2_responses w ON w.participant_id = r.participant_id AND w.item_id = r.segment || '_WHO'
-         LEFT JOIN s2_responses d ON d.participant_id = r.participant_id AND d.item_id = r.segment || '_DIS'
-        WHERE NOT p.is_test AND r.item_type = 'text'
-        ORDER BY r.answered_at DESC LIMIT $1`, [limit]
-    );
-    return { rows };
+    return { bySegment: bySegment.rows, byPosition: byPosition.rows, ratings: ratings.rows };
   });
 
   app.post("/api/s2/admin/allocation/reconcile", async () => ({ cells: await reconcileS2Allocation() }));

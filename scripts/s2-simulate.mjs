@@ -15,17 +15,7 @@ const BASE = args.base ?? "http://127.0.0.1:8099";
 const REAL = args.real === "1";
 
 const now = () => new Date().toISOString();
-
-const SENTENCES = [
-  "A small white robot on a desk talks with a woman about her week; it nods and gestures and seems to follow what she says.",
-  "Looks like a remote presence robot. Someone is speaking through it, the replies are natural and a bit slow.",
-  "The robot gives advice about workload; it feels scripted but responsive, like a chatbot with a body.",
-  "Two people having an ordinary conversation, except one of them is a little robot with moving arms.",
-  "The robot helps with a document and a printer. The voice sounds human to me, maybe a person typing.",
-  "It seems friendly and attentive. Hard to say if a person is behind it or a program."
-];
 const rnd = n => Math.floor(Math.random() * n);
-const pick = a => a[rnd(a.length)];
 
 async function post(path, body, token) {
   const res = await fetch(BASE + path, {
@@ -105,9 +95,7 @@ function answersFor(page) {
   for (const it of flat) {
     if (it.required === false && Math.random() < 0.7) continue;
     const base = { id: it.id, at: now(), revisions: rnd(2) };
-    if (it.type === "text") {
-      out.push({ ...base, num: null, text: pick(SENTENCES), latencyMs: 20000 + rnd(40000), revisions: 0 });
-    } else if (it.type === "likert7") {
+    if (it.type === "likert7") {
       /* Nine in ten pass the attention check, so both branches of the flag get
          exercised without making the sample look broken. */
       const n = it.id.endsWith("_AT1") ? (Math.random() < 0.9 ? 2 : 1 + rnd(7)) : 1 + rnd(7);

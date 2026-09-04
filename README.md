@@ -23,19 +23,21 @@ server-side randomisation, storage, resume, quality flags, and export.
 **Study 2** — a perception study on a fresh sample, served by the same app under
 `/s2` with its own tables, dashboard (`/s2/admin`), preview (`/s2/preview`) and
 exports (`/api/s2/export/*`). Six pages: information, about OriHime and consent
-on one page; three clips, each followed by an open description, two evaluation
-items carried over from Study 1, who the participant thinks is controlling
-OriHime and how confident they are, and whether a person involved has a
-disability; a closing question and the background block; a finish page. The clip
-order is the only randomised factor. The instrument is
+on one page; three clips, each followed by the same three questions — whether
+the interaction felt genuine, who is controlling OriHime, and whether a person
+involved has a disability — each one rated and then followed by how confident
+the participant is in that answer; a closing question and the background block;
+a finish page. The clip order is the only randomised factor. The instrument is
 `shared/s2-instrument.js`, the server side `src/s2/`, the participant runtime
 `public/s2/`. See [LINKS.md](LINKS.md#study-2--who-is-controlling-orihime).
 
 Study 2 shares Study 1's seven-point scale, its GAAIS items, its background item
-ids and the wording of `AU1` and `OH2`, all imported from `shared/instrument.js`
-rather than restated — the two studies only compare if an answer of 6 means the
-same thing in both. Its instructed-response check is scored on the server
-against a key the browser is never sent, exactly as Study 1's is.
+ids and the wording of `AU1`, all imported from `shared/instrument.js` rather
+than restated — the two studies only compare if an answer of 6 means the same
+thing in both. Its instructed-response check is scored on the server against a
+key the browser is never sent, exactly as Study 1's is. Study 2 asks for no free
+text, so that check and the playback telemetry are the whole of its quality
+evidence.
 
 ---
 

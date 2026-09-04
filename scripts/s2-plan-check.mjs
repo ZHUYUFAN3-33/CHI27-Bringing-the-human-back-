@@ -8,9 +8,10 @@ const m = await import(new URL("../shared/s2-instrument.js", import.meta.url));
 const die = msg => { console.error(msg); process.exit(1); };
 
 const PAGES = 6;                       // intro · 3 clips · background · finish
-/* The order items are asked in on a clip page. AT1 is inserted after OH2 on
-   the middle clip only, so it is checked separately. */
-const CLIP_CODES = ["IMP", "AU1", "OH2", "WHO", "CONF", "WHY", "DIS", "DIS_KIND"];
+/* The order items are asked in on a clip page: three rated questions, each
+   followed by its own confidence item. AT1 is appended on the middle clip
+   only, so that page is checked separately. */
+const CLIP_CODES = ["AU1", "AU1_CONF", "WHO", "WHO_CONF", "DIS", "DIS_CONF"];
 
 const all = new Set(m.s2AllItemIds());
 for (const o of m.S2_ORDER_KEYS) {
@@ -41,12 +42,20 @@ for (const o of m.S2_ORDER_KEYS) {
       flat.push(it);
     }
     const codes = flat.map(it => it.id.slice(it.id.indexOf("_") + 1));
-    const want = i === 1
-      ? ["IMP", "AU1", "OH2", "AT1", "WHO", "CONF", "WHY", "DIS", "DIS_KIND"]
-      : CLIP_CODES;
+    const want = i === 1 ? [...CLIP_CODES, "AT1"] : CLIP_CODES;
     if (codes.join(",") !== want.join(",")) die(`${o} ${c.key}: items are ${codes.join(",")}`);
     if (!c.video?.id || !c.video?.duration) die(`${o} ${c.key}: no clip`);
   });
+
+  /* Every question on a clip page is followed by a confidence item: three
+     questions, three confidence scores, on every clip. */
+  const conf = items.filter(i => i.group === "confidence");
+  if (conf.length !== 9) die(`${o}: ${conf.length} confidence items, expected 9`);
+
+  /* s2-v3 asks for no free text at all, which is why the attention check is
+     the only quality evidence the instrument itself produces. */
+  const text = items.filter(i => i.type === "text");
+  if (text.length) die(`${o}: unexpected free-text items: ${text.map(i => i.id).join(", ")}`);
 
   const checks = items.filter(i => i.group === "attention");
   if (checks.length !== 1) die(`${o}: ${checks.length} attention checks, expected 1`);
