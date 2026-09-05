@@ -8,3 +8,6 @@ exports/
 
 # local copy of the Fly Postgres superuser credentials — never commit
 .pg-credentials.txt
+
+# Python bytecode from analysis/study2/precision.py
+__pycache__/
