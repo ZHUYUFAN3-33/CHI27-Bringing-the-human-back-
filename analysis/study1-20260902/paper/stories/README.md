@@ -1,6 +1,6 @@
 # Four candidate storylines for the Study 1 paper
 
-> Status: **candidate drafts, none adopted** (2026-09-05). All four use the same analyses (see `../results.md`, `../methods.md`); they differ in which finding leads, how the Results are ordered, and what the Discussion emphasises. Each file contains a title, a draft abstract, contribution bullets, an introduction frame, the Results order with evidence tags, Discussion themes, the limitations that must lead, reviewer risks, what Study 2 must show, and a defensibility grade.
+> Status: **superseded 2026-09-05** — the PI adopted one unified frame that carries all four as sections of a single paper; see `story_unified.md`. The four files remain as the source of each section's framing, evidence order and reviewer risks. All four use the same analyses (see `../results.md`, `../methods.md`); they differ in which finding leads, how the Results are ordered, and what the Discussion emphasises. Each file contains a title, a draft abstract, contribution bullets, an introduction frame, the Results order with evidence tags, Discussion themes, the limitations that must lead, reviewer risks, what Study 2 must show, and a defensibility grade.
 
 | Story | Thesis in one line | Leads with | Defensibility | Main risk |
 |---|---|---|---|---|
@@ -9,4 +9,4 @@
 | C · Disclosure does not change the judgment | Disclosing an operator's disability changes neither evaluations nor attributions; only human presence does | C3 bounded null + equivalence | **Medium** — depends on Study 2 showing the clips are not already read as “no disability”, and on accepting a bounded-null paper | Weak one-sentence manipulation; no disability-specific uptake check; Db scenario voids the claim |
 | D · In the eye of the sceptic | The AI-only penalty exists only for people already sceptical of AI; attitude, not the label, does the work | E1 moderation (exploratory) | **Low** — main finding is post hoc and needs replication | Reviewers will not accept an exploratory interaction as the headline |
 
-Recommendation: A as the primary manuscript, with B as its second contribution; C only if Study 2 returns scenario Dc/Da; D as a Discussion subsection or a short follow-up paper after replication, never as the headline.
+Earlier recommendation (kept for the record): A as the primary manuscript, with B as its second contribution; C only if Study 2 returns scenario Dc/Da; D as a Discussion subsection. Decision 2026-09-05: one paper, RQ order A → B → C, D exploratory, Study 2 as its own section before the Discussion (`story_unified.md`).
