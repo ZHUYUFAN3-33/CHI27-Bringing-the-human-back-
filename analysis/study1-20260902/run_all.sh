@@ -2,6 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 PY=/opt/anaconda3/bin/python
+export STUDY1_EXPORT="${STUDY1_EXPORT:-$(cd "$(dirname "$0")/../.." && pwd)/exports/20260902T104106Z}"
 $PY prep.py
 $PY quality.py > quality_report.txt
 $PY descriptives.py > descriptives_report.txt

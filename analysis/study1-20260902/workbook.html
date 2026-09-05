@@ -148,6 +148,7 @@ h3.tg3:focus-visible, section[id] > h2:focus-visible{outline:2px solid var(--acc
   <a href="#rq">5 · RQ → 统计问题</a>
   <a href="#framework">6 · 主统计框架与假设检查</a>
   <a href="#pairwise">7–8 · 全部两两比较（raw p 先看）</a>
+  <a class="sub" href="#pairwise-rules">未校正 p 的报告规则</a>
   <a href="#patterns">9 · Pattern 识别</a>
   <a href="#contrasts">11 · 理论对比（含残障合并）</a>
   <a href="#interactions">12 · 交互与简单效应</a>
@@ -1012,6 +1013,37 @@ I would be willing to take part in an interaction like this one with OriHime.
 This interaction felt genuine, rather than like the execution of a program.
 1 = Strongly disagree … 7 = Strongly agree">AU1</span> 里 3 对 A 的比较通过了 Holm，说明它们即使按最保守的标准也站得住。<b>BH-FDR：</b>控制“被判为显著的结果里假阳性的比例”，比 Holm 宽松，适合探索性地图。三种数字都保留，论文里说明主结论依据哪一种。</p>
   </div>
+  <h3 id="pairwise-rules">未校正 p 的报告规则</h3>
+  <p>两两比较里未校正 p &lt; .05 的结果可以进论文，但不能同等对待。规则不是“只有校正后的才能写”，而是：结论压在哪一层证据上，就用哪一层的措辞；完整的两两比较表（raw p、Holm p、BH p 三列并排）放补充材料，正文引用时说明看的是哪一列。分三档：</p>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>档次</th><th>本研究中的例子</th><th>允许的写法</th><th>不允许的写法</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · 校正后仍显著</th><td><span class="ic" tabindex="0" data-tip="AU1
+This interaction felt genuine, rather than like the execution of a program.
+1 = Strongly disagree … 7 = Strongly agree">AU1</span>：H1、H3、HA1 分别高于 A（Holm p .037、.006、.008）；<span class="ic" tabindex="0" data-tip="CR3
+The human operator of OriHime was in control of what OriHime said and did. (只在 H / HA 条件问)
+1 = Strongly disagree … 7 = Strongly agree">CR3</span>：H1 高于 HA3（Holm .047）</td><td>作为发现写：“differed significantly after Holm correction within the 21-comparison family (p = …)”</td><td>—</td></tr>
+      <tr><th scope="row">2 · 只有未校正 p &lt; .05</th><td><span class="ic" tabindex="0" data-tip="CR1
+The human operator of OriHime was warm. (A 条件: The AI controlling OriHime was warm.)
+1 = Strongly disagree … 7 = Strongly agree">CR1</span> 4 对、<span class="ic" tabindex="0" data-tip="OH
+OH 综合分 = OH1、OH2、OH3 的均值（每段影片一个）
+trustworthy · useful · willing to take part">OH</span> 2 对、<span class="ic" tabindex="0" data-tip="OH2
+In this interaction, OriHime was useful for this task.
+1 = Strongly disagree … 7 = Strongly agree">OH2</span> 3 对、<span class="ic" tabindex="0" data-tip="OH3
+I would be willing to take part in an interaction like this one with OriHime.
+1 = Strongly disagree … 7 = Strongly agree">OH3</span> 2 对（全部是某个人类格子高于 A）</td><td>打包成模式描述：“在四个主结果变量的 84 对比较里，10 对未校正 p &lt; .05（随机预期约 4 对），全部是某个人类格子高于 A；六个人类格子之间的 60 对比较零对显著。” 单对数字只出现在补充表</td><td>把单对写成结论，例如“H1 的操作员比 A 的更温暖（p = .003）”——这一对 Holm 后 p = .068</td></tr>
+      <tr><th scope="row">3 · 未校正显著但已被证伪</th><td><span class="ic" tabindex="0" data-tip="HM
+HM 享乐动机 = HM1–HM3 的均值
+HM1 Conversing with OriHime seems fun. · HM2 …enjoyable. · HM3 …entertaining.">HM</span>：HA1 高于 A、HA1 高于 HA3（HA1 单格的年龄与态度偏差，探索阶段已剔除）</td><td>只在补充表里出现，正文不提</td><td>报告成任何形式的发现</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>推断的权重放在事先指定的对比上。</b>C1 有人 vs 仅 AI 在真实感、温暖、<span class="ic" tabindex="0" data-tip="OH
+OH 综合分 = OH1、OH2、OH3 的均值（每段影片一个）
+trustworthy · useful · willing to take part">OH</span> 综合上都过了 Holm（跨四个主结果变量校正），这才是主结论的依据；两两比较是“先看完整地图”的步骤，作用是发现结构，不是下结论。</li>
+    <li><b>三个不要：</b>不要只挑显著的对子写；不要在看完结果后才决定家族怎么划（我们的家族是每个结果变量的 21 对，事先定的）；不要在 Holm 和 BH 之间挑对自己有利的那个引用，两个都放，主结论按 Holm 说。</li>
+    <li><b>一句话：</b>raw p 能进论文，进的是补充表和模式描述；能写成“发现”的，只有过了校正的两两比较和事先指定的对比。</li>
+  </ul>
 </section>
 
 <section id="patterns">
@@ -2618,6 +2650,7 @@ How much DID YOU BELIEVE the description of the OriHime operator you were given 
   <a href="#rq-en">5 · RQs → statistical questions</a>
   <a href="#framework-en">6 · Primary framework</a>
   <a href="#pairwise-en">7–8 · All pairwise comparisons</a>
+  <a class="sub" href="#pairwise-rules-en">Reporting uncorrected p-values</a>
   <a href="#patterns-en">9 · Pattern mapping</a>
   <a href="#contrasts-en">11 · Contrasts</a>
   <a href="#interactions-en">12 · Interactions</a>
@@ -3479,6 +3512,37 @@ I would be willing to take part in an interaction like this one with OriHime.
 This interaction felt genuine, rather than like the execution of a program.
 1 = Strongly disagree … 7 = Strongly agree">AU1</span>'s comparisons with A survive Holm, so they stand even under the most conservative standard. <b>BH-FDR:</b> controls the share of false positives among the results called significant; looser than Holm, suited to an exploratory map. All three are kept; the paper states which one the main conclusions rest on.</p>
   </div>
+  <h3 id="pairwise-rules-en">Reporting rules for uncorrected p-values</h3>
+  <p>Pairwise results with uncorrected p &lt; .05 may appear in the paper, but not all on the same footing. The rule is not “only corrected results may be written up” but: a claim is worded at the level of evidence it rests on; the complete pairwise table (raw p, Holm p and BH p side by side) goes to the supplement, and the text says which column it is reading. Three tiers:</p>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Tier</th><th>Examples in this study</th><th>Permitted wording</th><th>Not permitted</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · Significant after correction</th><td><span class="ic" tabindex="0" data-tip="AU1
+This interaction felt genuine, rather than like the execution of a program.
+1 = Strongly disagree … 7 = Strongly agree">AU1</span>: H1, H3 and HA1 each above A (Holm p .037, .006, .008); <span class="ic" tabindex="0" data-tip="CR3
+The human operator of OriHime was in control of what OriHime said and did. (asked in H / HA only)
+1 = Strongly disagree … 7 = Strongly agree">CR3</span>: H1 above HA3 (Holm .047)</td><td>Report as a finding: “differed significantly after Holm correction within the 21-comparison family (p = …)”</td><td>—</td></tr>
+      <tr><th scope="row">2 · Uncorrected p &lt; .05 only</th><td><span class="ic" tabindex="0" data-tip="CR1
+The human operator of OriHime was warm. (condition A: The AI controlling OriHime was warm.)
+1 = Strongly disagree … 7 = Strongly agree">CR1</span> 4 pairs, <span class="ic" tabindex="0" data-tip="OH
+OH composite = mean of OH1, OH2, OH3 (one per clip)
+trustworthy · useful · willing to take part">OH</span> 2, <span class="ic" tabindex="0" data-tip="OH2
+In this interaction, OriHime was useful for this task.
+1 = Strongly disagree … 7 = Strongly agree">OH2</span> 3, <span class="ic" tabindex="0" data-tip="OH3
+I would be willing to take part in an interaction like this one with OriHime.
+1 = Strongly disagree … 7 = Strongly agree">OH3</span> 2 (every one a human cell above A)</td><td>Package as a pattern statement: “of the 84 comparisons on the four primary outcomes, 10 had uncorrected p &lt; .05 (about 4 expected by chance), all of them a human cell exceeding A; none of the 60 comparisons among the six human cells did.” Individual pairs appear only in the supplementary table</td><td>Writing a single pair as a conclusion, e.g. “the operator in H1 was warmer than in A (p = .003)” — that pair is p = .068 after Holm</td></tr>
+      <tr><th scope="row">3 · Uncorrected p &lt; .05 but refuted later</th><td><span class="ic" tabindex="0" data-tip="HM
+HM hedonic motivation = mean of HM1–HM3
+HM1 Conversing with OriHime seems fun. · HM2 …enjoyable. · HM3 …entertaining.">HM</span>: HA1 above A and HA1 above HA3 (the age and attitude imbalance of the single cell HA1; dropped in the exploration phase)</td><td>Supplementary table only; not mentioned in the text</td><td>Reporting it as a finding of any kind</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>Inferential weight rests on the pre-specified contrasts.</b> C1 human vs AI-only survives Holm on genuineness, warmth and the <span class="ic" tabindex="0" data-tip="OH
+OH composite = mean of OH1, OH2, OH3 (one per clip)
+trustworthy · useful · willing to take part">OH</span> composite (corrected across the four primary outcomes); that is the basis of the main conclusions. The pairwise map is the “see the whole picture first” step; its job is to reveal structure, not to conclude.</li>
+    <li><b>Three things not to do:</b> do not report only the significant pairs; do not define the families after seeing the results (ours are the 21 pairs per outcome, fixed in advance); do not choose between Holm and BH whichever flatters a result — report both and state the main conclusions on Holm.</li>
+    <li><b>In one sentence:</b> raw p-values belong in the paper, in the supplementary table and in pattern statements; only corrected pairwise differences and pre-specified contrasts may be written as findings.</li>
+  </ul>
 </section>
 
 <section id="patterns-en">
