@@ -14,11 +14,10 @@ were completed on 2026-09-05. The user then resolved the five outline decisions:
 use the first title, keep the pending baseline's placement conditional on its
 results, make Design Implications a Discussion subsection, keep the exploratory
 AI-attitude moderation out of the
-abstract, and leave author/CRediT/funding/ethics fields as placeholders. The
-repository remains at the combined Phase 1 / Phase 2 approval checkpoint only
-because the user still needs to approve the result-contingent baseline
-integration rule. Do not enter Phase 3 or draft the manuscript before that
-explicit approval.
+abstract, and leave author/CRediT/funding/ethics fields as placeholders. The user approved the result-contingent baseline integration rule on
+2026-09-05 (baseline data still not collected; instrument under pre-launch
+review elsewhere). The pipeline is now in Phase 3 (argument blueprint) →
+Phase 4 (drafting, baseline slot left empty).
 
 ## Canonical state
 

@@ -117,4 +117,4 @@ Figures: F1 condition means (pairwise map), F2 contrasts forest, F3 clip × cont
 4. **Exploratory AI-attitude moderation:** report in exploratory Results and Discussion; exclude from the abstract.
 5. **Mandatory metadata:** author list, CRediT roles, funding and ethics approval identifier remain placeholders.
 
-**Remaining checkpoint decision:** approve or revise `no_disclosure_baseline_integration.md`. After approval, Phase 3 may build the argument blueprint with a conditional baseline slot; Phase 4 must still leave that slot unwritten until real data exist.
+**Checkpoint resolved 2026-09-05:** the PI approved `no_disclosure_baseline_integration.md`. Phase 3 builds the argument blueprint with a conditional baseline slot; Phase 4 leaves that slot unwritten until real data exist.

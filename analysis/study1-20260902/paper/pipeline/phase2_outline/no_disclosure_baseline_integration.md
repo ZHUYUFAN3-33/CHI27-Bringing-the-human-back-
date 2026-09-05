@@ -1,6 +1,6 @@
 # Outcome-Contingent Integration Plan for the No-Disclosure Baseline
 
-Status: proposed at the Phase 2 restructuring checkpoint, 2026-09-05. No data have been collected.
+Status: **approved by the PI on 2026-09-05** ("批准吧"). No data have been collected; the baseline instrument is under pre-launch review in another workspace.
 
 ## Naming and inferential role
 

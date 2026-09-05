@@ -33,5 +33,5 @@
 ## Checkpoints
 1. ✔ Configuration confirmed by the user (2026-09-05).
 2. Phase 1 literature report — user may add/remove sources.
-3. Phase 2 outline — partially decided; approval of the outcome-contingent baseline integration plan is still required before Phase 3/drafting.
-4. Draft → citation audit + abstract → peer review (max 2 loops) → formatting.
+3. ✔ Phase 2 outline approved (2026-09-05); the user also approved the outcome-contingent baseline integration rule (`../phase2_outline/no_disclosure_baseline_integration.md`). Baseline data are not yet collected (pre-launch review in progress in another workspace); its main-text slot stays unwritten until real data exist.
+4. Phase 3 argument blueprint → Phase 4 draft (baseline slot left empty) → 5a citation audit + 5b abstract → 6 peer review (max 2 loops) → 7 formatting.
