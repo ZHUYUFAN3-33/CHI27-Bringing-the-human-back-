@@ -14,6 +14,7 @@
   <a href="#rq">5 · RQs → statistical questions</a>
   <a href="#framework">6 · Primary framework</a>
   <a href="#pairwise">7–8 · All pairwise comparisons</a>
+  <a class="sub" href="#pairwise-rules">Reporting uncorrected p-values</a>
   <a href="#patterns">9 · Pattern mapping</a>
   <a href="#contrasts">11 · Contrasts</a>
   <a href="#interactions">12 · Interactions</a>
@@ -297,6 +298,21 @@
     <div class="t">Raw p, Holm p and BH p</div>
     <p><b>Raw p:</b> the p of this one comparison on its own. <b>Holm:</b> controls the probability of at least one false positive in the family, the strictest; three of AU1's comparisons with A survive Holm, so they stand even under the most conservative standard. <b>BH-FDR:</b> controls the share of false positives among the results called significant; looser than Holm, suited to an exploratory map. All three are kept; the paper states which one the main conclusions rest on.</p>
   </div>
+  <h3 id="pairwise-rules">Reporting rules for uncorrected p-values</h3>
+  <p>Pairwise results with uncorrected p &lt; .05 may appear in the paper, but not all on the same footing. The rule is not “only corrected results may be written up” but: a claim is worded at the level of evidence it rests on; the complete pairwise table (raw p, Holm p and BH p side by side) goes to the supplement, and the text says which column it is reading. Three tiers:</p>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>Tier</th><th>Examples in this study</th><th>Permitted wording</th><th>Not permitted</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · Significant after correction</th><td>AU1: H1, H3 and HA1 each above A (Holm p .037, .006, .008); CR3: H1 above HA3 (Holm .047)</td><td>Report as a finding: “differed significantly after Holm correction within the 21-comparison family (p = …)”</td><td>—</td></tr>
+      <tr><th scope="row">2 · Uncorrected p &lt; .05 only</th><td>CR1 4 pairs, OH 2, OH2 3, OH3 2 (every one a human cell above A)</td><td>Package as a pattern statement: “of the 84 comparisons on the four primary outcomes, 10 had uncorrected p &lt; .05 (about 4 expected by chance), all of them a human cell exceeding A; none of the 60 comparisons among the six human cells did.” Individual pairs appear only in the supplementary table</td><td>Writing a single pair as a conclusion, e.g. “the operator in H1 was warmer than in A (p = .003)” — that pair is p = .068 after Holm</td></tr>
+      <tr><th scope="row">3 · Uncorrected p &lt; .05 but refuted later</th><td>HM: HA1 above A and HA1 above HA3 (the age and attitude imbalance of the single cell HA1; dropped in the exploration phase)</td><td>Supplementary table only; not mentioned in the text</td><td>Reporting it as a finding of any kind</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>Inferential weight rests on the pre-specified contrasts.</b> C1 human vs AI-only survives Holm on genuineness, warmth and the OH composite (corrected across the four primary outcomes); that is the basis of the main conclusions. The pairwise map is the “see the whole picture first” step; its job is to reveal structure, not to conclude.</li>
+    <li><b>Three things not to do:</b> do not report only the significant pairs; do not define the families after seeing the results (ours are the 21 pairs per outcome, fixed in advance); do not choose between Holm and BH whichever flatters a result — report both and state the main conclusions on Holm.</li>
+    <li><b>In one sentence:</b> raw p-values belong in the paper, in the supplementary table and in pattern statements; only corrected pairwise differences and pre-specified contrasts may be written as findings.</li>
+  </ul>
 </section>
 
 <section id="patterns">

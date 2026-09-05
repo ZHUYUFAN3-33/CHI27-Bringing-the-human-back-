@@ -147,6 +147,7 @@ h3.tg3:focus-visible, section[id] > h2:focus-visible{outline:2px solid var(--acc
   <a href="#rq">5 · RQ → 统计问题</a>
   <a href="#framework">6 · 主统计框架与假设检查</a>
   <a href="#pairwise">7–8 · 全部两两比较（raw p 先看）</a>
+  <a class="sub" href="#pairwise-rules">未校正 p 的报告规则</a>
   <a href="#patterns">9 · Pattern 识别</a>
   <a href="#contrasts">11 · 理论对比（含残障合并）</a>
   <a href="#interactions">12 · 交互与简单效应</a>
@@ -433,6 +434,21 @@ h3.tg3:focus-visible, section[id] > h2:focus-visible{outline:2px solid var(--acc
     <div class="t">raw p、Holm p、BH p 分别是什么</div>
     <p><b>raw p：</b>只看这一对比较时的 p。<b>Holm：</b>控制“家族内至少犯一次第一类错误”的概率，最严格；AU1 里 3 对 A 的比较通过了 Holm，说明它们即使按最保守的标准也站得住。<b>BH-FDR：</b>控制“被判为显著的结果里假阳性的比例”，比 Holm 宽松，适合探索性地图。三种数字都保留，论文里说明主结论依据哪一种。</p>
   </div>
+  <h3 id="pairwise-rules">未校正 p 的报告规则</h3>
+  <p>两两比较里未校正 p &lt; .05 的结果可以进论文，但不能同等对待。规则不是“只有校正后的才能写”，而是：结论压在哪一层证据上，就用哪一层的措辞；完整的两两比较表（raw p、Holm p、BH p 三列并排）放补充材料，正文引用时说明看的是哪一列。分三档：</p>
+  <div class="tscroll"><table class="map">
+    <thead><tr><th>档次</th><th>本研究中的例子</th><th>允许的写法</th><th>不允许的写法</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">1 · 校正后仍显著</th><td>AU1：H1、H3、HA1 分别高于 A（Holm p .037、.006、.008）；CR3：H1 高于 HA3（Holm .047）</td><td>作为发现写：“differed significantly after Holm correction within the 21-comparison family (p = …)”</td><td>—</td></tr>
+      <tr><th scope="row">2 · 只有未校正 p &lt; .05</th><td>CR1 4 对、OH 2 对、OH2 3 对、OH3 2 对（全部是某个人类格子高于 A）</td><td>打包成模式描述：“在四个主结果变量的 84 对比较里，10 对未校正 p &lt; .05（随机预期约 4 对），全部是某个人类格子高于 A；六个人类格子之间的 60 对比较零对显著。” 单对数字只出现在补充表</td><td>把单对写成结论，例如“H1 的操作员比 A 的更温暖（p = .003）”——这一对 Holm 后 p = .068</td></tr>
+      <tr><th scope="row">3 · 未校正显著但已被证伪</th><td>HM：HA1 高于 A、HA1 高于 HA3（HA1 单格的年龄与态度偏差，探索阶段已剔除）</td><td>只在补充表里出现，正文不提</td><td>报告成任何形式的发现</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>推断的权重放在事先指定的对比上。</b>C1 有人 vs 仅 AI 在真实感、温暖、OH 综合上都过了 Holm（跨四个主结果变量校正），这才是主结论的依据；两两比较是“先看完整地图”的步骤，作用是发现结构，不是下结论。</li>
+    <li><b>三个不要：</b>不要只挑显著的对子写；不要在看完结果后才决定家族怎么划（我们的家族是每个结果变量的 21 对，事先定的）；不要在 Holm 和 BH 之间挑对自己有利的那个引用，两个都放，主结论按 Holm 说。</li>
+    <li><b>一句话：</b>raw p 能进论文，进的是补充表和模式描述；能写成“发现”的，只有过了校正的两两比较和事先指定的对比。</li>
+  </ul>
 </section>
 
 <section id="patterns">
