@@ -1,6 +1,6 @@
 # Study 2 — analysis plan and decision memo
 
-Instrument `s2-v4`. Written 2026-09-05, answering the design review in
+Instrument `s2-v5`. Written 2026-09-05, revised the same day after the item cut, answering the design review in
 [STUDY2_HANDOFF_FOR_FABLE.md](STUDY2_HANDOFF_FOR_FABLE.md). Nothing has been
 collected. This document is the thing that must be frozen before recruitment
 opens; the instrument in `shared/s2-instrument.js` is written to match it.
@@ -92,18 +92,24 @@ participant clusters, clip and presentation position as fixed effects.
 **S3. Is one person's judgement consistent across the three clips?** The
 observed distribution of three-clip patterns, and a model of the second and
 third answers from the first, adjusting for clip and order. Not compared
-against an independent-uniform baseline, which no one believes.
+against an independent-uniform baseline, which no one believes. Computed from
+the three `WHO` answers; there is no separate "were they all the same" item,
+because the answers already say.
 
 **S4. Is inferred controller associated with felt genuineness?**
 `AU1 ~ WHO + clip + position + (1 | participant)`. An association. See §2.
 
-**S5. Does prior attitude to AI predict inferring an AI?** GAAIS positive
-subscale as a participant-level predictor in the S2 model. Exploratory.
-
 ### Descriptive only
 
-Confidence (`AU1_CONF`, `WHO_CONF`, `DIS_CONF`), prior OriHime familiarity, and
+Confidence (`AU1_CONF`, `WHO_CONF`, `DIS_CONF`), prior OriHime knowledge, and
 the background items. See §5 and §7.
+
+### Cut, and not in the plan
+
+The five positive GAAIS items, which would have supported "does prior attitude
+to AI predict inferring an AI". Exploratory, not the study's question, and the
+cheapest block to lose. It is not reported as unrun; it is not a question this
+study asks.
 
 ---
 
@@ -148,10 +154,10 @@ median confidence on `WHO`. If the stratified estimate and the primary estimate
 disagree, that is reported as heterogeneity, not as a corrected result.
 
 `AU1_CONF` is the weakest of the three — `AU1` is a subjective rating, not a
-factual judgement, so being "confident" in it is a strange thing to ask. It is
-kept because the questionnaire asks all three the same way and an asymmetric
-design invites its own questions, but nothing rests on it. **If an item has to
-be cut for length, this is the one.**
+factual judgement, so being "confident" in it is a strange thing to ask. All
+three are kept on one principle: a column nobody uses costs nothing, and a
+measurement nobody took cannot be recovered. Nothing rests on `AU1_CONF`, and
+the paper need not cite it.
 
 ---
 
@@ -185,11 +191,13 @@ estimate:
 that combination is reported. It may mean the items are ambiguous rather than
 that the person was careless, and it cannot be told apart after the fact.
 
-**Prior OriHime familiarity is never an exclusion.** `BG_orihime_familiar` and
-`BG_orihime_control_knowledge` are for one prespecified stratified description
-of P1 and S1. Someone who already knows the product may answer `DIS` from prior
-knowledge rather than from the clip, and that is worth seeing — but choosing to
-drop them after seeing the results is not analysis.
+**Prior OriHime knowledge is never an exclusion.** `BG_orihime_knowledge` — one
+ordinal item: never heard of it / heard of it but did not know how it is used
+or who operates it / knew something about that — is for one prespecified
+stratified description of P1 and S1, splitting on its top rung. Someone who
+already knows the product may answer `DIS` from prior knowledge rather than
+from the clip, and that is worth seeing — but choosing to drop them after
+seeing the results is not analysis.
 
 ---
 
@@ -263,9 +271,12 @@ early; balance is maintained by the least-filled-cell rule, not by quotas.
 | Page one says the videos may use the same or different arrangements, and asks people not to look OriHime up | same |
 | The control categories appear once, as the options of `WHO` | same |
 | `{SEG}_AV1` comprehension check on the clip shown third | playback duration is not attention |
-| `BG_orihime_familiar`, `BG_orihime_control_knowledge` | prior product knowledge can answer `DIS` instead of the clip |
+| `BG_orihime_knowledge`, one ordinal item | prior product knowledge can answer `DIS` instead of the clip |
 | Consent no longer says written descriptions may be quoted | `s2-v3` collects no free text |
 | Debrief says what was withheld, what was true, why, and how it relates to Study 1 | a partial debrief is not a debrief |
 | `lower(external_pid)` on the rejoin and the Study 1 exclusion, plus a partial unique index | a platform id in different casing was a duplicate row and a hole in the exclusion |
 
-Thirty-five items per participant. Six pages.
+| GAAIS and the closing "same way in all three" item cut | length: the first was exploratory, the second is computable from the three `WHO` answers |
+| `BG_freq_ai` and `BG_freq_disability` kept | the cohort comparison with Study 1 on the two dimensions most likely to move `WHO` and `DIS`; same ids as Study 1 |
+
+Twenty-eight items per participant, every one a click. Six pages.

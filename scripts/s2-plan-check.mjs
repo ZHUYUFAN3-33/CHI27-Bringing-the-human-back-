@@ -70,9 +70,16 @@ for (const o of m.S2_ORDER_KEYS) {
   if (!Number.isInteger(comp[0].expected)) die(`${o}: comprehension check has no answer key`);
   if (comp[0].segPosition !== 3) die(`${o}: comprehension check is on clip ${comp[0].segPosition}, expected 3`);
 
-  /* Prior familiarity with OriHime is asked of everyone, at the end. */
+  /* Prior knowledge of OriHime is asked of everyone, once, at the end. */
   const fam = items.filter(i => i.group === "familiarity");
-  if (fam.length !== 2) die(`${o}: ${fam.length} familiarity items, expected 2`);
+  if (fam.length !== 1) die(`${o}: ${fam.length} familiarity items, expected 1`);
+
+  /* The background page is five items and nothing else: no attitude scale, no
+     closing question — both were cut in s2-v5, and a stray one coming back
+     would be an instrument change nobody decided on. */
+  const bg = items.filter(i => i.pageKey === "background").map(i => i.id);
+  const wantBg = ["BG_age", "BG_gender", "BG_freq_ai", "BG_freq_disability", "BG_orihime_knowledge"];
+  if (bg.join(",") !== wantBg.join(",")) die(`${o}: background items are ${bg.join(",")}`);
 
   const pub = m.publicS2Plan(plan);
   if (JSON.stringify(pub).includes('"expected"')) die(`${o}: an answer key reached the public plan`);

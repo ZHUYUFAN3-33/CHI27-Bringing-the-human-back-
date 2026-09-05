@@ -98,8 +98,9 @@ check("the note above the control question is on every clip page",
   clips.every(s => s.notes === 1));
 check("every seven-point table is a stem column plus seven points",
   shape.every(s => s.cols % 8 === 0));
-check("the background page carries the five GAAIS rows, the age box and the seam",
-  shape[4].rows === 5 && shape[4].numbers === 1 && shape[4].headings === 1);
+check("the background page carries the age box and the seam, and no seven-point rows",
+  shape[4].rows === 0 && shape[4].numbers === 1 && shape[4].headings === 1,
+  `${shape[4].rows} rows, ${shape[4].numbers} number, ${shape[4].headings} heading`);
 /* Page one must no longer teach a list of control arrangements: three of them
    named before three clips is the matching cue the design review called out. */
 check("page one names no list of control arrangements",
@@ -107,7 +108,7 @@ check("page one names no list of control arrangements",
 
 /* ---- the unanswered count sees through the matrix blocks ---------------- */
 
-for (const [idx, label, want] of [[1, "clip 1", 6], [2, "clip 2", 7], [3, "clip 3", 7], [4, "background", 12]]) {
+for (const [idx, label, want] of [[1, "clip 1", 6], [2, "clip 2", 7], [3, "clip 3", 7], [4, "background", 5]]) {
   await page.evaluate(n => window.__previewGoto(n), idx);
   await page.waitForTimeout(250);
   check(`${label}: ${want} required items counted while the page is blank`,

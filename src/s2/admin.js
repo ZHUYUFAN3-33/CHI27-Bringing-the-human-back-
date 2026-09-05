@@ -115,8 +115,9 @@ export default async function s2AdminRoutes(app) {
            FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
           WHERE NOT p.is_test AND p.status = 'completed'
             AND r.item_type = 'likert7' AND r.item_id NOT LIKE '%\_AT1'
-            /* Clip items only: the GAAIS rows are seven-point too, but they
-               carry no segment and belong to the background block. */
+            /* Clip items only. Nothing on the background page is seven-point
+               any more, but the guard stays: a future background scale must
+               not silently join a per-clip table. */
             AND r.segment IS NOT NULL
           GROUP BY 1, 2 ORDER BY 1, 2`)
     ]);

@@ -254,9 +254,10 @@ three questions, each one rated and then followed by how confident the
 participant is in that answer: whether the interaction felt genuine (`AU1`,
 carried over verbatim from Study 1), who they think is controlling the robot,
 and whether a person involved is thought to have a disability. Six pages:
-information · about OriHime · consent (one page), three clips, a closing
-question with the background block, finish. The only randomised factor is the
-clip order, balanced across the same six permutations.
+information · about OriHime · consent (one page), three clips, a background
+page (age, gender, AI-use and disability-contact frequency, prior knowledge of
+OriHime), finish. Twenty-eight items, every one a click. The only randomised
+factor is the clip order, balanced across the same six permutations.
 
 **There is no free text anywhere.** Two checks are scored on the server against
 keys the browser never receives: an instructed-response item on the clip shown
@@ -270,9 +271,9 @@ control question itself.
 this study claims: a supplementary no-disclosure perception study, not a
 replication of Study 1's causal effect. Read it before writing anything up.
 The background block is asked last, where it cannot colour a judgement: age,
-gender, AI-use frequency, contact with people with disabilities, and the five
-positive GAAIS items — the same ids Study 1 uses, so the two samples can be
-described in the same terms.
+gender, AI-use frequency, contact with people with disabilities, and prior
+knowledge of OriHime. The first four carry the same ids Study 1 uses, so the two
+samples can be described in the same terms.
 
 Its own tables (`s2_*`), its own dashboard, its own exports, its own open/closed
 switch and its own Connect project. Nothing it does touches the Study 1 rows.
@@ -317,7 +318,7 @@ https://study1-survey.fly.dev/api/s2/export/wide.csv?token=<TOKEN>
 |---|---|
 | `/api/s2/export/participants.csv` | participant — order, `pos_REL/ADV/COL`, status, `complete_pass`, `attention_pass` |
 | `/api/s2/export/responses.csv` | answer (long); `value_num` is the code, `value_text` the label shown |
-| `/api/s2/export/wide.csv` | participant, one column per item (`E1–E3`, `REL_AU1/AU1_CONF/WHO/WHO_CONF/DIS/DIS_CONF/AT1`, `ADV_…`, `COL_…`, `SAME`, `BG_*`, `GAAIS_*`) |
+| `/api/s2/export/wide.csv` | participant, one column per item (`E1–E3`, `REL_AU1/AU1_CONF/WHO/WHO_CONF/DIS/DIS_CONF/AT1/AV1`, `ADV_…`, `COL_…`, `BG_*`) |
 | `/api/s2/export/page_times.csv` | page visit |
 | `/api/s2/export/video_events.csv` | player event |
 | `/api/s2/export/codebook.csv` | item — coding and stem |

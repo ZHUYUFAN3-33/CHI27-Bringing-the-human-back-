@@ -35,9 +35,8 @@ Study 2 is a supplementary no-disclosure perception study, not a replication of
 Study 1's causal effect, and it has no randomised control-source manipulation to
 be one with.
 
-Study 2 shares Study 1's seven-point scale, its GAAIS items, its background item
-ids and the wording of `AU1`, all imported from `shared/instrument.js` rather
-than restated — the two studies only compare if an answer of 6 means the same
+Study 2 shares Study 1's seven-point scale, its background item ids and the
+wording of `AU1`, all imported from `shared/instrument.js` rather than restated — the two studies only compare if an answer of 6 means the same
 thing in both. Its instructed-response check is scored on the server against a
 key the browser is never sent, exactly as Study 1's is. Study 2 asks for no free
 text, so that check and the playback telemetry are the whole of its quality

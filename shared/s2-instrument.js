@@ -24,7 +24,7 @@
 
 import {
   SEGMENTS, ORDERS, ORDER_KEYS, DURATION, GATE_FRACTION,
-  SCALE, FREQ, GENDER, GAAIS, ATTENTION_CHECK_VALUE
+  SCALE, FREQ, GENDER, ATTENTION_CHECK_VALUE
 } from "./instrument.js";
 
 /* Study 1's per-clip comprehension bank, reused rather than restated: a recut
@@ -33,11 +33,11 @@ const AV1_BANK = Object.fromEntries(
   ["REL", "ADV", "COL"].map(k => [k, SEGMENTS[k].av1])
 );
 
-export const S2_VERSION = "s2-v4";
+export const S2_VERSION = "s2-v5";
 
-/* The seven-point agreement scale, the frequency options and the GAAIS items
-   are Study 1's, imported rather than restated: the two studies only compare
-   if an answer of 6 means the same thing in both. */
+/* The seven-point agreement scale and the frequency options are Study 1's,
+   imported rather than restated: the two studies only compare if an answer of
+   6 means the same thing in both. */
 export const S2_SCALE = SCALE;
 
 /* The confidence scale. Seven points to match the agreement items, but named
@@ -47,12 +47,6 @@ export const S2_CONFIDENCE = [
   "Not at all confident", "Slightly confident", "Somewhat confident",
   "Moderately confident", "Quite confident", "Very confident", "Completely confident"
 ];
-
-/* The five positive-subscale GAAIS items, asked at the end. Study 1 found
-   attitude to AI moderating the AI-only penalty; here it is a candidate
-   predictor of the tendency to infer an AI. Ids keep the original scale's
-   numbering, so GAAIS_07 is item 7 in both studies. */
-export const S2_GAAIS = GAAIS.filter(g => g.sub === "pos");
 
 /* The clips, the orders and the gate rule are the same materials as Study 1,
    so they are read from there rather than copied: a new cut of a clip changes
@@ -232,37 +226,28 @@ export const S2_ITEMS = {
    description and sensitivity analysis — never a post-hoc exclusion chosen
    after the fact. */
 export const S2_FAMILIARITY = {
-  heard: {
-    stem: "Before today, had you heard of OriHime?",
-    options: ["No", "Yes, but only vaguely", "Yes, I was familiar with it"]
-  },
-  control: {
-    stem: "Before today, did you know how OriHime is usually controlled?",
-    options: ["No", "Not sure", "Yes"]
-  }
-};
-
-/* Asked once at the end. Whether people think the three clips were controlled
-   the same way is what tells a stable personal prior apart from a per-clip
-   inference, which is the S2-Q5 reading. */
-export const S2_CLOSING = {
-  SAME: {
-    stem: "Thinking about all three videos: do you think OriHime was controlled the same way in all of them?",
-    options: [
-      "Yes, the same way in all three",
-      "No, different ways in different videos",
-      "I can’t tell"
-    ]
-  }
+  /* One ordinal item rather than the earlier two. Two items could come back
+     as "never heard of it" beside "knew how it is controlled", which is not an
+     answer to anything; the ordinal form cannot contradict itself, and the only
+     distinction the analysis needs — knew something about how it is used or
+     who operates it, or did not — is its top rung. */
+  stem: "Before today, how much did you know about OriHime?",
+  options: [
+    "I had never heard of it",
+    "I had heard of it, but did not know how it is used or who operates it",
+    "I knew something about how it is used or who operates it"
+  ]
 };
 
 /* The background block. Asked last, where it cannot colour the judgements, and
-   kept to the four items that bear on this study plus the GAAIS positives.
-   Ids match Study 1’s so the two samples can be described in the same terms. */
+   kept to what bears on this study: age and gender, which the Participants
+   paragraph is written from; the two frequency items, which are the cohort
+   comparison with Study 1 on the two dimensions most likely to move the two
+   core answers; and prior knowledge of OriHime. Ids match Study 1's so the two
+   samples can be described in the same terms. */
 export const S2_BACKGROUND = {
   heading: "Background",
   lead: "These last few questions are about you. They are asked after the videos so they cannot affect your answers.",
-  gaaisLead: "Finally, how much do you agree with each of these statements about artificial intelligence?",
   age: "What is your age in years?",
   gender: "What gender do you identify with?",
   freqAi: "How often do you use AI tools in your personal or professional life?",
@@ -287,11 +272,6 @@ const confidence = (id, stem, extra = {}) =>
 
 const number = (id, stem, extra = {}) =>
   ({ id, type: "number", stem, required: true, ...extra });
-
-/* One table, several rows, one shared instruction — the shape Study 1 uses for
-   its item blocks. The block id is a name, not an answer: it stores nothing. */
-const matrix = (id, instruction, rows, extra = {}) =>
-  ({ id, type: "matrix", instruction, rows, ...extra });
 
 /* Renders a seam and stores nothing. */
 const heading = (eyebrow, title, text) =>
@@ -391,29 +371,21 @@ export function buildS2Plan(order) {
     });
   });
 
-  /* -- 5 · closing question and background ---------------------------------
+  /* -- 5 · background --------------------------------------------------------
      Everything here is asked after the last clip, so nothing on this page can
-     reach back and colour a judgement. The closing question comes first, while
-     the three videos are still fresh; the GAAIS block comes last, because it is
-     the least engaging and attrition is cheapest at the very end. */
+     reach back and colour a judgement. Five items, all clicks. */
   pages.push({
     key: "background",
     kind: "page",
     eyebrow: "Last page",
     title: "A few last questions",
     items: [
-      mc("SAME", S2_CLOSING.SAME.stem, S2_CLOSING.SAME.options, { group: "consistency" }),
       heading("Background", S2_BACKGROUND.heading, S2_BACKGROUND.lead),
       number("BG_age", S2_BACKGROUND.age, { min: 18, max: 120 }),
       mc("BG_gender", S2_BACKGROUND.gender, GENDER),
       mc("BG_freq_ai", S2_BACKGROUND.freqAi, FREQ),
       mc("BG_freq_disability", S2_BACKGROUND.freqDisability, FREQ),
-      mc("BG_orihime_familiar", S2_FAMILIARITY.heard.stem, S2_FAMILIARITY.heard.options,
-        { group: "familiarity" }),
-      mc("BG_orihime_control_knowledge", S2_FAMILIARITY.control.stem, S2_FAMILIARITY.control.options,
-        { group: "familiarity" }),
-      matrix("__gaais", S2_BACKGROUND.gaaisLead,
-        S2_GAAIS.map(g => likert(`GAAIS_${String(g.n).padStart(2, "0")}`, g.text, { group: "gaais" })))
+      mc("BG_orihime_knowledge", S2_FAMILIARITY.stem, S2_FAMILIARITY.options, { group: "familiarity" })
     ]
   });
 
@@ -501,17 +473,12 @@ export function s2AllItemIds() {
     const seg = cut < 0 ? id : id.slice(0, cut);
     const code = cut < 0 ? "" : id.slice(cut + 1);
     if (seg in segRank) return [1, segRank[seg] * 100 + (codeRank[code] ?? 99), id];
-    if (id === "SAME") return [2, 0, id];
     /* Asked order, not alphabetical: a reader opening wide.csv should meet the
        background columns in the order the page put them. */
     if (seg === "BG") {
-      const bgRank = {
-        age: 0, gender: 1, freq_ai: 2, freq_disability: 3,
-        orihime_familiar: 4, orihime_control_knowledge: 5
-      };
+      const bgRank = { age: 0, gender: 1, freq_ai: 2, freq_disability: 3, orihime_knowledge: 4 };
       return [3, bgRank[code] ?? 9, id];
     }
-    if (seg === "GAAIS") return [4, 0, id];
     return [5, 0, id];
   };
   return ordered.sort((a, b) => {
