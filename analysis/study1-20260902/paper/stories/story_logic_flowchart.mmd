@@ -1,0 +1,92 @@
+flowchart TD
+    setting["Real-world setting: OriHime is a teleoperated avatar robot that lets people work remotely, including people with disabilities who may have difficulty entering conventional workplaces"]
+    change["Technology shift: AI can assist or replace parts of the control loop, so customers and coworkers may not know who produced the behaviour they see"]
+    importance["Why this matters: a short disclosure can make the human visible or invisible, change who receives credit or blame, and affect whether disability can be disclosed without a social cost"]
+
+    setting --> change
+    change --> importance
+
+    subgraph prior["What prior research already tells us"]
+        direction TB
+        avatar["Avatar-work studies: remote embodiment can support access, fulfilment and identity presentation; evidence is mainly from small operator-side studies"]
+        disclosure["AI-disclosure studies: AI labels can reduce trust, warmth, cooperation or purchasing; evidence is mainly from text, voice and chat rather than embodied avatar work"]
+        responsibility["Attribution studies: automation can move blame or credit between humans and AI; credit is studied less often and multi-actor avatar work has not been mapped"]
+        disability["Disability studies: workplace stereotypes and disclosure strategy can affect judgment; reactions to identical competent avatar-mediated performance remain unknown"]
+    end
+
+    importance --> avatar
+    importance --> disclosure
+    importance --> responsibility
+    importance --> disability
+
+    gap["Integrated gap within our documented 83-record search corpus: no randomised study holds an embodied avatar robot's behaviour constant while combining control-source disclosure, responsibility and credit, and operator-disability disclosure"]
+
+    avatar --> gap
+    disclosure --> gap
+    responsibility --> gap
+    disability --> gap
+
+    design["How the experiment closes the gap: 300 adults watched the same three OriHime videos; 272 remained after attention and video checks; only the written description varied"]
+    conditions["Seven descriptions: human-only control or human control with AI assistance, each paired with no disability mention, intellectual-disability disclosure or mobility-disability disclosure, plus AI-only control"]
+    outcomes["What participants judged: genuineness, warmth, competence and usefulness, plus who deserved responsibility and credit"]
+
+    gap --> design
+    design --> conditions
+    conditions --> outcomes
+
+    subgraph evidence["What the primary experiment found"]
+        direction TB
+        evaluationFinding["Evaluation: AI-only descriptions lowered genuineness and warmth; human-only and human-with-AI descriptions were statistically equivalent within the prespecified bounds"]
+        attributionFinding["Attribution: adding AI assistance reduced how often the operator ranked first for responsibility and credit even though evaluations did not decline"]
+        disabilityFinding["Disability disclosure: intellectual- and mobility-disability disclosures produced no detectable evaluation or attribution penalty under the tested conditions; effects of half a standard deviation or larger were excluded"]
+        attitudeFinding["Exploratory pattern: the AI-only penalty was concentrated among participants with less positive prior attitudes toward AI; this is a clue, not a headline claim"]
+    end
+
+    outcomes --> evaluationFinding
+    outcomes --> attributionFinding
+    outcomes --> disabilityFinding
+    outcomes -.-> attitudeFinding
+
+    boundary["Boundary on the disability finding: it does not show that stigma is absent, that disability disclosure never matters, or that workplaces are already inclusive; it identifies one setting where disclosure and favourable evaluation coexisted"]
+    disabilityFinding --> boundary
+
+    synthesis["Core story: preserving a human presence in the description protects genuineness and warmth, but AI involvement can still make the operator's contribution less visible; disability disclosure can coexist with favourable judgment in this setting"]
+
+    evaluationFinding --> synthesis
+    attributionFinding --> synthesis
+    boundary --> synthesis
+
+    future["Pending independent no-disclosure baseline: a separate cohort will show what viewers infer from the videos when nobody tells them who controls the robot"]
+    interpretation["Conditional use only: clarify whether disclosure creates an AI-label cost, provides a human-presence benefit, or fills an informational blank; do not call it a second experiment or replication"]
+
+    future -.-> interpretation
+    interpretation -.-> synthesis
+
+    abstract["Abstract: report the human-presence evaluation result, the responsibility-and-credit shift, and the positive but bounded disability-disclosure result; omit the exploratory attitude pattern"]
+    discussion["Discussion: explain why evaluation and attribution can diverge, then connect the disability result to operator agency and inclusive avatar-mediated work"]
+    implications["Design implications: keep human contribution visible, credit operators in AI-assisted work, leave disability disclosure under operator control, and report bounded evidence"]
+    exploratoryUse["Exploratory Results and Discussion only: treat audience-aware disclosure as a future research question"]
+
+    synthesis --> abstract
+    synthesis --> discussion
+    discussion --> implications
+    attitudeFinding -.-> exploratoryUse
+    exploratoryUse -.-> discussion
+
+    style setting fill:#E5F4FF,stroke:#3DADFF
+    style change fill:#E5F4FF,stroke:#3DADFF
+    style importance fill:#E5F4FF,stroke:#3DADFF
+    style prior fill:#F5F5F5,stroke:#808080
+    style gap fill:#EFE5FF,stroke:#874FFF
+    style design fill:#EFE5FF,stroke:#874FFF
+    style conditions fill:#EFE5FF,stroke:#874FFF
+    style outcomes fill:#EFE5FF,stroke:#874FFF
+    style evidence fill:#F5F5F5,stroke:#808080
+    style disabilityFinding fill:#DFF2DF,stroke:#2E8B57
+    style boundary fill:#DFF2DF,stroke:#2E8B57
+    style attitudeFinding fill:#FFF2CC,stroke:#C79000
+    style future fill:#F2F2F2,stroke:#808080
+    style interpretation fill:#F2F2F2,stroke:#808080
+    style synthesis fill:#DCCCFF,stroke:#874FFF
+    style implications fill:#DFF2DF,stroke:#2E8B57
+    style exploratoryUse fill:#FFF2CC,stroke:#C79000

@@ -1,12 +1,25 @@
-# Four candidate storylines for the Study 1 paper
+# Story materials for the paper
 
-> Status: **superseded 2026-09-05** — the PI adopted one unified frame that carries all four as sections of a single paper; see `story_unified.md`. The four files remain as the source of each section's framing, evidence order and reviewer risks. All four use the same analyses (see `../results.md`, `../methods.md`); they differ in which finding leads, how the Results are ordered, and what the Discussion emphasises. Each file contains a title, a draft abstract, contribution bullets, an introduction frame, the Results order with evidence tags, Discussion themes, the limitations that must lead, reviewer risks, what Study 2 must show, and a defensibility grade.
+> Status: **superseded as competing storylines on 2026-09-05**. The PI adopted one unified frame that carries all four questions as sections of a single paper.
 
-| Story | Thesis in one line | Leads with | Defensibility | Main risk |
-|---|---|---|---|---|
-| A · Presence, not profile | Telling people a human is behind the robot changes genuineness and warmth; whether AI assists, and who the human is, do not | C1 genuineness (strong) + bounded nulls | **High** — leads with the strongest, most robust effect | A is one small cell; genuineness item wording is close to the manipulation |
-| B · Who gets the credit | AI involvement shifts responsibility and credit away from the human operator even when perceptions do not change | RQ4 attribution (strong, common-anchor corrected) | **High** — effect is large and survives the option-set correction | Attribution items are hypothetical outcomes; perception effects become secondary |
-| C · Disclosure does not change the judgment | Disclosing an operator's disability changes neither evaluations nor attributions; only human presence does | C3 bounded null + equivalence | **Medium** — depends on Study 2 showing the clips are not already read as “no disability”, and on accepting a bounded-null paper | Weak one-sentence manipulation; no disability-specific uptake check; Db scenario voids the claim |
-| D · In the eye of the sceptic | The AI-only penalty exists only for people already sceptical of AI; attitude, not the label, does the work | E1 moderation (exploratory) | **Low** — main finding is post hoc and needs replication | Reviewers will not accept an exploratory interaction as the headline |
+For PI confirmation, read **`story_for_pi_review.md`**. It uses complete semantic names and does not require the reader to remember internal storyline, condition, contrast, outcome or scenario codes.
 
-Earlier recommendation (kept for the record): A as the primary manuscript, with B as its second contribution; C only if Study 2 returns scenario Dc/Da; D as a Discussion subsection. Decision 2026-09-05: one paper, RQ order A → B → C, D exploratory, Study 2 as its own section before the Discussion (`story_unified.md`).
+Editable FigJam diagram: [Bringing the Human Back — Self-Contained Story Logic](https://www.figma.com/board/oeTwQppYyLOcU28wDPo3dl). The self-contained version is added alongside the earlier sketch, and its Mermaid source is preserved in `story_logic_flowchart.mmd`.
+
+The canonical technical frame is **`story_unified.md`**. The four older files remain only as source material for framing, evidence order and reviewer risks:
+
+| Full semantic name | Thesis in one line | Defensibility | Main risk |
+|---|---|---|---|
+| Human presence matters more than AI assistance or operator profile | Describing a human as present preserves genuineness and warmth; describing AI assistance and the operator's profile produces no detectable evaluation cost | **High** — leads with the strongest, most robust effect | The AI-only condition is small; the genuineness wording is close to the manipulation |
+| Responsibility and credit migrate under AI involvement | AI involvement shifts responsibility and credit away from the human operator even when evaluations do not change | **High** — effect is large and survives the option-set correction | Attribution items concern hypothetical outcomes |
+| Disability disclosure and favourable evaluation coexist in this setting | Disclosing an operator's disability produces no detectable evaluation or attribution penalty within the stated bounds and materials, offering encouraging evidence for more inclusive avatar-mediated work | **Medium** — a positive but bounded finding whose interpretation depends partly on what the clips imply without disclosure | Weak one-sentence manipulation; no disability-specific uptake check; a default disability inference would narrow the claim |
+| Prior AI attitudes may shape the AI-only penalty | The AI-only penalty is concentrated among participants with less positive prior attitudes toward AI | **Low / exploratory** — not a headline contribution and excluded from the abstract | The interaction is post hoc and needs replication |
+
+The adopted order is:
+
+1. how disclosed control source changes evaluation;
+2. how AI involvement redistributes responsibility and credit;
+3. how disability disclosure changes judgment and attribution; and
+4. whose response to an AI-only description is most negative, explicitly labelled exploratory and excluded from the abstract.
+
+The pending independent no-disclosure baseline is not a standalone second-study section. Its full report belongs in supplementary material; main-text placement depends on whether its observed results materially change interpretation, as specified in `../pipeline/phase2_outline/no_disclosure_baseline_integration.md`.
