@@ -63,7 +63,8 @@ interaction is stated as an assumption, not tested.
 (Study 1's page, verbatim: intro, photo, control text, profile line where the
 condition has one, the control-arrangement diagram, the persona box) → three
 clips, each with Study 1's condition recap above the player and no questions
-except the two quality checks → the validation block, asked once → background
+except the two quality checks → the validation block, asked once → the belief
+item at the top of the background page, with the back button disabled there
 → debrief (Study 1's, verbatim). About 9 minutes, of which the clips are
 4 min 50 s.
 
@@ -72,10 +73,10 @@ description: recognition of what was said, not judgement of what the videos
 looked like. Two one-line instructions sit inside the block: above items 3–4,
 "The next two questions are separate. Your two answers do not need to add
 up."; above items 7–8, "If you were told there was no human operator, choose
-'Not at all' for the next two questions." Wording as of `s2-v7`
+'Not at all' for the next two questions." Wording as of `s2-v8`
 (2026-09-06), revised so that every recognition item has exactly one right
 answer per arm and every distractor is unambiguously wrong; ids, keys and
-outcomes did not change (commit `b1fd653` on `study2`).
+outcomes did not change (commit `b1fd653` on `study2`). `s2-v8` (commit `bb04ad0`) then moved `BEL1` to the top of the background page with back navigation disabled.
 
 | # | id | item | options |
 |---|---|---|---|
@@ -87,7 +88,7 @@ outcomes did not change (commit `b1fd653` on `study2`).
 | 6 | `V_PROF_REC` | Which of these best matches what the description said about who operated OriHime? | mobility-related disability / intellectual or cognitive disability / a person, no disability was mentioned / there was no human operator / not sure |
 | 7 | `V_LIM_MOB` | Based on the description, how limited did you understand the operator to be in physical movement or mobility (for example walking, or using their hands)? | 1 Not at all … 7 Extremely |
 | 8 | `V_LIM_COG` | … in thinking, learning, or understanding (for example memory, reasoning, or following instructions)? | same |
-| 9 | `BEL1` | How much DID YOU BELIEVE the description of the OriHime operator you were given at the beginning of the questionnaire? | Study 1's item and scale, verbatim |
+| 9 | `BEL1` | How much DID YOU BELIEVE the description of the OriHime operator you were given at the beginning of the questionnaire? | Study 1's item and scale, verbatim; asked at the top of the next page, after items 1–8 are submitted |
 
 Quality checks: the instructed-response item on the clip shown second
 (`AT1`), the comprehension question on the clip shown third (`AV1`), both from
@@ -155,9 +156,13 @@ disability, deliberately: naming an absence would make disability the subject
 for the group meant to be unmarked. So the control arms' correct answer is
 "no disability was mentioned", and there is no specificity item.
 
-**Recognition and belief asked apart.** `V_PROF_REC` correct with `BEL1` ≤ 3
-is "understood but not believed"; `V_PROF_REC` wrong is "not encoded". Study
-1's H2 had 26 % at `BEL1` ≤ 3 with no way to tell these apart.
+**Recognition and belief asked apart, and on separate pages.** `V_PROF_REC`
+correct with `BEL1` ≤ 3 is "understood but not believed"; `V_PROF_REC` wrong
+is "not encoded". Study 1's H2 had 26 % at `BEL1` ≤ 3 with no way to tell
+these apart. `BEL1` sits at the top of the page after the recognition items,
+with back navigation disabled there: "did you believe" tells the participant
+the description may not have been true, and must not be readable while the
+recognition items are being answered, nor be followed by a revision of them.
 
 **Study 1's text wherever it exists.** The description pages, the recap and
 the debrief are Study 1's approved wording, unchanged. Only the validation
