@@ -349,9 +349,10 @@ dashboard; stops at target or platform quota, never on a result.
 
 ## 9. Still open, so the workbook can mark them
 
-1. The debrief: Study 1's approved text is used verbatim; the one sentence it
-   never carried — what actually controlled the clips — is a placeholder to
-   fill or delete.
+1. The debrief: Study 1's approved text, verbatim, with nothing added
+   (commit `5eef7f5` on `study2`). Disclosing what actually controlled the
+   clips would be a new sentence and new text for ethics; as deployed there
+   is none.
 2. Every `AV1` option checked against the final audio (Study 1's known
    limitation, inherited).
 3. Ethics approval for the validation block and the open reconstruction; the
