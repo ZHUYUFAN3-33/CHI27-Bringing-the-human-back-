@@ -1,28 +1,46 @@
-# Study 2 — item list, three-arm design (draft for team review)
+# Study 2 — item list · manipulation validation study (draft for team review)
 
-Three arms, one questionnaire. Only page 2 differs. Participants are assigned
-one arm at random, balanced with the six clip orders (3 × 6 = 18 cells).
-Target allocation: no-disclosure 90 · H 30 · HA 30.
+**What it is.** A fresh sample sees exactly what Study 1's participants saw — one
+of five condition descriptions, then the same three clips — and is then asked
+not how they evaluate OriHime but **what they took the description to say**.
+It separates "understood the manipulation, and it made no difference" from
+"never encoded it, so of course it made none". Study 1 cannot separate those,
+because its recall checks were removed before launch.
 
-Everything a participant reads is in English below. Notes in *italics* are for
-the team and are not shown.
+**Arms.** Five of Study 1's seven conditions, 30 each, balanced with the six
+clip orders (5 × 6 = 30 cells, 5 per cell, **150 total**):
 
-Item ids in `code` are what the exports will carry. Ids frozen once collection
+| arm | who controls | operator profile | what it anchors |
+|---|---|---|---|
+| A | AI only | — | AI-control ceiling; no-operator recognition |
+| H1 | human | no mention | human-control ceiling; "no disability mentioned" control |
+| HA1 | human + AI assistance | no mention | the final-say probe; whether HA is read as HA or as H |
+| H2 | human | intellectual disability | intellectual-disability recognition |
+| H3 | human | mobility-related disability | mobility-disability recognition |
+
+*HA2 and HA3 are not run: Study 1 found H and HA equivalent on every outcome,
+so disability recognition is tested under H alone. The Control × Disability
+interaction is out of reach at this budget and is stated as an assumption.*
+
+**No no-disclosure arm.** What the clips imply on their own (the earlier Track
+A) is future work, to be run if a reviewer asks; its 28-item instrument is on
+this branch as `s2-v5`.
+
+Everything a participant reads is in English below; *italics* are notes for
+the team. Ids in `code` are what the exports carry, frozen once collection
 starts.
 
 ---
 
 ## Page 1 · About this study · consent (all arms)
 
-Information sheet — as `s2-v5`, with one sentence restored under **Your data**,
-because open-text answers are back:
+Information sheet as `s2-v5`, with one sentence restored under **Your data**
+because there is an open-text answer again:
 
 > Your written answers may be quoted in publications; they carry no name.
 
 **About OriHime**
 > OriHime is a robot that communicates through speech, head movements, and gestures. In the clips you will see, OriHime is talking with a person in an office.
-
-Consent and eligibility — *unchanged from Study 1*:
 
 | id | item | options |
 |---|---|---|
@@ -34,127 +52,185 @@ Consent and eligibility — *unchanged from Study 1*:
 
 ## Page 2 · About the OriHime you will see (differs by arm)
 
-*Its own page in every arm, so that page count and dwell time are comparable
-across arms — Study 1 used dwell on this page as evidence the text was read.*
+*Study 1's disclosure page, verbatim: `INTRO_TEXT`, `CONTROL_TEXT[ctrl]`, the
+persona block, and for H2/H3 the profile line. Same photo, same diagram. This
+text is already ethics-approved. Its dwell time is recorded, as in Study 1.*
 
-### Arm N — no disclosure
-> **We will not tell you how OriHime is controlled in the videos you are about to see.** The videos may use the same control arrangement or different arrangements, and the number of videos does not correspond to any number of control methods.
->
-> There are no right or wrong answers: we are interested in your own impression of what you see and hear. **Please answer from the videos themselves — please do not look OriHime up while taking part.**
+> OriHime is a robot that communicates through speech, head movements, and gestures. You will see OriHime take part in three short interactions. Please read the information below carefully.
 
-### Arm H — human operator
-*Study 1's `CONTROL_TEXT.H` and `PERSONA_HUMAN`, verbatim:*
+**Arm A**
+> The OriHime here is controlled **entirely by an AI system**. There is **no human operator**. The AI system generates OriHime's responses and controls its movements in real time.
+> *+ `PERSONA_AI` block (the AI-matched "About the system" lines)*
+
+**Arm H1**
 > The OriHime here is controlled in real time by a trained **human operator**. The human operator chooses what OriHime says and does. **No AI system** generates responses or makes decisions.
->
-> **About the operator**
-> This operator works with OriHime for a few hours on most days.
-> This operator has been doing this work for about a year.
-> All operators complete the same training and meet the same standard before they start this work.
->
-> Please answer from the videos themselves — please do not look OriHime up while taking part.
+> *+ `PERSONA_HUMAN` block: works with OriHime a few hours most days · about a year in the role · all operators complete the same training and meet the same standard*
 
-### Arm HA — human operator with AI assistance
-*Study 1's `CONTROL_TEXT.HA` and `PERSONA_HUMAN`, verbatim:*
+**Arm HA1**
 > The OriHime here is controlled by a trained **human operator with AI assistance**. The AI can suggest wording or movements, but the **human operator** can accept, change, or reject suggestions and **makes the final decisions**.
->
-> **About the operator** — *same three lines as Arm H*
->
-> Please answer from the videos themselves — please do not look OriHime up while taking part.
+> *+ `PERSONA_HUMAN` block*
+
+**Arm H2** — *Arm H1's text, plus above the persona block:*
+> The operator of this OriHime **has an intellectual disability**.
+
+**Arm H3** — *Arm H1's text, plus:*
+> The operator of this OriHime **has a mobility-related disability**.
+
+All arms:
+> Please answer from the videos and the description above — please do not look OriHime up while taking part.
 
 | id | item | options |
 |---|---|---|
 | `D1` | Please confirm that you have read the description above. | I have read it |
 
-*No profile line (disability) in any arm: this study has no H2/H3 conditions.*
-
 ---
 
-## Pages 3–5 · the three clips (all arms, same items)
+## Pages 3–5 · the three clips (all arms)
 
-Each page: the clip (gated), then the items below in this order.
-
-*In arms H and HA, the page carries Study 1's condition recap above the
-questions — the control text restated, as Study 1's clip pages did. In arm N
-the recap is the anti-matching sentence: "We have not said how OriHime is
-controlled in this video. It may be the same arrangement as in the other
-videos, or a different one."*
-
-*The open question comes first, before any option list, so the wording is the
-participant's own. Everything after it is closed.*
-
-| # | id | item | options / scale |
-|---|---|---|---|
-| 1 | `{SEG}_OPEN` | In your own words: who or what do you think was behind what OriHime said and did in this video, and what made you think so? | free text, at least 30 characters |
-| 2 | `{SEG}_WHO` | Who do you think was mainly deciding what OriHime said and did in this video? | A person / A person and an AI system together / An AI system / I can't tell |
-| 3 | `{SEG}_CTRL_P` | How much of what OriHime said and did in this video was controlled by a person? | 1 None of it · 2 Very little · 3 Some · 4 About half · 5 Most · 6 Almost all · 7 All of it |
-| 4 | `{SEG}_CTRL_AI` | How much of what OriHime said and did in this video was controlled by an AI system? | same seven points |
-| 5 | `{SEG}_FINAL` | Who do you think had the final say over what OriHime said and did in this video? | A person / An AI system / They shared it / I can't tell |
-| 6 | `{SEG}_DIS` | If a person was involved in controlling OriHime in this video, do you think that person has a disability? | Yes / No / I can't tell / I don't think a person was involved |
-
-*Wording notes against Sol's draft:*
-- *"A person", never "the human operator": the H arm is told there is no AI and the N arm is told nothing, so "the AI" or "the operator" would presuppose an answer.*
-- *Items 3 and 4 are two unipolar scales rather than one bipolar "human ↔ autonomous" scale: a participant who thinks control was shared can score both high, which is exactly the HA reading we want to be able to see. Sol's "How autonomous was OriHime" is dropped for that reason and because "autonomous" is jargon.*
-- *Item 5 is the HA-specific probe: the HA text says the operator "makes the final decisions". In arm HA, "A person" here means that clause was encoded; "They shared it" or "An AI system" means it was not.*
-- *Items 2 and 5 are kept distinct on purpose — "mainly deciding" (ongoing) versus "final say" (veto). If the team judges participants will not distinguish them, drop 2 and keep 5.*
-
-Quality checks, one each, fixed position:
+Each page: Study 1's condition recap (control text and, in H2/H3, the profile
+line) above the player, exactly as Study 1's clip pages carried it; the clip,
+gated; then **no questions** except the two checks:
 
 | where | id | item | options |
 |---|---|---|---|
-| clip shown 2nd, after item 6 | `{SEG}_AT1` | To show that you are reading carefully, please select "Disagree" for this item. | 7-point agreement scale |
-| clip shown 3rd, after item 6 | `{SEG}_AV1` | Which of the following happened in the video you just watched? | Study 1's four options for that clip — **must be checked against the final cut** |
+| clip shown 2nd | `{SEG}_AT1` | To show that you are reading carefully, please select "Disagree" for this item. | 7-point agreement |
+| clip shown 3rd | `{SEG}_AV1` | Which of the following happened in the video you just watched? | Study 1's four options for that clip — **must be checked against the final cut** |
+
+*Nothing is asked per clip on purpose. The validation is of the description's
+mental model, which is one thing per participant, and it is asked at the same
+point Study 1 asked BEL1 — after all three clips — so the two studies measure
+memory of the description over the same delay.*
 
 ---
 
-## Page 6 · A few last questions (all arms)
+## Page 6 · About the description you were given (all arms)
+
+*The open question comes first, before any option list, so the reconstruction
+is the participant's own. Then agency, then the operator profile, then belief.*
+
+**C · Open reconstruction**
+
+| id | item | |
+|---|---|---|
+| `V_OPEN` | Please describe, in your own words, who or what was operating OriHime in the videos, and anything you remember about the operator. | free text, at least 30 characters |
+
+*Coded blind by two coders for: human operator · AI assistance · AI alone ·
+mobility/physical disability · intellectual/cognitive disability · disability
+without type · uncertainty or misunderstanding. One answer feeds both the
+agency and the profile coding.*
+
+**A · Agency model**
+
+| id | item | options / scale |
+|---|---|---|
+| `V_CTRL_REC` | Which of these best describes how you were told OriHime was controlled? | A human operator, with no AI involved / A human operator with AI assistance / An AI system, with no human operator / I'm not sure |
+| `V_CTRL_P` | According to the description, how much of what OriHime said and did was controlled by a person? | 1 None of it · 2 Very little · 3 Some · 4 About half · 5 Most · 6 Almost all · 7 All of it |
+| `V_CTRL_AI` | According to the description, how much of what OriHime said and did was controlled by an AI system? | same seven points |
+| `V_FINAL` | According to the description, who had the final say over what OriHime said and did? | A person / An AI system / They shared it / I'm not sure |
+
+*"According to the description" on every item: this is recognition of what
+was said, not a judgement of what the videos looked like. "A person", never
+"the operator" — arm A was told there is none.*
+
+**B · Operator profile**
+
+| id | item | options / scale |
+|---|---|---|
+| `V_PROF_REC` | Which of these best matches what you were told about the operator? | A person with a mobility-related disability / A person with an intellectual or cognitive disability / A person — no disability was mentioned / There was no human operator / I'm not sure |
+| `V_LIM_MOB` | To what extent did the description suggest that the operator had limitations related to physical movement or mobility? | 1 Not at all → 7 Very much |
+| `V_LIM_COG` | To what extent did the description suggest that the operator had limitations related to thinking, learning or understanding? | 1 Not at all → 7 Very much |
+
+*"No disability was mentioned" is the correct answer for H1 and HA1: Study 1's
+profile 1 says nothing, deliberately. There is no "unspecified disability"
+condition and so no specificity item.*
+*`V_LIM_COG` avoids the words "cognitive or intellectual functioning" in the
+stem — lay wording, same construct.*
+
+**Belief** — *Study 1's BEL1, verbatim:*
+
+| id | item | scale |
+|---|---|---|
+| `BEL1` | How much ***DID YOU BELIEVE*** the description of the OriHime operator you were given at the beginning of the questionnaire? | 7-point agreement |
+
+*Recognition and belief are asked separately because they are different
+things: a participant may answer `V_PROF_REC` correctly and `BEL1` = 2. That
+is "understood but not believed", which Study 1's H2 (26 % at BEL1 ≤ 3) cannot
+currently distinguish from "misunderstood".*
+
+---
+
+## Page 7 · A few last questions (all arms)
 
 | id | item | options |
 |---|---|---|
 | `BG_age` | What is your age in years? | number, 18–120 |
 | `BG_gender` | What gender do you identify with? | Male / Female / Nonbinary / Prefer not to say |
-| `BG_freq_ai` | How often do you use AI tools in your personal or professional life? | Never / Less than once a year / Once a year or more / Once a month or more / Once a week or more / Daily or almost daily |
+| `BG_freq_ai` | How often do you use AI tools in your personal or professional life? | Never … Daily or almost daily (six) |
 | `BG_freq_disability` | How often do you see or interact with people with disabilities in your personal or professional life? | same six |
 | `BG_orihime_knowledge` | Before today, how much did you know about OriHime? | I had never heard of it / I had heard of it, but did not know how it is used or who operates it / I knew something about how it is used or who operates it |
 
 ---
 
-## Page 7 · Thank you (all arms; text differs by arm)
+## Page 8 · Thank you (all arms)
 
-Arm N:
-> We did not say how OriHime was controlled in the videos, because we wanted to learn what impression the interaction itself gives.
+*Study 1's reveal, verbatim — it is the same deception:*
 
-Arms H and HA — *Study 1's reveal, adapted*:
-> The description of who or what controlled OriHime was assigned to you at random and given to different participants in different forms, while the videos themselves were identical for everyone. The study examines how such a description shapes what people see.
-
-All arms:
+> In this study, the description of who or what controlled OriHime, and the description of the operator, were experimentally varied between participants, while the videos themselves were identical for everyone.
+>
+> The study examines how information about control and operator characteristics shapes judgments. It does not test whether any disability group is more or less capable.
+>
 > **How OriHime was actually controlled.** [TO BE COMPLETED BY THE RESEARCH TEAM]
 >
 > Your answers have been recorded against the participant number your recruitment platform gave us, and no name. If you would like them removed, send us the completion code shown on this page. Thank you for taking part.
 
 ---
 
-## Count
+## Scoring, done on the server against keys the browser never sees
+
+| item | correct answer by arm | flag |
+|---|---|---|
+| `V_CTRL_REC` | A → AI system · H1, H2, H3 → human, no AI · HA1 → human with AI assistance | `ctrl_recognised` |
+| `V_PROF_REC` | A → no human operator · H1, HA1 → no disability mentioned · H2 → intellectual · H3 → mobility | `profile_recognised` |
+| `V_FINAL` | A → AI system · H1, H2, H3, HA1 → a person | `final_recognised` |
+| `{SEG}_AT1`, `{SEG}_AV1` | as now | `attention_pass`, `comprehension_pass` |
+
+## Predicted patterns (the validation succeeds if these hold)
+
+- `V_CTRL_P`: H1 ≈ H2 ≈ H3 > HA1 > A
+- `V_CTRL_AI`: A > HA1 > H1 ≈ H2 ≈ H3
+- `V_LIM_MOB`: H3 > H1 ≈ H2 ≈ HA1 (A not asked to rate a person it was told does not exist — reported, not compared)
+- `V_LIM_COG`: H2 > H1 ≈ H3 ≈ HA1
+- `V_PROF_REC` correct in a clear majority of every arm; the H2 rate is the number that decides how Study 1's disability null is written
+- `V_FINAL` = "a person" in a clear majority of HA1: the "makes the final decisions" clause was encoded
+
+*Recognition items have large effects — correct versus chance is 85 % versus
+20–33 % — which is why 30 per arm is enough. Between-arm differences on the
+1–7 scales are expected at d > 1.*
+
+## Count and time
 
 | block | items |
 |---|---|
 | consent | 3 |
 | description confirm | 1 |
-| per clip 6 × 3 | 18 (of which 3 open text) |
 | quality checks | 2 |
+| open reconstruction | 1 |
+| agency | 4 |
+| operator profile | 3 |
+| belief | 1 |
 | background | 5 |
-| **total** | **29** |
+| **total** | **20** |
 
-Estimated median completion: about 11 minutes in arm N, 11.5 in H and HA, of
-which the videos are 4 min 50 s.
-
-## Optional additions, not in the count above
-
-- `{SEG}_AU1` "This interaction felt genuine, rather than like the execution of a program." — one 7-point item per clip, Study 1's wording. Would let the H and HA arms be set beside Study 1's genuineness result. +3 items, about +20 s.
-- A confidence item after `{SEG}_WHO`. The two control scales already carry gradedness, so this is lower value than in the earlier design. +3 items.
+Estimated median completion about **9 minutes**, of which the videos are 4 min
+50 s. Pay for 10.
 
 ## Still needs the team
 
 1. The true control arrangement for the debrief.
 2. Every `AV1` option checked against the final audio.
-3. Ethics approval for the new arm-N text, the open question, and the adapted debrief. The H and HA description texts are Study 1's and already approved.
-4. Whether item 2 stays alongside item 5 (see wording notes).
+3. Ethics: the description pages, the recap and the debrief are Study 1's
+   approved text; the page-6 items and the open question are new and need
+   approval.
+4. Whether `V_CTRL_REC` stays alongside the two control scales and `V_FINAL`.
+   It is the cleanest single recognition outcome for agency; the scales and
+   final-say carry the graded picture. I would keep all four.
