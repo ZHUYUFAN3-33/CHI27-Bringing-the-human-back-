@@ -70,6 +70,7 @@ for (let i = 0; i < 8; i++) {
     diagram: document.querySelectorAll(".diagram svg").length,
     persona: document.querySelectorAll(".persona li").length,
     recap: document.querySelectorAll(".recap").length,
+    notes: document.querySelectorAll(".note").length,
     methods: document.querySelectorAll("ol.methods li").length
   })));
 }
@@ -91,6 +92,8 @@ check("the comprehension check rides the last clip and only the last clip",
 check("the validation page carries the open reconstruction, five seven-point items and three choices",
   shape[5].areas === 1 && shape[5].rows === 5 && shape[5].radios === 5 * 7 + 4 + 4 + 5,
   `${shape[5].areas} text, ${shape[5].rows} rows, ${shape[5].radios} radios`);
+check("the validation page carries its two instructions and no other page carries any",
+  shape.map(s => s.notes).join("") === "00000200", shape.map(s => s.notes).join(""));
 check("every seven-point table is a stem column plus seven points", shape.every(s => s.cols % 8 === 0));
 check("the background page carries the age box and the seam, and no seven-point rows",
   shape[6].rows === 0 && shape[6].numbers === 1 && shape[6].headings === 1);
@@ -98,7 +101,7 @@ check("free text appears once in the whole instrument", shape.reduce((a, s) => a
 
 /* ---- the unanswered count on every page that has answers ------------------ */
 
-for (const [idx, label, want] of [[1, "disclosure", 1], [3, "clip 2", 1], [4, "clip 3", 1], [5, "validation", 9], [6, "background", 5]]) {
+for (const [idx, label, want] of [[1, "disclosure", 1], [3, "clip 2", 1], [4, "clip 3", 1], [5, "validation", 9], [6, "background", 6]]) {
   await page.evaluate(n => window.__previewGoto(n), idx);
   await page.waitForTimeout(250);
   check(`${label}: ${want} required items counted while the page is blank`,

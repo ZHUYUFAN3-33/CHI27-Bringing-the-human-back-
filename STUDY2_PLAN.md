@@ -1,8 +1,11 @@
 # Study 2 — analysis plan and decision memo
 
-Instrument `s2-v6`. Written 2026-09-05, rewritten the same day when the team
-chose the manipulation-validation design over the no-disclosure one. Nothing
-has been collected. This document is the thing to freeze before recruitment
+Instrument `s2-v7`. Written 2026-09-05, rewritten the same day when the team
+chose the manipulation-validation design over the no-disclosure one; the
+validation wording was sharpened on 2026-09-06 (`s2-v7`: every recognition
+item has one right answer per arm and every distractor is unambiguously
+wrong; Study 1's robot-contact item joined the background block; ids, keys
+and outcomes unchanged). Nothing has been collected. This document is the thing to freeze before recruitment
 opens; the instrument in `shared/s2-instrument.js` and the item list in
 [STUDY2_ITEMS.md](STUDY2_ITEMS.md) are written to match it.
 

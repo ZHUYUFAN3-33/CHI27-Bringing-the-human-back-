@@ -29,7 +29,7 @@ are then asked once, after all three, what they took the description to say:
 an open reconstruction, recognition and graded items for who was in control,
 recognition and graded items for the operator profile, and Study 1's belief
 item. Recognition is scored on the server against per-arm keys the browser
-never sees. Eight pages, twenty items, 5 × 6 = 30 allocation cells. The
+never sees. Eight pages, twenty-one items, 5 × 6 = 30 allocation cells. The
 instrument is `shared/s2-instrument.js`, the server side `src/s2/`, the
 participant runtime `public/s2/`. See [LINKS.md](LINKS.md#study-2), and
 **[STUDY2_PLAN.md](STUDY2_PLAN.md)** for what it claims and what it does not.

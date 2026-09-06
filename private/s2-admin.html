@@ -149,7 +149,7 @@ function tiles(d) {
     ["Failed comprehension", n(t.comprehension_fail), t.comprehension_fail > 0 ? "warn" : "plain", "question about the last clip"],
     ["Recognised control", pct(t.ctrl_recognised, t.completed), "", `${n(t.ctrl_recognised)} of ${n(t.completed)} completers`],
     ["Recognised profile", pct(t.profile_recognised, t.completed), "", `${n(t.profile_recognised)} of ${n(t.completed)}`],
-    ["Recognised final say", pct(t.final_recognised, t.completed), "", `${n(t.final_recognised)} of ${n(t.completed)}`],
+    ["Recognised final decisions", pct(t.final_recognised, t.completed), "", `${n(t.final_recognised)} of ${n(t.completed)}`],
     ["Median duration",  mins, "plain", "first to last answer"]
   ].map(([k, v, cls, note]) =>
     `<div class="tile"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div><div class="n">${note}</div></div>`
@@ -177,7 +177,7 @@ function recognitionTable() {
   const cell = (r, k) => r ? `${pct(r[k], r.n)} <span class="muted">${n(r[k])}/${n(r.n)}</span>` : "—";
   $("#tallyRec").innerHTML =
     `<caption>Recognition — share answering as the description said</caption>` +
-    `<tr><th>arm</th><th class="num">n</th><th class="num">control source</th><th class="num">final say</th><th class="num">operator profile</th><th class="num">attention</th><th class="num">comprehension</th></tr>` +
+    `<tr><th>arm</th><th class="num">n</th><th class="num">control source</th><th class="num">final decisions</th><th class="num">operator profile</th><th class="num">attention</th><th class="num">comprehension</th></tr>` +
     conds.map(c => { const r = at(c); return `<tr><td>${esc(c)}</td><td class="num">${r ? n(r.n) : 0}</td>` +
       ["ctrl", "final", "profile", "attention", "comprehension"].map(k => `<td class="num">${cell(r, k)}</td>`).join("") + `</tr>`; }).join("");
 }

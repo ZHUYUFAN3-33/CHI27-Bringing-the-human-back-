@@ -80,7 +80,7 @@ Study 2 (Track A) — precision and power
    sizeable gap, not for a small one, and the plan treats them as a
    secondary question reported with intervals either way.
 
-6. The validation design (s2-v6): five arms, recognition outcomes
+6. The validation design (s2-v7): five arms, recognition outcomes
    A recognition rate is a per-arm proportion; the graded items are
    per-arm means compared between arms. Both have large expected
    effects, which is what lets thirty per arm be enough.
@@ -96,4 +96,4 @@ Study 2 (Track A) — precision and power
 
 ========================================================================
 Track A (no disclosure): 300 usable, recruit about 330. The validation
-design (s2-v6): 150 recruited, thirty per arm.
+design (s2-v7): 150 recruited, thirty per arm.

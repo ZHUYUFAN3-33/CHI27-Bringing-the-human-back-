@@ -112,7 +112,7 @@ is the participant's own. Then agency, then the operator profile, then belief.*
 
 | id | item | |
 |---|---|---|
-| `V_OPEN` | Please describe, in your own words, who or what was operating OriHime in the videos, and anything you remember about the operator. | free text, at least 30 characters |
+| `V_OPEN` | Please describe, in your own words, what the description at the start said about who or what was controlling OriHime, and anything else you remember it saying about the operator or the system. | free text, at least 30 characters |
 
 *Coded blind by two coders for: human operator · AI assistance · AI alone ·
 mobility/physical disability · intellectual/cognitive disability · disability
@@ -123,28 +123,38 @@ agency and the profile coding.*
 
 | id | item | options / scale |
 |---|---|---|
-| `V_CTRL_REC` | Which of these best describes how you were told OriHime was controlled? | A human operator, with no AI involved / A human operator with AI assistance / An AI system, with no human operator / I'm not sure |
-| `V_CTRL_P` | According to the description, how much of what OriHime said and did was controlled by a person? | 1 None of it · 2 Very little · 3 Some · 4 About half · 5 Most · 6 Almost all · 7 All of it |
+| `V_CTRL_REC` | According to the description, which of these best describes how OriHime was controlled? | A human operator, with no AI involved / A human operator with AI assistance / An AI system, with no human operator / I'm not sure |
+| — | *Instruction shown above the next two items:* The next two questions are separate. Your two answers do not need to add up. | |
+| `V_CTRL_P` | According to the description, how much of what OriHime said and did was controlled by a human operator? | 1 None of it · 2 Very little · 3 Some · 4 About half · 5 Most · 6 Almost all · 7 All of it |
 | `V_CTRL_AI` | According to the description, how much of what OriHime said and did was controlled by an AI system? | same seven points |
-| `V_FINAL` | According to the description, who had the final say over what OriHime said and did? | A person / An AI system / They shared it / I'm not sure |
+| `V_FINAL` | According to the description, who made the final decisions about what OriHime said and did? | A person. Even if an AI system made suggestions, the person had the last word. / An AI system. Even if a person was involved, the AI system had the last word. / A person and an AI system equally. Neither one had the last word. / I'm not sure |
 
-*"According to the description" on every item: this is recognition of what
-was said, not a judgement of what the videos looked like. "A person", never
-"the operator" — arm A was told there is none.*
+*Every stem is anchored on the description: this is recognition of what was
+said, not a judgement of what the videos looked like. The instruction above
+the two scales keeps them unipolar — without it answers get forced to add up
+and the "both high" reading of HA cannot appear. `V_FINAL` mirrors the HA
+text's own words ("makes the final decisions"), and its third option says
+outright that nobody had the last word: a bare "they shared it" is also what
+a participant who understood HA correctly (AI suggests, the person decides)
+might reach for, and then the HA1 rate could not be read.*
 
 **B · Operator profile**
 
 | id | item | options / scale |
 |---|---|---|
-| `V_PROF_REC` | Which of these best matches what you were told about the operator? | A person with a mobility-related disability / A person with an intellectual or cognitive disability / A person — no disability was mentioned / There was no human operator / I'm not sure |
-| `V_LIM_MOB` | To what extent did the description suggest that the operator had limitations related to physical movement or mobility? | 1 Not at all → 7 Very much |
-| `V_LIM_COG` | To what extent did the description suggest that the operator had limitations related to thinking, learning or understanding? | 1 Not at all → 7 Very much |
+| `V_PROF_REC` | Which of these best matches what the description said about who operated OriHime? | A person with a mobility-related disability / A person with an intellectual or cognitive disability / A person — no disability was mentioned / There was no human operator / I'm not sure |
+| — | *Instruction shown above the next two items:* If you were told there was no human operator, choose "Not at all" for the next two questions. | |
+| `V_LIM_MOB` | Based on the description, how limited did you understand the operator to be in physical movement or mobility (for example walking, or using their hands)? | 1 Not at all · 2 Very little · 3 A little · 4 Somewhat · 5 Quite a lot · 6 Very much · 7 Extremely |
+| `V_LIM_COG` | Based on the description, how limited did you understand the operator to be in thinking, learning, or understanding (for example memory, reasoning, or following instructions)? | same seven points |
 
 *"No disability was mentioned" is the correct answer for H1 and HA1: Study 1's
 profile 1 says nothing, deliberately. There is no "unspecified disability"
 condition and so no specificity item.*
-*`V_LIM_COG` avoids the words "cognitive or intellectual functioning" in the
-stem — lay wording, same construct.*
+*The two limitation items ask what the participant understood, not what the
+text hinted: the construct is the operator model the label produced, which is
+what a stereotype account of Study 1's null would need. `V_LIM_COG` avoids the
+words "cognitive or intellectual functioning" — lay wording, same construct.
+Arm A is told to answer "Not at all"; its rows are reported, not compared.*
 
 **Belief** — *Study 1's BEL1, verbatim:*
 
@@ -166,6 +176,7 @@ currently distinguish from "misunderstood".*
 | `BG_age` | What is your age in years? | number, 18–120 |
 | `BG_gender` | What gender do you identify with? | Male / Female / Nonbinary / Prefer not to say |
 | `BG_freq_ai` | How often do you use AI tools in your personal or professional life? | Never … Daily or almost daily (six) |
+| `BG_freq_robot` | How often do you see or interact with a robot in your personal or professional life? | same six (Study 1's item and id) |
 | `BG_freq_disability` | How often do you see or interact with people with disabilities in your personal or professional life? | same six |
 | `BG_orihime_knowledge` | Before today, how much did you know about OriHime? | I had never heard of it / I had heard of it, but did not know how it is used or who operates it / I knew something about how it is used or who operates it |
 
@@ -218,8 +229,8 @@ currently distinguish from "misunderstood".*
 | agency | 4 |
 | operator profile | 3 |
 | belief | 1 |
-| background | 5 |
-| **total** | **20** |
+| background | 6 |
+| **total** | **21** |
 
 Estimated median completion about **9 minutes**, of which the videos are 4 min
 50 s. Pay for 10.

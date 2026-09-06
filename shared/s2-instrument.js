@@ -18,6 +18,15 @@
    Two things are randomised: the condition (five of Study 1's seven) and the
    clip order (the same six permutations), balanced over 5 × 6 = 30 cells.
 
+   s2-v7 sharpened the validation wording so that every recognition item has
+   exactly one right answer per arm and every distractor is unambiguously
+   wrong: the final-decision item mirrors the HA text's own words and its
+   "shared" option now says "neither had the last word"; the open question
+   asks what the description said, not what the videos showed; the two control
+   scales are introduced as separate (they need not add up); the limitation
+   items ask what the participant understood, and tell arm A what to choose.
+   It also added Study 1's robot-contact item to the background block.
+
    Same rules as shared/instrument.js: item ids are the contract with the
    database and are frozen once collection starts; the browser renders the plan
    the server sends it; the server validates every answer against this file;
@@ -30,7 +39,7 @@ import {
   CONDITIONS, INTRO_TEXT, CONTROL_TEXT, PERSONA_HUMAN, PERSONA_AI, PROFILE_STATEMENT
 } from "./instrument.js";
 
-export const S2_VERSION = "s2-v6";
+export const S2_VERSION = "s2-v7";
 
 /* Study 1's per-clip comprehension bank, reused rather than restated: a recut
    clip changes the question in one place. Each entry is { options, correct }. */
@@ -68,7 +77,7 @@ export const S2_AMOUNT = [
   "None of it", "Very little", "Some", "About half", "Most", "Almost all", "All of it"
 ];
 
-/* "To what extent did the description suggest …". */
+/* "How limited did you understand the operator to be in …". */
 export const S2_EXTENT = [
   "Not at all", "Very little", "A little", "Somewhat", "Quite a lot", "Very much", "Extremely"
 ];
@@ -135,17 +144,19 @@ export const S2_DEBRIEF = [
   "Your answers have been recorded against the participant number your recruitment platform gave us, and no name. If you would like them removed, send us the completion code shown on this page. Thank you for taking part."
 ];
 
-/* The validation items. Every stem says "according to the description": this
-   is recognition of what was said, not a judgement of what the videos looked
-   like. "A person", never "the operator" — arm A was told there is none. */
+/* The validation items. Every stem is anchored on the description: this is
+   recognition of what was said, not a judgement of what the videos looked
+   like. Where a stem counts or quantifies, "a human operator" is safe for arm
+   A (the answer is simply "none of it"); where a stem presupposes one — the
+   two limitation items — a note tells arm A to answer "Not at all". */
 export const S2_ITEMS = {
   OPEN: {
-    stem: "Please describe, in your own words, who or what was operating OriHime in the videos, and anything you remember about the operator.",
+    stem: "Please describe, in your own words, what the description at the start said about who or what was controlling OriHime, and anything else you remember it saying about the operator or the system.",
     minLength: 30,
     maxLength: 2000
   },
   CTRL_REC: {
-    stem: "Which of these best describes how you were told OriHime was controlled?",
+    stem: "According to the description, which of these best describes how OriHime was controlled?",
     options: [
       "A human operator, with no AI involved",
       "A human operator with AI assistance",
@@ -155,16 +166,26 @@ export const S2_ITEMS = {
     /* option index by control source */
     expected: { H: 0, HA: 1, A: 2 }
   },
-  CTRL_P:  { stem: "According to the description, how much of what OriHime said and did was controlled by a person?" },
+  CTRL_P:  { stem: "According to the description, how much of what OriHime said and did was controlled by a human operator?" },
   CTRL_AI: { stem: "According to the description, how much of what OriHime said and did was controlled by an AI system?" },
   FINAL: {
-    stem: "According to the description, who had the final say over what OriHime said and did?",
-    options: ["A person", "An AI system", "They shared it", "I’m not sure"],
+    /* Mirrors the HA text's own words, "makes the final decisions". The third
+       option has to be explicit that nobody had the last word: a bare "they
+       shared it" is also what a participant who understood HA correctly
+       (AI suggests, the person decides) might reach for, and then the HA1
+       rate could not be read. */
+    stem: "According to the description, who made the final decisions about what OriHime said and did?",
+    options: [
+      "A person. Even if an AI system made suggestions, the person had the last word.",
+      "An AI system. Even if a person was involved, the AI system had the last word.",
+      "A person and an AI system equally. Neither one had the last word.",
+      "I’m not sure"
+    ],
     /* The HA text says the operator "makes the final decisions": a person. */
     expected: { H: 0, HA: 0, A: 1 }
   },
   PROF_REC: {
-    stem: "Which of these best matches what you were told about the operator?",
+    stem: "Which of these best matches what the description said about who operated OriHime?",
     options: [
       "A person with a mobility-related disability",
       "A person with an intellectual or cognitive disability",
@@ -177,8 +198,11 @@ export const S2_ITEMS = {
     expectedByProfile: { 1: 2, 2: 1, 3: 0 },
     expectedForAI: 3
   },
-  LIM_MOB: { stem: "To what extent did the description suggest that the operator had limitations related to physical movement or mobility?" },
-  LIM_COG: { stem: "To what extent did the description suggest that the operator had limitations related to thinking, learning or understanding?" },
+  /* What the participant took the label to mean, not what the text hinted:
+     the construct is the operator model the label produced, which is what
+     a stereotype account of Study 1's null would need. */
+  LIM_MOB: { stem: "Based on the description, how limited did you understand the operator to be in physical movement or mobility (for example walking, or using their hands)?" },
+  LIM_COG: { stem: "Based on the description, how limited did you understand the operator to be in thinking, learning, or understanding (for example memory, reasoning, or following instructions)?" },
   BEL1: {
     /* Study 1's item, word for word, including the emphasis. */
     stem: "How much ***DID YOU BELIEVE*** the description of the OriHime operator you were given at the beginning of the questionnaire?"
@@ -187,12 +211,25 @@ export const S2_ITEMS = {
   AV1: { stem: "Which of the following happened in the video you just watched?" }
 };
 
+/* Two instructions inside the validation block. The first keeps the two
+   control scales unipolar in the participant's mind: without it, answers get
+   forced to add up and the "both high" reading of HA cannot appear. The second
+   gives arm A a scored, sensible answer on two items that presuppose an
+   operator. Both are shown to every arm; neither names a condition the option
+   lists have not already named. */
+export const S2_NOTES = {
+  agency: "The next two questions are separate. Your two answers do not need to add up.",
+  limits: "If you were told there was no human operator, choose “Not at all” for the next two questions."
+};
+
 export const S2_BACKGROUND = {
   heading: "Background",
   lead: "These last few questions are about you.",
   age: "What is your age in years?",
   gender: "What gender do you identify with?",
   freqAi: "How often do you use AI tools in your personal or professional life?",
+  /* Study 1's item and id, verbatim, so the two studies' columns line up. */
+  freqRobot: "How often do you see or interact with a robot in your personal or professional life?",
   freqDisability: "How often do you see or interact with people with disabilities in your personal or professional life?",
   knowledge: {
     stem: "Before today, how much did you know about OriHime?",
@@ -215,6 +252,7 @@ const number = (id, stem, extra = {}) =>
 const longText = (id, stem, extra = {}) =>
   ({ id, type: "text", multiline: true, stem, required: true, ...extra });
 const heading = (eyebrow, title, text) => ({ type: "heading", eyebrow, title, text });
+const note = text => ({ type: "note", text });
 
 /* ---------------------------------------------------------------- the plan */
 
@@ -326,6 +364,7 @@ export function buildS2Plan(condition, order) {
       heading(null, "Who was in control", null),
       mc("V_CTRL_REC", S2_ITEMS.CTRL_REC.stem, S2_ITEMS.CTRL_REC.options,
         { group: "ctrl_recognition", expected: S2_ITEMS.CTRL_REC.expected[c.ctrl] }),
+      note(S2_NOTES.agency),
       likert("V_CTRL_P", S2_ITEMS.CTRL_P.stem, S2_AMOUNT, { group: "agency" }),
       likert("V_CTRL_AI", S2_ITEMS.CTRL_AI.stem, S2_AMOUNT, { group: "agency" }),
       mc("V_FINAL", S2_ITEMS.FINAL.stem, S2_ITEMS.FINAL.options,
@@ -334,6 +373,7 @@ export function buildS2Plan(condition, order) {
       mc("V_PROF_REC", S2_ITEMS.PROF_REC.stem, S2_ITEMS.PROF_REC.options,
         { group: "profile_recognition",
           expected: isHuman ? S2_ITEMS.PROF_REC.expectedByProfile[c.profile] : S2_ITEMS.PROF_REC.expectedForAI }),
+      note(S2_NOTES.limits),
       likert("V_LIM_MOB", S2_ITEMS.LIM_MOB.stem, S2_EXTENT, { group: "profile" }),
       likert("V_LIM_COG", S2_ITEMS.LIM_COG.stem, S2_EXTENT, { group: "profile" }),
       heading(null, "The description as a whole", null),
@@ -352,6 +392,7 @@ export function buildS2Plan(condition, order) {
       number("BG_age", S2_BACKGROUND.age, { min: 18, max: 120 }),
       mc("BG_gender", S2_BACKGROUND.gender, GENDER),
       mc("BG_freq_ai", S2_BACKGROUND.freqAi, FREQ),
+      mc("BG_freq_robot", S2_BACKGROUND.freqRobot, FREQ),
       mc("BG_freq_disability", S2_BACKGROUND.freqDisability, FREQ),
       mc("BG_orihime_knowledge", S2_BACKGROUND.knowledge.stem, S2_BACKGROUND.knowledge.options,
         { group: "familiarity" })
@@ -415,7 +456,7 @@ export function s2AllItemIds() {
   const segRank = { REL: 0, ADV: 1, COL: 2 };
   const vRank = ["V_OPEN", "V_CTRL_REC", "V_CTRL_P", "V_CTRL_AI", "V_FINAL",
                  "V_PROF_REC", "V_LIM_MOB", "V_LIM_COG", "BEL1"];
-  const bgRank = ["BG_age", "BG_gender", "BG_freq_ai", "BG_freq_disability", "BG_orihime_knowledge"];
+  const bgRank = ["BG_age", "BG_gender", "BG_freq_ai", "BG_freq_robot", "BG_freq_disability", "BG_orihime_knowledge"];
   const rank = id => {
     if (/^E\d/.test(id)) return [0, Number(id[1]), id];
     if (id === "D1") return [1, 0, id];

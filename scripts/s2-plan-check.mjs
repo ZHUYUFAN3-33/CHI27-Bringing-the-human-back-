@@ -10,7 +10,7 @@ const die = msg => { console.error(msg); process.exit(1); };
 const PAGES = 8;   // intro · disclosure · 3 clips · validation · background · finish
 const VALIDATION = ["V_OPEN", "V_CTRL_REC", "V_CTRL_P", "V_CTRL_AI", "V_FINAL",
                     "V_PROF_REC", "V_LIM_MOB", "V_LIM_COG", "BEL1"];
-const BACKGROUND = ["BG_age", "BG_gender", "BG_freq_ai", "BG_freq_disability", "BG_orihime_knowledge"];
+const BACKGROUND = ["BG_age", "BG_gender", "BG_freq_ai", "BG_freq_robot", "BG_freq_disability", "BG_orihime_knowledge"];
 
 /* The right answer per arm, restated here independently of the instrument so
    a slip in either place is caught by the other. */
@@ -37,7 +37,7 @@ for (const cond of m.S2_CONDITION_KEYS) {
     const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
     if (dupes.length) die(`duplicate item ids in ${tag}: ${[...new Set(dupes)].join(", ")}`);
     for (const id of ids) if (!all.has(id)) die(`${tag}: ${id} missing from s2AllItemIds()`);
-    if (items.length !== 20) die(`${tag}: ${items.length} items, expected 20`);
+    if (items.length !== 21) die(`${tag}: ${items.length} items, expected 21`);
 
     for (const it of items) {
       if (it.type === "likert7" && it.options?.length !== 7) die(`${tag}: ${it.id} likert7 with ${it.options?.length} options`);
@@ -68,6 +68,21 @@ for (const cond of m.S2_CONDITION_KEYS) {
     if (bg.join(",") !== BACKGROUND.join(",")) die(`${tag}: background items are ${bg.join(",")}`);
     const text = items.filter(i => i.type === "text").map(i => i.id);
     if (text.join(",") !== "V_OPEN") die(`${tag}: free-text items are ${text.join(",")}`);
+
+    /* The two instructions sit directly above the items they govern, and each
+       recognition item offers exactly the options its key indexes into. The
+       "equal" option of the final-decision item has to say nobody had the last
+       word, or a correct reading of HA can land on it. */
+    const raw = plan.pages.find(pg => pg.key === "validation").items;
+    const before = id => raw[raw.findIndex(it => it.id === id) - 1]?.type;
+    if (before("V_CTRL_P") !== "note") die(`${tag}: no instruction above the control scales`);
+    if (before("V_LIM_MOB") !== "note") die(`${tag}: no instruction above the limitation items`);
+    if (raw.filter(it => it.type === "note").length !== 2) die(`${tag}: validation page carries ${raw.filter(it => it.type === "note").length} notes`);
+    for (const [id, n] of [["V_CTRL_REC", 4], ["V_FINAL", 4], ["V_PROF_REC", 5]]) {
+      const it = items.find(i => i.id === id);
+      if (it?.options?.length !== n) die(`${tag}: ${id} has ${it?.options?.length} options, expected ${n}`);
+    }
+    if (!/last word/i.test(items.find(i => i.id === "V_FINAL").options[2])) die(`${tag}: V_FINAL's "equal" option does not say nobody had the last word`);
 
     /* Every key, per arm, and none of them public. */
     for (const [id, want] of Object.entries(KEY[cond])) {
