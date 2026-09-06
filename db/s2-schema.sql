@@ -147,7 +147,11 @@ CREATE TABLE IF NOT EXISTS s2_allocation (
 
 ALTER TABLE s2_allocation ADD COLUMN IF NOT EXISTS condition TEXT;
 
-CREATE OR REPLACE VIEW s2_v_cell_progress AS
+-- CREATE OR REPLACE VIEW can only append columns; a deployment whose view was
+-- created by an earlier instrument cannot gain `condition` in the middle of
+-- the list. The views are derived and hold nothing, so drop and recreate.
+DROP VIEW IF EXISTS s2_v_cell_progress;
+CREATE VIEW s2_v_cell_progress AS
 SELECT a.cell,
        a.condition,
        a.seg_order,
@@ -166,7 +170,8 @@ LEFT JOIN s2_participants p ON p.cell = a.cell
 GROUP BY a.cell, a.condition, a.seg_order, a.enabled, a.target, a.assigned
 ORDER BY a.cell;
 
-CREATE OR REPLACE VIEW s2_v_responses_long AS
+DROP VIEW IF EXISTS s2_v_responses_long;
+CREATE VIEW s2_v_responses_long AS
 SELECT p.id AS participant_id, p.short_code, p.condition, p.seg_order, p.status, p.source, p.is_test,
        r.item_id, r.page_key, r.item_type, r.segment, r.seg_position,
        r.value_num, r.value_text, r.latency_ms, r.revisions, r.answered_at

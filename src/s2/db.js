@@ -17,5 +17,16 @@ export async function migrateS2(log = console) {
      ON CONFLICT (cell) DO NOTHING`,
     [cells.map(c => c.cell), cells.map(c => c.condition), cells.map(c => c.seg_order)]
   );
-  log.info?.(`s2 schema applied (${cells.length} cells)`);
+  /* A deployment that ran an earlier instrument seeded allocation rows for the
+     cells it had — s2-v5 had six, one per clip order. They survive the schema
+     upgrade with no condition, and the pick, which takes the least-filled
+     enabled cell, would take one and then fail to build a plan for it. Close
+     them rather than delete them: the pick skips closed cells, the dashboard
+     shows them closed, and nothing is destroyed. */
+  const { rowCount: closed } = await pool.query(
+    `UPDATE s2_allocation SET enabled = FALSE
+      WHERE enabled AND cell <> ALL($1::text[])`,
+    [cells.map(c => c.cell)]
+  );
+  log.info?.(`s2 schema applied (${cells.length} cells${closed ? `, ${closed} stale cell(s) closed` : ""})`);
 }

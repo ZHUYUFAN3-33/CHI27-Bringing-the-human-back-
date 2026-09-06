@@ -106,7 +106,7 @@ export default async function s2ParticipantRoutes(app) {
       const ext = externalIds(body.params ?? {});
       const { rows } = await q(
         `UPDATE s2_participants SET last_seen_at = now(), ${BACKFILL_SQL}
-          WHERE token = $1 RETURNING *`,
+          WHERE token = $1 AND condition IS NOT NULL RETURNING *`,
         [existing, ext.pid, ext.study, ext.session]
       );
       if (rows.length) return { resumed: true, token: existing, ...sessionView(rows[0]) };
@@ -128,6 +128,7 @@ export default async function s2ParticipantRoutes(app) {
         `UPDATE s2_participants SET last_seen_at = now()
           WHERE id = (SELECT id FROM s2_participants
                        WHERE lower(external_pid) = lower($1) AND NOT is_test
+                         AND condition IS NOT NULL
                        ORDER BY started_at DESC LIMIT 1)
           RETURNING *`,
         [ext.pid]

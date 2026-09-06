@@ -17,7 +17,12 @@ export default async function s2Routes(app, { requireAdmin }) {
     const auth = String(req.headers.authorization || "");
     const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : String(req.body?.token || "").trim();
     if (!token) return reply.code(401).send({ error: "missing_token" });
-    const { rows } = await q(`SELECT * FROM s2_participants WHERE token = $1`, [token]);
+    /* A row from an earlier instrument has no condition and no plan can be
+       built for it; to the client it is an unknown token, and the client's
+       own fallback is to start afresh. */
+    const { rows } = await q(
+      `SELECT * FROM s2_participants WHERE token = $1 AND condition IS NOT NULL`, [token]
+    );
     if (!rows.length) return reply.code(401).send({ error: "unknown_token" });
     req.participant = rows[0];
   });
