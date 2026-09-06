@@ -106,7 +106,8 @@ memory of the description over the same delay.*
 ## Page 6 · About the description you were given (all arms)
 
 *The open question comes first, before any option list, so the reconstruction
-is the participant's own. Then agency, then the operator profile, then belief.*
+is the participant's own. Then agency, then the operator profile. Belief is
+not on this page: see page 7.*
 
 **C · Open reconstruction**
 
@@ -156,20 +157,27 @@ what a stereotype account of Study 1's null would need. `V_LIM_COG` avoids the
 words "cognitive or intellectual functioning" — lay wording, same construct.
 Arm A is told to answer "Not at all"; its rows are reported, not compared.*
 
-**Belief** — *Study 1's BEL1, verbatim:*
+---
+
+## Page 7 · Belief, then a few last questions (all arms)
+
+**Belief first** — *Study 1's BEL1, verbatim, at the top of this page. The
+back button is disabled on this page.*
 
 | id | item | scale |
 |---|---|---|
 | `BEL1` | How much ***DID YOU BELIEVE*** the description of the OriHime operator you were given at the beginning of the questionnaire? | 7-point agreement |
 
-*Recognition and belief are asked separately because they are different
+*Why here and not on page 6: "did you believe" tells the participant the
+description may not have been true. On page 6 it could be read before the
+recognition items were answered; here it is seen only after page 6 has been
+submitted, and with back locked page 6 cannot be revised afterwards.
+Recognition and belief are asked separately because they are different
 things: a participant may answer `V_PROF_REC` correctly and `BEL1` = 2. That
 is "understood but not believed", which Study 1's H2 (26 % at BEL1 ≤ 3) cannot
 currently distinguish from "misunderstood".*
 
----
-
-## Page 7 · A few last questions (all arms)
+**Background**
 
 | id | item | options |
 |---|---|---|

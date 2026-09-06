@@ -13,7 +13,8 @@
    description (Study 1's page, verbatim) · three clips, each with the condition
    recap above the player and no questions but the two checks · the validation
    block, once, after all three clips, at the point Study 1 asked BEL1 · the
-   background block · finish.
+   background page, which opens with BEL1 and does not allow going back ·
+   finish.
 
    Two things are randomised: the condition (five of Study 1's seven) and the
    clip order (the same six permutations), balanced over 5 × 6 = 30 cells.
@@ -27,6 +28,13 @@
    items ask what the participant understood, and tell arm A what to choose.
    It also added Study 1's robot-contact item to the background block.
 
+   s2-v8 moved BEL1 off the validation page to the top of the background
+   page, and locked the back button there. BEL1 asks how much the participant
+   *believed* the description, which tells them it may not have been true; on
+   the same page it can be read before the recognition items are answered. On
+   its own page it is seen only after page 6 is submitted, and with back
+   locked, page 6 cannot be revised afterwards.
+
    Same rules as shared/instrument.js: item ids are the contract with the
    database and are frozen once collection starts; the browser renders the plan
    the server sends it; the server validates every answer against this file;
@@ -39,7 +47,7 @@ import {
   CONDITIONS, INTRO_TEXT, CONTROL_TEXT, PERSONA_HUMAN, PERSONA_AI, PROFILE_STATEMENT
 } from "./instrument.js";
 
-export const S2_VERSION = "s2-v7";
+export const S2_VERSION = "s2-v8";
 
 /* Study 1's per-clip comprehension bank, reused rather than restated: a recut
    clip changes the question in one place. Each entry is { options, correct }. */
@@ -347,9 +355,11 @@ export function buildS2Plan(condition, order) {
 
   /* -- 6 · the validation block ---------------------------------------------
      The open reconstruction first, before any option list, so the wording is
-     the participant's own. Then agency, then the operator profile, then
-     belief. Recognition and belief are asked apart because a correct
-     recognition beside a low belief is a different finding from a wrong one. */
+     the participant's own. Then agency, then the operator profile. Belief is
+     not on this page: BEL1 opens the next one, so nobody reads "did you
+     believe" before the recognition items are submitted. Recognition and
+     belief are asked apart because a correct recognition beside a low belief
+     is a different finding from a wrong one. */
   pages.push({
     key: "validation",
     kind: "page",
@@ -373,19 +383,26 @@ export function buildS2Plan(condition, order) {
           expected: isHuman ? S2_ITEMS.PROF_REC.expectedByProfile[c.profile] : S2_ITEMS.PROF_REC.expectedForAI }),
       note(S2_NOTES.limits),
       likert("V_LIM_MOB", S2_ITEMS.LIM_MOB.stem, S2_EXTENT, { group: "profile" }),
-      likert("V_LIM_COG", S2_ITEMS.LIM_COG.stem, S2_EXTENT, { group: "profile" }),
-      heading(null, "The description as a whole", null),
-      likert("BEL1", S2_ITEMS.BEL1.stem, SCALE, { group: "belief" })
+      likert("V_LIM_COG", S2_ITEMS.LIM_COG.stem, S2_EXTENT, { group: "profile" })
     ]
   });
 
-  /* -- 7 · background --------------------------------------------------------- */
+  /* -- 7 · belief, then background ------------------------------------------
+     BEL1 first, on its own page after the recognition items: its wording
+     ("did you believe") tells the participant the description may not have
+     been true, so it must not be visible while page 6 is being answered.
+     `lockBack` keeps the participant from returning to page 6 once they have
+     seen it; the runtime honours the flag, and the flag reaches the browser
+     through publicS2Plan. */
   pages.push({
     key: "background",
     kind: "page",
     eyebrow: "Last page",
     title: "A few last questions",
+    lockBack: true,
     items: [
+      heading(null, "The description as a whole", null),
+      likert("BEL1", S2_ITEMS.BEL1.stem, SCALE, { group: "belief" }),
       heading("Background", S2_BACKGROUND.heading, S2_BACKGROUND.lead),
       number("BG_age", S2_BACKGROUND.age, { min: 18, max: 120 }),
       mc("BG_gender", S2_BACKGROUND.gender, GENDER),
@@ -453,8 +470,8 @@ export function s2AllItemIds() {
   }
   const segRank = { REL: 0, ADV: 1, COL: 2 };
   const vRank = ["V_OPEN", "V_CTRL_REC", "V_CTRL_P", "V_CTRL_AI", "V_FINAL",
-                 "V_PROF_REC", "V_LIM_MOB", "V_LIM_COG", "BEL1"];
-  const bgRank = ["BG_age", "BG_gender", "BG_freq_ai", "BG_freq_robot", "BG_freq_disability", "BG_orihime_knowledge"];
+                 "V_PROF_REC", "V_LIM_MOB", "V_LIM_COG"];
+  const bgRank = ["BEL1", "BG_age", "BG_gender", "BG_freq_ai", "BG_freq_robot", "BG_freq_disability", "BG_orihime_knowledge"];
   const rank = id => {
     if (/^E\d/.test(id)) return [0, Number(id[1]), id];
     if (id === "D1") return [1, 0, id];
@@ -510,6 +527,7 @@ export function publicS2Plan(plan) {
     pages: plan.pages.map(p => ({
       key: p.key, kind: p.kind, eyebrow: p.eyebrow, title: p.title,
       lead: p.lead ?? null,
+      lockBack: !!p.lockBack,
       info: p.info ?? null,
       about: p.about ?? null,
       consentIntro: p.consentIntro ?? null,

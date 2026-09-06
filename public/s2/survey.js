@@ -194,7 +194,8 @@ function render() {
   barEl.style.width = (S.page / last * 100) + "%";
   posEl.textContent = `Page ${S.page + 1} of ${S.plan.pages.length}`;
   if (S.preview) window.__PREVIEW__.onPage?.(S.page, p);
-  backBtn.disabled = S.page === 0;
+  /* A page that locks back (the one carrying BEL1) cannot be left backwards. */
+  backBtn.disabled = S.page === 0 || !!p.lockBack;
   backBtn.style.visibility = "visible";
   nextBtn.textContent = S.page === last - 1 ? "Submit" : "Next";
   nextBtn.hidden = false;
@@ -835,7 +836,7 @@ async function submit() {
   const retry = msg => {
     nextBtn.disabled = false;
     nextBtn.textContent = "Try again";
-    backBtn.disabled = false;
+    backBtn.disabled = !!S.plan.pages[S.page]?.lockBack;
     saveBar.className = "savebar show bad";
     saveBar.textContent = msg;
   };

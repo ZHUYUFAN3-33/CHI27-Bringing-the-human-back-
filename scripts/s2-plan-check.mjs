@@ -9,8 +9,10 @@ const die = msg => { console.error(msg); process.exit(1); };
 
 const PAGES = 8;   // intro · disclosure · 3 clips · validation · background · finish
 const VALIDATION = ["V_OPEN", "V_CTRL_REC", "V_CTRL_P", "V_CTRL_AI", "V_FINAL",
-                    "V_PROF_REC", "V_LIM_MOB", "V_LIM_COG", "BEL1"];
-const BACKGROUND = ["BG_age", "BG_gender", "BG_freq_ai", "BG_freq_robot", "BG_freq_disability", "BG_orihime_knowledge"];
+                    "V_PROF_REC", "V_LIM_MOB", "V_LIM_COG"];
+/* BEL1 opens the background page: "did you believe" must not be readable
+   while the recognition items are being answered, and that page locks back. */
+const BACKGROUND = ["BEL1", "BG_age", "BG_gender", "BG_freq_ai", "BG_freq_robot", "BG_freq_disability", "BG_orihime_knowledge"];
 
 /* The right answer per arm, restated here independently of the instrument so
    a slip in either place is caught by the other. */
@@ -68,6 +70,16 @@ for (const cond of m.S2_CONDITION_KEYS) {
     if (bg.join(",") !== BACKGROUND.join(",")) die(`${tag}: background items are ${bg.join(",")}`);
     const text = items.filter(i => i.type === "text").map(i => i.id);
     if (text.join(",") !== "V_OPEN") die(`${tag}: free-text items are ${text.join(",")}`);
+
+    /* Belief is seen only after the recognition items are submitted: it is
+       the first item of the background page, that page locks back, and the
+       flag reaches the browser. */
+    const bgPage = plan.pages.find(pg => pg.key === "background");
+    if (!bgPage.lockBack) die(`${tag}: the background page does not lock back`);
+    if (plan.pages.some(pg => pg.key !== "background" && pg.lockBack)) die(`${tag}: lockBack on a page other than background`);
+    if (items.some(i => i.group === "belief" && i.pageKey !== "background")) die(`${tag}: a belief item outside the background page`);
+    const pubBg = m.publicS2Plan(plan).pages.find(pg => pg.key === "background");
+    if (pubBg.lockBack !== true) die(`${tag}: lockBack missing from the public plan`);
 
     /* The two instructions sit directly above the items they govern, and each
        recognition item offers exactly the options its key indexes into. The
