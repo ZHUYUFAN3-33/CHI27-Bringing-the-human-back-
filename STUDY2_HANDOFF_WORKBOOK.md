@@ -1,7 +1,7 @@
 # Handoff: bring the Study 1 workbook up to date on Study 2
 
 For the session that maintains `analysis/study1-20260902/`. Written 2026-09-05
-on the `study2` branch, where Study 2's instrument (`s2-v6`), analysis plan
+on the `study2` branch, where Study 2's instrument (`s2-v7`), analysis plan
 (`STUDY2_PLAN.md`) and item list (`STUDY2_ITEMS.md`) live. This file is
 self-contained: everything the workbook needs is below, and nothing has to be
 fetched from the other branch.
@@ -67,27 +67,33 @@ except the two quality checks → the validation block, asked once → backgroun
 → debrief (Study 1's, verbatim). About 9 minutes, of which the clips are
 4 min 50 s.
 
-**The validation block, in the order asked.** Every stem after the first says
-"according to the description": recognition of what was said, not judgement
-of what the videos looked like.
+**The validation block, in the order asked.** Every stem is anchored on the
+description: recognition of what was said, not judgement of what the videos
+looked like. Two one-line instructions sit inside the block: above items 3–4,
+"The next two questions are separate. Your two answers do not need to add
+up."; above items 7–8, "If you were told there was no human operator, choose
+'Not at all' for the next two questions." Wording as of `s2-v7`
+(2026-09-06), revised so that every recognition item has exactly one right
+answer per arm and every distractor is unambiguously wrong; ids, keys and
+outcomes did not change (commit `b1fd653` on `study2`).
 
 | # | id | item | options |
 |---|---|---|---|
-| 1 | `V_OPEN` | Please describe, in your own words, who or what was operating OriHime in the videos, and anything you remember about the operator. | free text, ≥ 30 characters |
-| 2 | `V_CTRL_REC` | Which of these best describes how you were told OriHime was controlled? | human, no AI / human with AI assistance / AI, no human / not sure |
-| 3 | `V_CTRL_P` | According to the description, how much of what OriHime said and did was controlled by a person? | 1 None of it … 4 About half … 7 All of it |
+| 1 | `V_OPEN` | Please describe, in your own words, what the description at the start said about who or what was controlling OriHime, and anything else you remember it saying about the operator or the system. | free text, ≥ 30 characters |
+| 2 | `V_CTRL_REC` | According to the description, which of these best describes how OriHime was controlled? | human, no AI / human with AI assistance / AI, no human / not sure |
+| 3 | `V_CTRL_P` | According to the description, how much of what OriHime said and did was controlled by a human operator? | 1 None of it … 4 About half … 7 All of it |
 | 4 | `V_CTRL_AI` | … controlled by an AI system? | same seven points |
-| 5 | `V_FINAL` | According to the description, who had the final say over what OriHime said and did? | a person / an AI system / they shared it / not sure |
-| 6 | `V_PROF_REC` | Which of these best matches what you were told about the operator? | mobility-related disability / intellectual or cognitive disability / a person, no disability was mentioned / there was no human operator / not sure |
-| 7 | `V_LIM_MOB` | To what extent did the description suggest that the operator had limitations related to physical movement or mobility? | 1 Not at all … 7 Extremely |
-| 8 | `V_LIM_COG` | … related to thinking, learning or understanding? | same |
+| 5 | `V_FINAL` | According to the description, who made the final decisions about what OriHime said and did? | "A person. Even if an AI system made suggestions, the person had the last word." / "An AI system. Even if a person was involved, the AI system had the last word." / "A person and an AI system equally. Neither one had the last word." / not sure |
+| 6 | `V_PROF_REC` | Which of these best matches what the description said about who operated OriHime? | mobility-related disability / intellectual or cognitive disability / a person, no disability was mentioned / there was no human operator / not sure |
+| 7 | `V_LIM_MOB` | Based on the description, how limited did you understand the operator to be in physical movement or mobility (for example walking, or using their hands)? | 1 Not at all … 7 Extremely |
+| 8 | `V_LIM_COG` | … in thinking, learning, or understanding (for example memory, reasoning, or following instructions)? | same |
 | 9 | `BEL1` | How much DID YOU BELIEVE the description of the OriHime operator you were given at the beginning of the questionnaire? | Study 1's item and scale, verbatim |
 
 Quality checks: the instructed-response item on the clip shown second
 (`AT1`), the comprehension question on the clip shown third (`AV1`), both from
-Study 1. Background: age, gender, AI-use frequency, contact with people with
-disabilities (Study 1's ids), and one ordinal item on prior knowledge of
-OriHime. Twenty items in all.
+Study 1. Background: age, gender, AI-use frequency, contact with robots,
+contact with people with disabilities (all four Study 1's ids and wording),
+and one ordinal item on prior knowledge of OriHime. Twenty-one items in all.
 
 **Scoring.** Three recognition outcomes are scored on the server against
 per-arm keys the browser never receives:
@@ -238,7 +244,7 @@ also caps the disability story at "understood but outweighed".
 
 ### 5b. The control source
 
-| scenario | person-control / AI-control ordering | HA on final say | how C1 and C2 are written |
+| scenario | person-control / AI-control ordering | HA on final decisions | how C1 and C2 are written |
 |---|---|---|---|
 | **C-a clean** | H > HA > A and A > HA > H both hold | majority "a person" | C2 is **genuine equivalence** — "AI assistance under human final say does not reduce genuineness" — a positive finding. C1's penalty is attributable to the "AI only" label itself. |
 | **C-b HA collapsed into H** | HA's AI-control ≈ 1–2, same as H | majority "a person" | C2 says nothing about AI assistance: participants did not register the AI, so H = HA is one reading of the same thing. Every sentence about AI assistance comes out. |
