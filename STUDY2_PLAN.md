@@ -196,10 +196,10 @@ platform quota, never on a result.
 
 ## 8. Still needs the team
 
-1. **The debrief.** Study 1's approved text is used verbatim. The one
-   sentence it does not carry — what actually controlled the clips — is a
-   placeholder in `S2_DEBRIEF`: fill it, or delete that paragraph to match
-   Study 1 exactly. `scripts/s2-plan-check.mjs` warns while it is present.
+1. **The debrief.** Study 1's approved text is used verbatim, with nothing
+   added. It does not say what actually controlled the clips; disclosing
+   that would be a new paragraph in `S2_DEBRIEF` and new text for ethics.
+   `scripts/s2-plan-check.mjs` fails on any placeholder text in the debrief.
 2. **`AV1`.** Reuses Study 1's bank, which the Study 1 README flags as
    written from the shooting script. Every option against the final audio.
 3. **Ethics.** The description pages, recap and debrief are Study 1's

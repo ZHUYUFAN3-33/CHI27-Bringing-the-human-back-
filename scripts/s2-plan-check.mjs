@@ -107,9 +107,6 @@ for (const cond of m.S2_CONDITION_KEYS) {
   }
 }
 
-if (m.S2_DEBRIEF.some(par => par.includes(m.S2_DEBRIEF_PLACEHOLDER))) {
-  console.log("WARNING: the debrief still carries its placeholder. Fill in how each clip was");
-  console.log("         actually controlled, or remove the sentence to match Study 1's approved");
-  console.log("         debrief, before recruitment opens.");
-}
+/* The debrief is approved text; nothing bracketed and unfinished may ship in it. */
+if (m.S2_DEBRIEF.some(par => /\[[A-Z][A-Z ]+\]/.test(par))) die("the debrief carries placeholder text");
 console.log(`s2 plan ok: ${m.S2_CONDITION_KEYS.length} conditions × ${m.S2_ORDER_KEYS.length} orders, ${PAGES} pages, ${all.size} stored items`);

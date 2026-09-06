@@ -346,12 +346,11 @@ so it opens no video gate and records nothing. It needs Playwright:
 target to 5 on the dashboard. `python3 analysis/study2/precision.py`
 regenerates the precision tables.
 
-**Before recruitment opens**, three things still need the research team, all
-in STUDY2_PLAN.md §8: the debrief's placeholder (fill it, or delete that
-paragraph to match Study 1's approved text; `s2-plan-check.mjs` warns while it
-is present); every `AV1` option checked against the final audio; and ethics
-approval for the validation block and the open reconstruction — the
-description pages, recap and debrief are Study 1's approved text.
+**Before recruitment opens**, two things still need the research team, both
+in STUDY2_PLAN.md §8: every `AV1` option checked against the final audio; and
+ethics approval for the validation block and the open reconstruction — the
+description pages, recap and debrief are Study 1's approved text, with
+nothing added.
 
 ---
 

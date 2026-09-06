@@ -190,8 +190,6 @@ currently distinguish from "misunderstood".*
 >
 > The study examines how information about control and operator characteristics shapes judgments. It does not test whether any disability group is more or less capable.
 >
-> **How OriHime was actually controlled.** [TO BE COMPLETED BY THE RESEARCH TEAM]
->
 > Your answers have been recorded against the participant number your recruitment platform gave us, and no name. If you would like them removed, send us the completion code shown on this page. Thank you for taking part.
 
 ---
@@ -237,7 +235,8 @@ Estimated median completion about **9 minutes**, of which the videos are 4 min
 
 ## Still needs the team
 
-1. The true control arrangement for the debrief.
+1. Whether to disclose the true control arrangement in the debrief. As
+   deployed, the debrief is Study 1's approved text with nothing added.
 2. Every `AV1` option checked against the final audio.
 3. Ethics: the description pages, the recap and the debrief are Study 1's
    approved text; the page-6 items and the open question are new and need

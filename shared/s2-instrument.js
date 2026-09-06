@@ -132,15 +132,13 @@ export const S2_INFO = {
 export const S2_NO_LOOKUP =
   "Please answer from the videos and the description above — please do not look OriHime up while taking part.";
 
-/* The debrief is Study 1's, verbatim: it is the same deception. The one
-   sentence Study 1's approved text does not carry — what actually controlled
-   the clips — is a placeholder the research team either fills in or removes;
-   scripts/s2-plan-check.mjs warns while it is present. */
-export const S2_DEBRIEF_PLACEHOLDER = "[TO BE COMPLETED BY THE RESEARCH TEAM]";
+/* The debrief is Study 1's approved text, verbatim and with nothing added:
+   it is the same deception. Study 1's text does not say what actually
+   controlled the clips; if the team decides to disclose that, it is a new
+   paragraph here and new text for ethics. */
 export const S2_DEBRIEF = [
   "In this study, the description of who or what controlled OriHime, and the description of the operator, were experimentally varied between participants, while the videos themselves were identical for everyone.",
   "The study examines how information about control and operator characteristics shapes judgments. It does not test whether any disability group is more or less capable.",
-  `**How OriHime was actually controlled.** ${S2_DEBRIEF_PLACEHOLDER}`,
   "Your answers have been recorded against the participant number your recruitment platform gave us, and no name. If you would like them removed, send us the completion code shown on this page. Thank you for taking part."
 ];
 
