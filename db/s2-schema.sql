@@ -14,7 +14,11 @@ CREATE TABLE IF NOT EXISTS s2_participants (
   token            TEXT UNIQUE NOT NULL,
   short_code       TEXT UNIQUE NOT NULL,
 
-  seg_order        TEXT NOT NULL,                   -- O1..O6, the only randomised factor
+  cell             TEXT NOT NULL,                   -- condition|order, the allocation key
+  condition        TEXT NOT NULL,                   -- A | H1 | HA1 | H2 | H3
+  ctrl             TEXT NOT NULL,                   -- H | HA | A
+  profile          SMALLINT,                        -- 1 | 2 | 3, null under A
+  seg_order        TEXT NOT NULL,                   -- O1..O6
   instrument_ver   TEXT NOT NULL,
 
   status           TEXT NOT NULL DEFAULT 'in_progress',   -- in_progress | completed | screened_out
@@ -46,6 +50,9 @@ CREATE TABLE IF NOT EXISTS s2_participants (
   complete_pass    BOOLEAN,                         -- every required item present at submit
   attention_pass   BOOLEAN,                         -- instructed-response check, scored server-side
   comprehension_pass BOOLEAN,                       -- video-comprehension check, scored server-side
+  ctrl_recognised    BOOLEAN,                       -- V_CTRL_REC matched the condition's control source
+  final_recognised   BOOLEAN,                       -- V_FINAL matched who the description gives the final say
+  profile_recognised BOOLEAN,                       -- V_PROF_REC matched the condition's operator profile
   text_chars       INTEGER NOT NULL DEFAULT 0       -- free-text characters; unused in s2-v3, which asks none
 );
 
@@ -54,6 +61,14 @@ ALTER TABLE s2_participants
   ADD COLUMN IF NOT EXISTS attention_pass BOOLEAN;
 ALTER TABLE s2_participants
   ADD COLUMN IF NOT EXISTS comprehension_pass BOOLEAN;
+ALTER TABLE s2_participants ADD COLUMN IF NOT EXISTS cell TEXT;
+ALTER TABLE s2_participants ADD COLUMN IF NOT EXISTS condition TEXT;
+ALTER TABLE s2_participants ADD COLUMN IF NOT EXISTS ctrl TEXT;
+ALTER TABLE s2_participants ADD COLUMN IF NOT EXISTS profile SMALLINT;
+ALTER TABLE s2_participants ADD COLUMN IF NOT EXISTS ctrl_recognised BOOLEAN;
+ALTER TABLE s2_participants ADD COLUMN IF NOT EXISTS final_recognised BOOLEAN;
+ALTER TABLE s2_participants ADD COLUMN IF NOT EXISTS profile_recognised BOOLEAN;
+CREATE INDEX IF NOT EXISTS s2_participants_cell_idx ON s2_participants (cell);
 
 CREATE INDEX IF NOT EXISTS s2_participants_status_idx   ON s2_participants (status);
 CREATE INDEX IF NOT EXISTS s2_participants_order_idx    ON s2_participants (seg_order);
@@ -118,9 +133,11 @@ CREATE TABLE IF NOT EXISTS s2_submissions (
   received_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- One row per clip order. Same balanced pick as Study 1, six cells instead of 42.
+-- One row per condition × clip order: thirty cells, the same balanced pick as
+-- Study 1's forty-two.
 CREATE TABLE IF NOT EXISTS s2_allocation (
   cell       TEXT PRIMARY KEY,
+  condition  TEXT NOT NULL,
   seg_order  TEXT NOT NULL,
   enabled    BOOLEAN NOT NULL DEFAULT TRUE,
   target     INTEGER NOT NULL DEFAULT 0,
@@ -128,8 +145,11 @@ CREATE TABLE IF NOT EXISTS s2_allocation (
   completed  INTEGER NOT NULL DEFAULT 0
 );
 
+ALTER TABLE s2_allocation ADD COLUMN IF NOT EXISTS condition TEXT;
+
 CREATE OR REPLACE VIEW s2_v_cell_progress AS
 SELECT a.cell,
+       a.condition,
        a.seg_order,
        a.enabled,
        a.target,
@@ -142,12 +162,12 @@ SELECT a.cell,
                              AND COALESCE(p.attention_pass, TRUE)
                              AND COALESCE(p.comprehension_pass, TRUE))          AS usable
 FROM s2_allocation a
-LEFT JOIN s2_participants p ON p.seg_order = a.cell
-GROUP BY a.cell, a.seg_order, a.enabled, a.target, a.assigned
+LEFT JOIN s2_participants p ON p.cell = a.cell
+GROUP BY a.cell, a.condition, a.seg_order, a.enabled, a.target, a.assigned
 ORDER BY a.cell;
 
 CREATE OR REPLACE VIEW s2_v_responses_long AS
-SELECT p.id AS participant_id, p.short_code, p.seg_order, p.status, p.source, p.is_test,
+SELECT p.id AS participant_id, p.short_code, p.condition, p.seg_order, p.status, p.source, p.is_test,
        r.item_id, r.page_key, r.item_type, r.segment, r.seg_position,
        r.value_num, r.value_text, r.latency_ms, r.revisions, r.answered_at
 FROM s2_participants p

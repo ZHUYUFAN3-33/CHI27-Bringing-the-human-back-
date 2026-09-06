@@ -6,7 +6,7 @@ import { q, withTx } from "../db.js";
 import { config } from "../config.js";
 import { newToken, newShortCode, hashIp, clientIp } from "../routes/session.js";
 import { assignS2Cell, releaseS2Cell, s2HasCapacity, S2FullError } from "./allocation.js";
-import { buildS2Plan, publicS2Plan, s2PlanIndex, s2PlanItems, S2_VERSION } from "../../shared/s2-instrument.js";
+import { buildS2Plan, publicS2Plan, s2PlanIndex, s2PlanItems, S2_VERSION, S2_CONDITIONS } from "../../shared/s2-instrument.js";
 
 /* Platform identifiers, matched without regard to case. Same keys as Study 1
    so the same Connect configuration works for both. */
@@ -46,7 +46,7 @@ function sessionView(p) {
     status: p.status,
     pageKey: p.page_key,
     pageIndex: p.page_index,
-    plan: publicS2Plan(buildS2Plan(p.seg_order)),
+    plan: publicS2Plan(buildS2Plan(p.condition, p.seg_order)),
     completion: completionFor(p)
   };
 }
@@ -176,13 +176,15 @@ export default async function s2ParticipantRoutes(app) {
     const token = newToken();
     const { rows } = await q(
       `INSERT INTO s2_participants (
-         token, short_code, seg_order, instrument_ver, source,
+         token, short_code, cell, condition, ctrl, profile, seg_order, instrument_ver, source,
          external_pid, external_study, external_session, is_test,
          user_agent, screen_w, screen_h, timezone, ui_language, ip_hash, page_key, page_index
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
        RETURNING *`,
       [
-        token, newShortCode(), cell.seg_order, S2_VERSION, config.recruitment,
+        token, newShortCode(), cell.cell, cell.condition,
+        S2_CONDITIONS[cell.condition].ctrl, S2_CONDITIONS[cell.condition].profile,
+        cell.seg_order, S2_VERSION, config.recruitment,
         ext.pid, ext.study, ext.session, isTest,
         String(req.headers["user-agent"] || "").slice(0, 400),
         Number.isFinite(body.screenW) ? Math.trunc(body.screenW) : null,
@@ -240,7 +242,7 @@ export default async function s2ParticipantRoutes(app) {
     if (p.status === "completed") return { ok: true, ignored: "already_completed" };
 
     const body = req.body ?? {};
-    const index = s2PlanIndex(buildS2Plan(p.seg_order));
+    const index = s2PlanIndex(buildS2Plan(p.condition, p.seg_order));
 
     const rows = [];
     const rejected = [];
@@ -354,7 +356,7 @@ export default async function s2ParticipantRoutes(app) {
       [p.id, reason]
     );
     const released = rowCount === 1 && !p.is_test;
-    if (released) await releaseS2Cell(p.seg_order);
+    if (released) await releaseS2Cell(p.cell);
     req.log.info({ pid: p.id, reason, released }, "s2 screened out");
     return { ok: true, reason };
   });
@@ -364,7 +366,7 @@ export default async function s2ParticipantRoutes(app) {
     const p = req.participant;
     if (!p) return reply.code(401).send({ error: "unknown_token" });
 
-    const items = s2PlanItems(buildS2Plan(p.seg_order));
+    const items = s2PlanItems(buildS2Plan(p.condition, p.seg_order));
     const { rows: stored } = await q(
       `SELECT item_id, value_num FROM s2_responses WHERE participant_id = $1`, [p.id]
     );
@@ -382,6 +384,11 @@ export default async function s2ParticipantRoutes(app) {
     };
     const attentionPass = scored("attention");
     const comprehensionPass = scored("comprehension");
+    /* The validation outcomes. Scored the same way, kept apart from the two
+       quality checks: a wrong recognition is a finding, not an exclusion. */
+    const ctrlRecognised = scored("ctrl_recognition");
+    const finalRecognised = scored("final_recognition");
+    const profileRecognised = scored("profile_recognition");
 
     const { rows } = await withTx(async client => {
       await client.query(
@@ -391,30 +398,35 @@ export default async function s2ParticipantRoutes(app) {
           client: req.body ?? {},
           derived: {
             missing, itemsExpected: required.length, itemsStored: got.size,
-            attentionPass, comprehensionPass
+            attentionPass, comprehensionPass, ctrlRecognised, finalRecognised, profileRecognised
           }
         })]
       );
       const upd = await client.query(
         `UPDATE s2_participants
             SET status = 'completed', completed_at = now(), last_seen_at = now(),
-                page_key = 'finish', page_index = GREATEST(page_index, 5),
+                page_key = 'finish', page_index = GREATEST(page_index, 7),
                 complete_pass = $2,
                 attention_pass = $3,
                 comprehension_pass = $4,
+                ctrl_recognised = $5,
+                final_recognised = $6,
+                profile_recognised = $7,
                 answered_count = (SELECT COUNT(*) FROM s2_responses WHERE participant_id = $1)
           WHERE id = $1
           RETURNING short_code`,
-        [p.id, missing.length === 0, attentionPass, comprehensionPass]
+        [p.id, missing.length === 0, attentionPass, comprehensionPass,
+         ctrlRecognised, finalRecognised, profileRecognised]
       );
       if (p.status !== "completed" && !p.is_test) {
-        await client.query(`UPDATE s2_allocation SET completed = completed + 1 WHERE cell = $1`, [p.seg_order]);
+        await client.query(`UPDATE s2_allocation SET completed = completed + 1 WHERE cell = $1`, [p.cell]);
       }
       return upd;
     });
 
-    req.log.info({ pid: p.id, order: p.seg_order, missing: missing.length,
-                   attentionPass, comprehensionPass }, "s2 completed");
+    req.log.info({ pid: p.id, cell: p.cell, missing: missing.length,
+                   attentionPass, comprehensionPass, ctrlRecognised, finalRecognised, profileRecognised },
+                 "s2 completed");
     const code = completionFor({ short_code: rows[0]?.short_code ?? p.short_code });
     return { ok: true, shortCode: rows[0]?.short_code ?? p.short_code,
              completionCode: code.code, redirectUrl: code.redirectUrl, missing };

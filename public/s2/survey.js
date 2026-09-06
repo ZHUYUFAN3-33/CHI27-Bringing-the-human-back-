@@ -139,14 +139,14 @@ async function boot() {
 async function bootPreview() {
   S.preview = true;
   navEl.hidden = false;
-  await previewLoad(window.__PREVIEW__.order ?? "O1");
+  await previewLoad(window.__PREVIEW__.cond ?? "H1", window.__PREVIEW__.order ?? "O1");
 }
 
-async function previewLoad(order = "O1", { keepPage = false } = {}) {
+async function previewLoad(cond = "H1", order = "O1", { keepPage = false } = {}) {
   let data;
   try {
     const token = window.__PREVIEW__.token;
-    const res = await fetch(`${API}/admin/preview-plan?order=${encodeURIComponent(order)}`, {
+    const res = await fetch(`${API}/admin/preview-plan?cond=${encodeURIComponent(cond)}&order=${encodeURIComponent(order)}`, {
       headers: token ? { authorization: `Bearer ${token}` } : {}
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -183,9 +183,11 @@ function render() {
   pageEl.append(el("p", "eyebrow", esc(p.eyebrow ?? "")));
   pageEl.append(el("h2", "qtitle", esc(p.title)));
 
-  if (p.kind === "info")    renderIntro(p);
-  if (p.kind === "segment") renderSegment(p);
-  if (p.kind === "finish")  { renderFinish(p); return; }
+  if (p.lead) pageEl.append(el("p", "lede", md(p.lead)));
+  if (p.kind === "info")       renderIntro(p);
+  if (p.kind === "disclosure") renderDisclosure(p);
+  if (p.kind === "segment")    renderSegment(p);
+  if (p.kind === "finish")     { renderFinish(p); return; }
 
   p.items.forEach(item => target(p).append(buildItem(item)));
 
@@ -201,8 +203,44 @@ function render() {
   updateNext();
 }
 
-/* Page one: the information sheet, then what OriHime is and the three ways it
-   can be controlled, then the three consent items. */
+/* Page two: the condition description — Study 1's disclosure page, ported.
+   Same intro, same photo, same control text, the profile line where the
+   condition has one, the diagram, the persona box. The condition's label is
+   not in the plan and is not needed here: everything rendered is text the
+   server chose for this participant. */
+function renderDisclosure(p) {
+  const d = p.disclosure;
+  const card = el("div", "disclosure");
+  card.append(el("p", null, esc(d.intro)));
+  const fig = el("figure", "photo");
+  fig.innerHTML = '<img src="/orihime.jpg" width="1600" height="899" alt="OriHime, a small white tabletop robot, on a table beside a seated person">';
+  card.append(fig);
+  card.append(el("p", null, md(d.control)));
+  if (d.profile) card.append(el("p", "profileline", md(d.profile)));
+  card.append(diagram(d.arrangement));
+  const persona = el("div", "persona");
+  persona.append(el("h4", null, esc(d.personaHead)));
+  const ul = el("ul");
+  d.personaLines.forEach(line => ul.append(el("li", null, md(line.text))));
+  persona.append(ul);
+  card.append(persona);
+  if (d.after) card.append(el("p", "lede", md(d.after)));
+  pageEl.append(card);
+}
+
+/* The condition, restated above each clip's player — Study 1's recap, built
+   from the same strings the disclosure page used so the two cannot drift. */
+function conditionRecap(p) {
+  const r = p.recap;
+  if (!r) return null;
+  const box = el("div", "recap");
+  box.append(el("p", null, md(r.control)));
+  if (r.profile) box.append(el("p", "recap-profile", md(r.profile)));
+  return box;
+}
+
+/* Page one: the information sheet, then what OriHime is, then the three
+   consent items. */
 function renderIntro(p) {
   const box = el("div", "disclosure infosheet");
   if (p.info?.lede) box.append(el("p", "lede", md(fillTokens(p.info.lede))));
@@ -239,6 +277,8 @@ function renderIntro(p) {
 }
 
 function renderSegment(p) {
+  const recap = conditionRecap(p);
+  if (recap) pageEl.append(recap);
   const shell = el("div", "video");
   shell.id = `ytbox_${p.key}`;
   const mount = el("div");
@@ -836,3 +876,60 @@ fetch(`${API}/config`).then(r => r.json()).then(cfg => {
   if (cfg.contact) window.__STUDY_CONTACT__ = cfg.contact;
   if (cfg.funding) window.__STUDY_FUNDING__ = cfg.funding;
 }).catch(() => {}).finally(boot);
+
+/* ---------------------------------------------------------------- diagram
+   The control-arrangement figure, copied from public/survey.js so both studies
+   draw the same picture from the same code. */
+function node(x, y, label, sub, kind) {
+  const gx = x + 16, gy = y + (kind === "ai" ? 14 : 13);
+  let glyph;
+  if (kind === "human") {
+    glyph = `<circle cx="${gx + 12}" cy="${gy + 9}" r="6.5" fill="none" stroke="#171A1F" stroke-width="1.4"/>
+             <path d="M ${gx + 1} ${gy + 29} a 11 11 0 0 1 22 0" fill="none" stroke="#171A1F" stroke-width="1.4"/>`;
+  } else if (kind === "ai") {
+    glyph = `<rect x="${gx + 2}" y="${gy + 3}" width="20" height="20" rx="4.5" fill="none" stroke="#5C6674" stroke-width="1.4"/>
+             <circle cx="${gx + 8}"  cy="${gy + 9}"  r="1.7" fill="#5C6674"/>
+             <circle cx="${gx + 16}" cy="${gy + 9}"  r="1.7" fill="#5C6674"/>
+             <circle cx="${gx + 8}"  cy="${gy + 17}" r="1.7" fill="#5C6674"/>
+             <circle cx="${gx + 16}" cy="${gy + 17}" r="1.7" fill="#5C6674"/>`;
+  } else {
+    glyph = `<rect x="${gx + 2}" y="${gy + 2}" width="20" height="16" rx="5" fill="none" stroke="#171A1F" stroke-width="1.4"/>
+             <circle cx="${gx + 8}"  cy="${gy + 9}" r="1.7" fill="#171A1F"/>
+             <circle cx="${gx + 16}" cy="${gy + 9}" r="1.7" fill="#171A1F"/>
+             <path d="M ${gx + 12} ${gy + 18} v 6 M ${gx + 5} ${gy + 29} h 14" fill="none" stroke="#171A1F" stroke-width="1.4"/>`;
+  }
+  return `<g>
+    <rect x="${x}" y="${y}" width="176" height="58" rx="5" fill="#FFFFFF"
+          stroke="${kind === "ai" ? "#5C6674" : "#171A1F"}" stroke-width="1.4"/>
+    ${glyph}
+    <text x="${x + 54}" y="${y + 27}" font-size="14.5" fill="#171A1F" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">${label}</text>
+    <text x="${x + 54}" y="${y + 43}" font-size="9.5" letter-spacing="1.1" fill="#7A828F" font-family="ui-monospace,SFMono-Regular,Menlo,monospace">${sub}</text>
+  </g>`;
+}
+
+function diagram(ctrl) {
+  const LEFT = 44, ROW = 100, RIGHT = 372, TOP = 12;
+  let inner = ctrl === "A"
+    ? node(LEFT, ROW, "AI system", "NO HUMAN PILOT", "ai")
+    : node(LEFT, ROW, "Human operator", "TRAINED PERSON", "human");
+  inner += node(RIGHT, ROW, "OriHime", "ROBOT", "robot");
+  inner += `<line x1="228" y1="129" x2="362" y2="129" stroke="#171A1F" stroke-width="1.6" marker-end="url(#arw)"/>
+            <text x="295" y="120" text-anchor="middle" font-size="11" fill="#565E6B"
+                  font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">controls</text>`;
+  if (ctrl === "HA") {
+    inner += node(LEFT, TOP, "AI assistance", "SUGGESTS ONLY", "ai");
+    inner += `<line x1="132" y1="72" x2="132" y2="94" stroke="#5C6674" stroke-width="1.5"
+                    stroke-dasharray="4 3" marker-end="url(#arwd)"/>
+              <text x="146" y="88" font-size="11" fill="#565E6B"
+                    font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif">suggests</text>`;
+  }
+  const box = el("div", "diagram");
+  box.innerHTML = `<svg viewBox="0 0 592 176" role="img" aria-label="Diagram of the control arrangement">
+    <defs>
+      <marker id="arw" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+        <path d="M0,0 L9,4.5 L0,9 z" fill="#171A1F"/></marker>
+      <marker id="arwd" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+        <path d="M0,0 L9,4.5 L0,9 z" fill="#5C6674"/></marker>
+    </defs>${inner}</svg>`;
+  return box;
+}

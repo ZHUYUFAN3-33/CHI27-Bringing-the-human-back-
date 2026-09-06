@@ -19,6 +19,9 @@ next to the numbers it produced.
 
 import math
 import random
+from math import erf, sqrt
+
+Phi = lambda z: 0.5 * (1 + erf(z / sqrt(2)))
 
 Z = 1.959963984540054          # two-sided 95%
 ALPHA = 0.05
@@ -207,10 +210,25 @@ def main():
     print("   secondary question reported with intervals either way.")
     print()
 
+    print("6. The validation design (s2-v6): five arms, recognition outcomes")
+    print("   A recognition rate is a per-arm proportion; the graded items are")
+    print("   per-arm means compared between arms. Both have large expected")
+    print("   effects, which is what lets thirty per arm be enough.")
+    print()
+    print(f"   {'per arm':>8}  {'rate .80 ± ':>12}  {'lower bound > .50 needs rate ≥':>30}  {'80% power: d=0.8':>17}  {'d=0.6':>6}")
+    for n in (25, 30, 44, 60):
+        hw = wilson_halfwidth(0.80, n) * 100
+        need = next(x for x in range(n + 1) if wilson(x, n)[0] > 0.5) / n * 100
+        p8 = Phi(0.8 * math.sqrt(n / 2) - Z) ; p6 = Phi(0.6 * math.sqrt(n / 2) - Z)
+        print(f"   {n:>8}  {'±' + f'{hw:.0f} pp':>12}  {need:>29.0f}%  {p8:>16.0%}  {p6:>6.0%}")
+    print()
+    print("   The success rule in STUDY2_PLAN.md §4 is a Wilson lower bound above")
+    print("   50%: at thirty per arm that needs an observed rate of 70% or more.")
+    print()
+
     print("=" * 72)
-    print("Recommendation: 300 usable participants, recruit about 330 completers")
-    print("to absorb 8-10% loss to the two prespecified quality checks. At 300")
-    print("usable, no proportion is reported less precisely than +/-5.6 points.")
+    print("Track A (no disclosure): 300 usable, recruit about 330. The validation")
+    print("design (s2-v6): 150 recruited, thirty per arm.")
 
 
 if __name__ == "__main__":

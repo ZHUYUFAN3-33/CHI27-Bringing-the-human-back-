@@ -32,6 +32,7 @@
 <body>
 <div class="bar">
   <h1>Study 2 · page preview — nothing is recorded</h1>
+  <div class="grp"><span class="lab">Condition</span><span id="conds"></span></div>
   <div class="grp"><span class="lab">Clip order</span><span id="orders"></span></div>
   <div class="grp"><span class="lab">Page</span><span id="pages"></span></div>
   <div class="read" id="read">loading…</div>
@@ -54,14 +55,17 @@
   const qs = new URLSearchParams(location.search);
   const TOKEN = qs.get("token") || "";
   let ORDER = qs.get("order") || "O1";
+  let COND = qs.get("cond") || "H1";
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
   window.__PREVIEW__ = {
     token: TOKEN,
     order: ORDER,
+    cond: COND,
     onLoaded(data) {
       const d = data.design;
       document.getElementById("read").innerHTML =
+        `condition <b>${esc(d.condition)}</b> (${esc(d.ctrl)}${d.profile ? ", profile " + d.profile : ""}) · ` +
         `order <b>${esc(d.order)}</b> · clips <b>${d.segOrder.join(" · ")}</b> · ` +
         `instrument <b>${esc(d.instrumentVersion)}</b> · ${d.itemCount} stored items · ` +
         `<a href="/s2/admin${TOKEN ? "?token=" + encodeURIComponent(TOKEN) : ""}">dashboard</a>`;
@@ -80,6 +84,15 @@
   fetch("/api/s2/admin/design", { headers: TOKEN ? { authorization: "Bearer " + TOKEN } : {} })
     .then(r => r.json())
     .then(d => {
+      const ch = document.getElementById("conds");
+      ch.innerHTML = d.conditions.map(c =>
+        `<button type="button" data-cond="${esc(c.key)}" aria-pressed="${c.key === COND}" title="${esc(c.ctrl)}${c.profile ? " · profile " + c.profile : ""}">${esc(c.key)}</button>`).join("");
+      ch.querySelectorAll("[data-cond]").forEach(b => b.addEventListener("click", () => {
+        COND = b.dataset.cond;
+        ch.querySelectorAll("[data-cond]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+        const u = new URL(location.href); u.searchParams.set("cond", COND); history.replaceState(null, "", u);
+        window.__previewLoad(COND, ORDER, { keepPage: true });
+      }));
       const host = document.getElementById("orders");
       host.innerHTML = d.orders.map(o =>
         `<button type="button" data-order="${esc(o.key)}" aria-pressed="${o.key === ORDER}" title="${o.segments.join(" · ")}">${esc(o.key)}</button>`).join("");
@@ -87,7 +100,7 @@
         ORDER = b.dataset.order;
         host.querySelectorAll("[data-order]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
         const u = new URL(location.href); u.searchParams.set("order", ORDER); history.replaceState(null, "", u);
-        window.__previewLoad(ORDER, { keepPage: true });
+        window.__previewLoad(COND, ORDER, { keepPage: true });
       }));
     })
     .catch(() => {});

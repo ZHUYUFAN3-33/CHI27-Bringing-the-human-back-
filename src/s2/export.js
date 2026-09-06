@@ -4,13 +4,14 @@
 import { pool } from "../db.js";
 import { row, BOM } from "../csv.js";
 import {
-  buildS2Plan, s2PlanItems, s2AllItemIds, S2_ORDER_KEYS, S2_ORDERS, S2_SEGMENT_KEYS, S2_VERSION
+  buildS2Plan, s2PlanItems, s2AllItemIds, S2_ORDER_KEYS, S2_ORDERS, S2_SEGMENT_KEYS, S2_VERSION, S2_CONDITION_KEYS
 } from "../../shared/s2-instrument.js";
 
 const PARTICIPANT_COLUMNS = [
-  "id", "short_code", "seg_order", "pos_REL", "pos_ADV", "pos_COL", "instrument_ver", "status",
+  "id", "short_code", "condition", "ctrl", "profile", "seg_order", "pos_REL", "pos_ADV", "pos_COL", "instrument_ver", "status",
   "screen_out_reason", "source", "external_pid", "external_study", "external_session", "is_test",
-  "complete_pass", "attention_pass", "comprehension_pass", "answered_count", "started_at", "first_answer_at", "last_answer_at",
+  "complete_pass", "attention_pass", "comprehension_pass",
+  "ctrl_recognised", "final_recognised", "profile_recognised", "answered_count", "started_at", "first_answer_at", "last_answer_at",
   "completed_at", "last_seen_at", "timezone", "ui_language", "screen_w", "screen_h", "ip_hash", "user_agent"
 ];
 
@@ -103,14 +104,14 @@ export default async function s2ExportRoutes(app) {
 
   app.get("/api/s2/export/responses.csv", async (req, reply) => {
     const { where, params } = filters(req.query);
-    const cols = ["participant_id", "short_code", "seg_order", "status", "is_test", "item_id", "page_key",
+    const cols = ["participant_id", "short_code", "condition", "seg_order", "status", "is_test", "item_id", "page_key",
                   "item_type", "segment", "seg_position", "value_num", "value_text", "latency_ms",
                   "revisions", "answered_at"];
     const out = beginCsv(reply, "s2_responses_long");
     out.write(BOM + row(cols));
     for await (const batch of scanParticipants(where, params)) {
       const { rows } = await pool.query(
-        `SELECT r.*, p.short_code, p.seg_order, p.status, p.is_test
+        `SELECT r.*, p.short_code, p.condition, p.seg_order, p.status, p.is_test
            FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
           WHERE r.participant_id = ANY($1::uuid[])
           ORDER BY p.started_at, r.participant_id, r.item_id`, [batch.map(p => p.id)]
@@ -128,8 +129,9 @@ export default async function s2ExportRoutes(app) {
   app.get("/api/s2/export/wide.csv", async (req, reply) => {
     const { where, params } = filters(req.query);
     const itemIds = s2AllItemIds();
-    const meta = ["participant_id", "short_code", "seg_order", "pos_REL", "pos_ADV", "pos_COL",
+    const meta = ["participant_id", "short_code", "condition", "ctrl", "profile", "seg_order", "pos_REL", "pos_ADV", "pos_COL",
                   "status", "source", "external_pid", "is_test", "complete_pass", "attention_pass", "comprehension_pass",
+                  "ctrl_recognised", "final_recognised", "profile_recognised",
                   "duration_s", "answered_count", "started_at", "completed_at", "instrument_ver"];
     const labels = /^(1|true|yes)$/i.test(String(req.query.labels ?? ""));
     const out = beginCsv(reply, labels ? "s2_wide_labels" : "s2_wide");
@@ -148,8 +150,9 @@ export default async function s2ExportRoutes(app) {
         const dur = p.first_answer_at && p.last_answer_at
           ? Math.round((Date.parse(p.last_answer_at) - Date.parse(p.first_answer_at)) / 1000) : null;
         const metaVals = [
-          p.id, p.short_code, p.seg_order, pos.pos_REL, pos.pos_ADV, pos.pos_COL,
+          p.id, p.short_code, p.condition, p.ctrl, p.profile, p.seg_order, pos.pos_REL, pos.pos_ADV, pos.pos_COL,
           p.status, p.source, p.external_pid, p.is_test, p.complete_pass, p.attention_pass, p.comprehension_pass,
+          p.ctrl_recognised, p.final_recognised, p.profile_recognised,
           dur, p.answered_count, p.started_at, p.completed_at, p.instrument_ver
         ];
         const itemVals = itemIds.map(id => {
@@ -208,11 +211,17 @@ export default async function s2ExportRoutes(app) {
   app.get("/api/s2/export/codebook.csv", async (_req, reply) => {
     const cols = ["item_id", "block", "item_type", "segment", "seg_position", "required", "group", "value_coding", "stem"];
     const seen = new Map();
-    for (const ord of S2_ORDER_KEYS) {
-      for (const it of s2PlanItems(buildS2Plan(ord))) {
-        const prev = seen.get(it.id);
-        if (prev) { if (prev.seg_position !== it.segPosition) prev.seg_position = "varies with order"; continue; }
-        seen.set(it.id, { item: it, block: it.segment ? `clip (${it.segment})` : it.pageKey, seg_position: it.segPosition });
+    /* Every condition and every order, so the codebook carries each id once
+       whichever cell it first appeared in. Keys are per-condition and are not
+       written: the codebook is downloadable with the admin token, and the
+       answer to a check belongs in the analysis, not in a CSV. */
+    for (const cond of S2_CONDITION_KEYS) {
+      for (const ord of S2_ORDER_KEYS) {
+        for (const it of s2PlanItems(buildS2Plan(cond, ord))) {
+          const prev = seen.get(it.id);
+          if (prev) { if (prev.seg_position !== it.segPosition) prev.seg_position = "varies with order"; continue; }
+          seen.set(it.id, { item: it, block: it.segment ? `clip (${it.segment})` : it.pageKey, seg_position: it.segPosition });
+        }
       }
     }
     let out = BOM + row(cols);

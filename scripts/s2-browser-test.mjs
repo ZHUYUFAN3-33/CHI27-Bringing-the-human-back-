@@ -2,14 +2,12 @@
    every page for a chosen clip order, opens no video gate and records nothing,
    so the whole instrument can be walked without a participant row.
  *
- * What it is for. Study 2 brought four item types its client had never
- * rendered — seven-point items, the matrix block that groups them, a heading
- * and a number box. A matrix block has no id of its own, so any walk over a
- * page's items that forgets to descend into its rows gets the unanswered count
- * wrong in one of two directions: the block itself counted as a missing item,
- * and the Next button never lights; or its rows never counted, and Next lights
- * while the page is still blank. Preview does not disable Next, but it prints
- * that count, which is missingOn() read straight off the page.
+ * What it is for. Every page kind renders what it promises — the disclosure
+ * page with its diagram and persona box, the recap above each clip, the
+ * validation block — the unanswered count is right on every page that has
+ * answers, and each arm's disclosure page carries its own description and no
+ * other arm's. Preview does not disable Next, but it prints the unanswered
+ * count, which is missingOn() read straight off the page.
  *
  *   npm install --no-save playwright && npx playwright install chromium
  *   node scripts/s2-browser-test.mjs http://127.0.0.1:8080 $ADMIN_TOKEN
@@ -49,14 +47,14 @@ const page = await browser.newPage();
 const errors = [];
 page.on("pageerror", e => errors.push(e.message));
 
-await page.goto(`${BASE}/s2/preview?token=${TOKEN}&order=O2`, { waitUntil: "domcontentloaded" });
+await page.goto(`${BASE}/s2/preview?token=${TOKEN}&cond=HA1&order=O2`, { waitUntil: "domcontentloaded" });
 await page.waitForFunction(() => window.__previewGoto && document.querySelector("h2.qtitle"),
   null, { timeout: 20000 });
 
-/* ---- every item type reaches the page ---------------------------------- */
+/* ---- every page renders what its kind promises --------------------------- */
 
 const shape = [];
-for (let i = 0; i < 6; i++) {
+for (let i = 0; i < 8; i++) {
   await page.evaluate(n => window.__previewGoto(n), i);
   await page.waitForTimeout(250);
   shape.push(await page.evaluate(() => ({
@@ -68,52 +66,43 @@ for (let i = 0; i < 6; i++) {
     numbers: document.querySelectorAll('input[type="number"]').length,
     areas: document.querySelectorAll("textarea").length,
     radios: document.querySelectorAll('input[type="radio"]').length,
-    notes: document.querySelectorAll(".note").length,
+    disclosure: document.querySelectorAll(".disclosure").length,
+    diagram: document.querySelectorAll(".diagram svg").length,
+    persona: document.querySelectorAll(".persona li").length,
+    recap: document.querySelectorAll(".recap").length,
     methods: document.querySelectorAll("ol.methods li").length
   })));
 }
 shape.forEach((s, i) => console.log(
-  `page ${i} · ${s.title}\n         ${s.tables} likert table(s), ${s.rows} row(s) · ` +
-  `${s.areas} text box(es) · ${s.numbers} number · ${s.headings} heading · ${s.notes} note`));
+  `page ${i} · ${s.title}\n         likert ${s.tables}/${s.rows} · radios ${s.radios} · text ${s.areas} · number ${s.numbers} · ` +
+  `disclosure ${s.disclosure} · diagram ${s.diagram} · persona ${s.persona} · recap ${s.recap}`));
 
-const clips = [shape[1], shape[2], shape[3]];
-/* Every seven-point item on a clip page is a lone item, so each renders as its
-   own one-row table: AU1 and three confidence items, plus AT1 on the middle
-   clip. */
-check("each clip page carries four seven-point items, five on the middle clip",
-  clips[0].rows === 4 && clips[1].rows === 5 && clips[2].rows === 4,
-  clips.map(s => s.rows).join("/"));
+check("page one names no list of control arrangements", shape[0].methods === 0);
+check("the disclosure page carries the condition text, the diagram and the persona box",
+  shape[1].disclosure === 1 && shape[1].diagram === 1 && shape[1].persona === 3,
+  `${shape[1].disclosure}/${shape[1].diagram}/${shape[1].persona}`);
+check("the disclosure page asks only for the read confirmation", shape[1].radios === 1);
+const clips = [shape[2], shape[3], shape[4]];
+check("every clip page restates the condition above the player", clips.every(s => s.recap === 1));
 check("the attention check rides the middle clip and only the middle clip",
-  clips[1].tables === clips[0].tables + 1,
-  clips.map(s => s.tables).join("/"));
-/* Radio counts per clip page: AU1, its confidence, WHO's confidence and DIS's
-   confidence are seven buttons each, WHO and DIS four each — 36. The middle
-   clip adds AT1 (seven), the last adds the four-option comprehension check. */
+  clips.map(s => s.rows).join("/") === "0/1/0", clips.map(s => s.rows).join("/"));
 check("the comprehension check rides the last clip and only the last clip",
-  clips[0].radios === 36 && clips[1].radios === 43 && clips[2].radios === 40,
-  clips.map(s => s.radios).join("/"));
-check("the instrument asks for no free text anywhere",
-  shape.every(s => s.areas === 0));
-check("the note above the control question is on every clip page",
-  clips.every(s => s.notes === 1));
-check("every seven-point table is a stem column plus seven points",
-  shape.every(s => s.cols % 8 === 0));
+  clips.map(s => s.radios).join("/") === "0/7/4", clips.map(s => s.radios).join("/"));
+check("the validation page carries the open reconstruction, five seven-point items and three choices",
+  shape[5].areas === 1 && shape[5].rows === 5 && shape[5].radios === 5 * 7 + 4 + 4 + 5,
+  `${shape[5].areas} text, ${shape[5].rows} rows, ${shape[5].radios} radios`);
+check("every seven-point table is a stem column plus seven points", shape.every(s => s.cols % 8 === 0));
 check("the background page carries the age box and the seam, and no seven-point rows",
-  shape[4].rows === 0 && shape[4].numbers === 1 && shape[4].headings === 1,
-  `${shape[4].rows} rows, ${shape[4].numbers} number, ${shape[4].headings} heading`);
-/* Page one must no longer teach a list of control arrangements: three of them
-   named before three clips is the matching cue the design review called out. */
-check("page one names no list of control arrangements",
-  shape[0].methods === 0, `${shape[0].methods} listed`);
+  shape[6].rows === 0 && shape[6].numbers === 1 && shape[6].headings === 1);
+check("free text appears once in the whole instrument", shape.reduce((a, s) => a + s.areas, 0) === 1);
 
-/* ---- the unanswered count sees through the matrix blocks ---------------- */
+/* ---- the unanswered count on every page that has answers ------------------ */
 
-for (const [idx, label, want] of [[1, "clip 1", 6], [2, "clip 2", 7], [3, "clip 3", 7], [4, "background", 5]]) {
+for (const [idx, label, want] of [[1, "disclosure", 1], [3, "clip 2", 1], [4, "clip 3", 1], [5, "validation", 9], [6, "background", 5]]) {
   await page.evaluate(n => window.__previewGoto(n), idx);
   await page.waitForTimeout(250);
   check(`${label}: ${want} required items counted while the page is blank`,
     await missing(page) === want, `saw ${await missing(page)}`);
-
   await page.evaluate(() => {
     const names = new Set();
     document.querySelectorAll('input[type="radio"]').forEach(r => names.add(r.name));
@@ -123,9 +112,32 @@ for (const [idx, label, want] of [[1, "clip 1", 6], [2, "clip 2", 7], [3, "clip 
     });
   });
   await page.waitForTimeout(200);
-
+  if (await page.locator("textarea").count()) {
+    const ta = page.locator("textarea").first();
+    await ta.fill("too short");
+    await page.waitForTimeout(150);
+    check(`${label}: a reconstruction under the 30-character floor still counts as unanswered`,
+      await missing(page) === 1, `saw ${await missing(page)}`);
+    await ta.fill("A trained person was operating the robot and choosing what it said and did.");
+    await page.waitForTimeout(150);
+  }
   check(`${label}: nothing outstanding once every required item is answered`,
     await missing(page) === 0, `saw ${await missing(page)}`);
+}
+
+/* ---- each arm's disclosure is its own -------------------------------------- */
+
+for (const [cond, needle, absent] of [["A", "entirely by an AI system", "trained human operator"],
+                                      ["H1", "No AI system", "disability"],
+                                      ["H2", "intellectual disability", "mobility"],
+                                      ["H3", "mobility-related disability", "intellectual"]]) {
+  await page.evaluate((c) => window.__previewLoad(c, "O1"), cond);
+  await page.waitForTimeout(400);
+  await page.evaluate(() => window.__previewGoto(1));
+  await page.waitForTimeout(200);
+  const text = await page.evaluate(() => document.querySelector(".disclosure")?.textContent ?? "");
+  check(`arm ${cond}: its own description, and not another arm's`,
+    text.includes(needle) && !text.includes(absent), `needle ${text.includes(needle)}, absent ${!text.includes(absent)}`);
 }
 
 check("no script errors on any page", errors.length === 0, errors.slice(0, 3).join(" | "));

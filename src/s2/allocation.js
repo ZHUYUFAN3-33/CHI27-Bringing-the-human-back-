@@ -1,6 +1,7 @@
-/* Balanced randomisation across the six clip orders. The same atomic pick as
-   src/allocation.js — least-filled enabled cell, ties at random, SKIP LOCKED
-   under concurrency — against the s2_allocation table. */
+/* Balanced randomisation across thirty cells, condition × clip order. The same
+   atomic pick as src/allocation.js — least-filled enabled cell, ties at random,
+   SKIP LOCKED under concurrency — against the s2_allocation table. Unequal arm
+   sizes come from per-cell targets, not from the pick. */
 
 import { q } from "../db.js";
 import { config } from "../config.js";
@@ -14,12 +15,12 @@ const PICK = `
     LIMIT 1
     FOR UPDATE SKIP LOCKED
   )
-  RETURNING cell, seg_order`;
+  RETURNING cell, condition, seg_order`;
 
 const PICK_BLOCKING = PICK.replace("FOR UPDATE SKIP LOCKED", "");
 
 export class S2FullError extends Error {
-  constructor() { super("every clip order has reached its target"); this.code = "STUDY_FULL"; }
+  constructor() { super("every cell has reached its target"); this.code = "STUDY_FULL"; }
 }
 
 export async function assignS2Cell() {
@@ -56,7 +57,7 @@ export async function reconcileS2Allocation() {
     `UPDATE s2_allocation a
         SET assigned = COALESCE((
               SELECT COUNT(*) FROM s2_participants p
-               WHERE p.seg_order = a.cell
+               WHERE p.cell = a.cell
                  AND NOT p.is_test
                  AND p.status <> 'screened_out'
                  AND NOT (p.status = 'in_progress'

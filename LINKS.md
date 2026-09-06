@@ -245,38 +245,23 @@ belongs in the limitations.
 
 ---
 
-## Study 2 — who is controlling OriHime?
+## Study 2 — manipulation validation
 
-A second study on a **fresh sample**, served by the same app under `/s2`.
-Nobody is told how OriHime is controlled: page one says only that there are
-three ways it can be. Each of the three clips is then followed by the same
-three questions, each one rated and then followed by how confident the
-participant is in that answer: whether the interaction felt genuine (`AU1`,
-carried over verbatim from Study 1), who they think is controlling the robot,
-and whether a person involved is thought to have a disability. Six pages:
-information · about OriHime · consent (one page), three clips, a background
-page (age, gender, AI-use and disability-contact frequency, prior knowledge of
-OriHime), finish. Twenty-eight items, every one a click. The only randomised
-factor is the clip order, balanced across the same six permutations.
+A fresh sample sees one of five of Study 1's condition descriptions (A, H1,
+HA1, H2, H3 — Study 1's pages verbatim), watches the same three clips with the
+same recap above each, and is then asked once, after all three, what it took
+the description to say. **Twenty items, every one a click except one open
+reconstruction; about 9 minutes, of which the videos are 4 min 50 s.** Nothing
+is asked per clip except the two quality checks.
 
-**There is no free text anywhere.** Two checks are scored on the server against
-keys the browser never receives: an instructed-response item on the clip shown
-**second**, and a video-comprehension question on the clip shown **third**,
-after that clip's judgements. Page one no longer names the three control
-arrangements — naming three of them before three clips invited a one-of-each
-matching strategy — and the categories now appear once, as the options of the
-control question itself.
+**[STUDY2_PLAN.md](STUDY2_PLAN.md) is the frozen analysis plan**;
+[STUDY2_ITEMS.md](STUDY2_ITEMS.md) is every item a participant reads. Read
+the plan before writing anything up: this study validates whether the
+manipulations were encoded, it does not replicate Study 1's effects.
 
-**[STUDY2_PLAN.md](STUDY2_PLAN.md) is the frozen analysis plan** and says what
-this study claims: a supplementary no-disclosure perception study, not a
-replication of Study 1's causal effect. Read it before writing anything up.
-The background block is asked last, where it cannot colour a judgement: age,
-gender, AI-use frequency, contact with people with disabilities, and prior
-knowledge of OriHime. The first four carry the same ids Study 1 uses, so the two
-samples can be described in the same terms.
-
-Its own tables (`s2_*`), its own dashboard, its own exports, its own open/closed
-switch and its own Connect project. Nothing it does touches the Study 1 rows.
+Its own tables (`s2_*`), its own dashboard, its own exports, its own
+open/closed switch and its own Connect project. Nothing it does touches the
+Study 1 rows.
 
 ### Participant
 
@@ -286,27 +271,27 @@ switch and its own Connect project. Nothing it does touches the Study 1 rows.
 | **Pilot** — flagged as test data, kept out of every export, slot returned | https://study1-survey.fly.dev/s2/?test=1 |
 
 Connect appends `participantId` / `assignmentId` / `projectId` exactly as for
-Study 1. One row per platform participant, as before. **A platform id that
-already has a Study 1 row is refused** with a "you have already taken part in a
-related study" page (they have read one of Study 1's framings of who controls
-OriHime, which is the very thing this study asks people to guess). Set the
-Connect project to exclude Study 1's participants as well; the server check is
-the second line, not the first. `S2_EXCLUDE_STUDY1=false` switches it off.
+Study 1. One row per platform participant, matched without regard to case.
+**A platform id that already has a Study 1 row is refused** — they have read
+one of these very descriptions. Set the Connect project to exclude Study 1's
+participants as well; the server check is the second line, not the first.
+`S2_EXCLUDE_STUDY1=false` switches it off.
 
 ### Researcher
 
 ```
 https://study1-survey.fly.dev/s2/admin?token=<TOKEN>
-https://study1-survey.fly.dev/s2/preview?token=<TOKEN>&order=O3
+https://study1-survey.fly.dev/s2/preview?token=<TOKEN>&cond=H2&order=O3
 ```
 
-The dashboard shows, live, how the two forced-choice questions are being
-answered per clip (or per position shown), the mean and median of the four
-seven-point items per clip, how many failed the attention check, allocation over
-the six orders, drop-off,
-and the export panel. The preview renders the six pages for any clip order and
-records nothing. **There is no wording editor for Study 2**: its text lives in
-`shared/s2-instrument.js` and changes with a deploy.
+The dashboard shows, live, per arm: the three recognition rates, the two
+quality-check pass rates, mean and median of the five seven-point items with
+the predicted pattern in the caption, allocation over the thirty cells,
+drop-off, and the export panel. The preview renders the eight pages for any
+condition and clip order and records nothing. **There is no wording editor for
+Study 2**: its text lives in `shared/s2-instrument.js` (and, for the
+description pages, in Study 1's `shared/instrument.js`) and changes with a
+deploy.
 
 ### Exports
 
@@ -316,18 +301,17 @@ https://study1-survey.fly.dev/api/s2/export/wide.csv?token=<TOKEN>
 
 | path | one row per |
 |---|---|
-| `/api/s2/export/participants.csv` | participant — order, `pos_REL/ADV/COL`, status, `complete_pass`, `attention_pass` |
-| `/api/s2/export/responses.csv` | answer (long); `value_num` is the code, `value_text` the label shown |
-| `/api/s2/export/wide.csv` | participant, one column per item (`E1–E3`, `REL_AU1/AU1_CONF/WHO/WHO_CONF/DIS/DIS_CONF/AT1/AV1`, `ADV_…`, `COL_…`, `BG_*`) |
-| `/api/s2/export/page_times.csv` | page visit |
+| `/api/s2/export/participants.csv` | participant — `condition`, `ctrl`, `profile`, order, positions, status, `complete_pass`, `attention_pass`, `comprehension_pass`, `ctrl_recognised`, `final_recognised`, `profile_recognised` |
+| `/api/s2/export/responses.csv` | answer (long); `value_num` is the code, `value_text` the label; the open reconstruction is in `value_text` |
+| `/api/s2/export/wide.csv` | participant, one column per item (`E1–E3`, `D1`, `{REL,ADV,COL}_{AT1,AV1}`, `V_OPEN`, `V_CTRL_REC`, `V_CTRL_P`, `V_CTRL_AI`, `V_FINAL`, `V_PROF_REC`, `V_LIM_MOB`, `V_LIM_COG`, `BEL1`, `BG_*`) |
+| `/api/s2/export/page_times.csv` | page visit — the description page's dwell is here |
 | `/api/s2/export/video_events.csv` | player event |
-| `/api/s2/export/codebook.csv` | item — coding and stem |
+| `/api/s2/export/codebook.csv` | item — coding and stem; answer keys are not in it |
 | `/api/s2/export/all.json` | everything, nested |
 
 Same query parameters as Study 1: `include_test=1`, `status=`, `usable_only=1`
-(completed, every required item answered, attention check passed), `since=`,
-`labels=1` (the wide file writes the option or scale label instead of the
-number). All at once:
+(completed, every item answered, both quality checks passed — recognition is
+an outcome, never an exclusion), `since=`, `labels=1`. All at once:
 
 ```bash
 ADMIN_TOKEN=<TOKEN> ./scripts/s2-export.sh
@@ -354,21 +338,20 @@ node scripts/s2-simulate.mjs --n 20 --base https://study1-survey.fly.dev   # tes
 node scripts/s2-browser-test.mjs https://study1-survey.fly.dev $ADMIN_TOKEN
 ```
 
-`s2-browser-test.mjs` drives the real page through `/s2/preview`, so it opens no
-video gate and records nothing. It needs Playwright:
+`s2-browser-test.mjs` drives the real page through `/s2/preview` for every arm,
+so it opens no video gate and records nothing. It needs Playwright:
 `npm install --no-save playwright && npx playwright install chromium`.
 
-**Sample size.** 300 usable participants, about 330 recruited completers. The
-allocation targets ship at 0, which means uncapped, and stay there so no order
-cell closes early; let the Connect quota be the stop. `python3
-analysis/study2/precision.py` regenerates the precision table.
+**Sample size.** 150 recruited completers, 30 per arm: set every cell's
+target to 5 on the dashboard. `python3 analysis/study2/precision.py`
+regenerates the precision tables.
 
-**Before recruitment opens**, three things still need the research team, and all
-three are in STUDY2_PLAN.md §8: the debrief still carries
-`[TO BE COMPLETED BY THE RESEARCH TEAM]` where it must say how each clip was
-actually controlled (`s2-plan-check.mjs` warns while it does); every `AV1`
-comprehension option has to be checked against the final audio; and the new
-consent, anti-matching and debrief text needs ethics approval.
+**Before recruitment opens**, three things still need the research team, all
+in STUDY2_PLAN.md §8: the debrief's placeholder (fill it, or delete that
+paragraph to match Study 1's approved text; `s2-plan-check.mjs` warns while it
+is present); every `AV1` option checked against the final audio; and ethics
+approval for the validation block and the open reconstruction — the
+description pages, recap and debrief are Study 1's approved text.
 
 ---
 

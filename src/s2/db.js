@@ -12,10 +12,10 @@ export async function migrateS2(log = console) {
   await pool.query(await readFile(schemaPath, "utf8"));
   const cells = s2AllCells();
   await pool.query(
-    `INSERT INTO s2_allocation (cell, seg_order)
-     SELECT * FROM unnest($1::text[], $2::text[])
+    `INSERT INTO s2_allocation (cell, condition, seg_order)
+     SELECT * FROM unnest($1::text[], $2::text[], $3::text[])
      ON CONFLICT (cell) DO NOTHING`,
-    [cells.map(c => c.cell), cells.map(c => c.seg_order)]
+    [cells.map(c => c.cell), cells.map(c => c.condition), cells.map(c => c.seg_order)]
   );
   log.info?.(`s2 schema applied (${cells.length} cells)`);
 }

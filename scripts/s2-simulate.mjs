@@ -16,6 +16,14 @@ const REAL = args.real === "1";
 
 const now = () => new Date().toISOString();
 const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const RECONSTRUCTIONS = [
+  "A trained person was operating the robot remotely and choosing what it said.",
+  "It said an AI was running the robot on its own with no person involved.",
+  "A human operator with some AI help suggesting things, but the person decided.",
+  "The operator was a person who I think had a disability of some kind.",
+  "I remember a person controlling it in real time, nothing about AI."
+];
 
 async function post(path, body, token) {
   const res = await fetch(BASE + path, {
@@ -28,7 +36,7 @@ async function post(path, body, token) {
   return json;
 }
 
-const stats = { started: 0, completed: 0, screened: 0, errors: 0, orders: {} };
+const stats = { started: 0, completed: 0, screened: 0, errors: 0, orders: {}, conditions: {} };
 
 async function one(i) {
   const params = { participantId: `S2SIM${String(i).padStart(5, "0")}`, assignmentId: `A${i}`, projectId: "SIM" };
@@ -39,6 +47,13 @@ async function one(i) {
   const pages = s.plan.pages;
   const order = pages.filter(p => p.kind === "segment").map(p => p.segment).join("");
   stats.orders[order] = (stats.orders[order] ?? 0) + 1;
+  /* The condition is not in the plan the browser gets — by design — but the
+     disclosure text is, and the arm can be read off it for the tally. */
+  const ctl = pages[1].disclosure.control;
+  const arm = /entirely by an AI/.test(ctl) ? "A" : /AI assistance/.test(ctl) ? "HA" : "H";
+  const prof = pages[1].disclosure.profile ?? "";
+  const cond = arm + (/intellectual/.test(prof) ? "2" : /mobility/.test(prof) ? "3" : arm === "A" ? "" : "1");
+  stats.conditions[cond] = (stats.conditions[cond] ?? 0) + 1;
 
   const pageBody = (p, idx, next, answers, videoEvents = []) => ({
     answers, videoEvents,
@@ -59,7 +74,11 @@ async function one(i) {
     return;
   }
 
-  for (let idx = 1; idx <= 3; idx++) {
+  /* the condition description */
+  await post("/api/s2/save", pageBody(pages[1], 1, pages[2], answersFor(pages[1])), token);
+
+  /* the three clips, with the gate opened the way a real player would */
+  for (let idx = 2; idx <= 4; idx++) {
     const p = pages[idx];
     const dur = p.video.duration;
     const vids = [
@@ -67,13 +86,12 @@ async function one(i) {
       { segment: p.segment, segPosition: p.segPosition, videoId: p.video.id, event: "gate_open", watchS: dur + 1, at: now() },
       { segment: p.segment, segPosition: p.segPosition, videoId: p.video.id, event: "ended", positionS: dur, watchS: dur + 1, at: now() }
     ];
-    const answers = answersFor(p);
-    await post("/api/s2/save", pageBody(p, idx, pages[idx + 1], answers, vids), token);
+    await post("/api/s2/save", pageBody(p, idx, pages[idx + 1], answersFor(p), vids), token);
   }
 
-  /* The closing question and the background block. */
-  const bg = pages[4];
-  await post("/api/s2/save", pageBody(bg, 4, pages[5], answersFor(bg)), token);
+  /* the validation block, then the background block */
+  await post("/api/s2/save", pageBody(pages[5], 5, pages[6], answersFor(pages[5])), token);
+  await post("/api/s2/save", pageBody(pages[6], 6, pages[7], answersFor(pages[6])), token);
 
   const done = await post("/api/s2/complete", { finishedAt: now() }, token);
   if (done.missing?.length) throw new Error(`complete reported missing: ${done.missing.join(",")}`);
@@ -95,7 +113,9 @@ function answersFor(page) {
   for (const it of flat) {
     if (it.required === false && Math.random() < 0.7) continue;
     const base = { id: it.id, at: now(), revisions: rnd(2) };
-    if (it.type === "likert7") {
+    if (it.type === "text") {
+      out.push({ ...base, num: null, text: pick(RECONSTRUCTIONS), latencyMs: 20000 + rnd(30000), revisions: 0 });
+    } else if (it.type === "likert7") {
       /* Nine in ten pass the attention check, so both branches of the flag get
          exercised without making the sample look broken. */
       const n = it.id.endsWith("_AT1") ? (Math.random() < 0.9 ? 2 : 1 + rnd(7)) : 1 + rnd(7);

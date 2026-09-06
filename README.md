@@ -20,27 +20,19 @@ server-side randomisation, storage, resume, quality flags, and export.
 | **Exports** | `/api/export/*.csv`, `/api/export/all.json` — behind the same token |
 | **Health** | `/healthz` — used by Fly's checks |
 
-**Study 2** — a perception study on a fresh sample, served by the same app under
-`/s2` with its own tables, dashboard (`/s2/admin`), preview (`/s2/preview`) and
-exports (`/api/s2/export/*`). Six pages: information, about OriHime and consent
-on one page; three clips, each followed by the same three questions — whether
-the interaction felt genuine, who is controlling OriHime, and whether a person
-involved has a disability — each one rated and then followed by how confident
-the participant is in that answer; a closing question and the background block;
-a finish page. The clip order is the only randomised factor. The instrument is
-`shared/s2-instrument.js`, the server side `src/s2/`, the participant runtime
-`public/s2/`. See [LINKS.md](LINKS.md#study-2--who-is-controlling-orihime), and
-**[STUDY2_PLAN.md](STUDY2_PLAN.md)** for what it claims and what it does not:
-Study 2 is a supplementary no-disclosure perception study, not a replication of
-Study 1's causal effect, and it has no randomised control-source manipulation to
-be one with.
-
-Study 2 shares Study 1's seven-point scale, its background item ids and the
-wording of `AU1`, all imported from `shared/instrument.js` rather than restated — the two studies only compare if an answer of 6 means the same
-thing in both. Its instructed-response check is scored on the server against a
-key the browser is never sent, exactly as Study 1's is. Study 2 asks for no free
-text, so that check and the playback telemetry are the whole of its quality
-evidence.
+**Study 2** — a manipulation validation study on a fresh sample, served by
+the same app under `/s2` with its own tables, dashboard (`/s2/admin`), preview
+(`/s2/preview`) and exports (`/api/s2/export/*`). Participants are assigned one
+of five of Study 1's conditions (A, H1, HA1, H2, H3 — Study 1's description
+pages verbatim), watch the same three clips with the same recap above each, and
+are then asked once, after all three, what they took the description to say:
+an open reconstruction, recognition and graded items for who was in control,
+recognition and graded items for the operator profile, and Study 1's belief
+item. Recognition is scored on the server against per-arm keys the browser
+never sees. Eight pages, twenty items, 5 × 6 = 30 allocation cells. The
+instrument is `shared/s2-instrument.js`, the server side `src/s2/`, the
+participant runtime `public/s2/`. See [LINKS.md](LINKS.md#study-2), and
+**[STUDY2_PLAN.md](STUDY2_PLAN.md)** for what it claims and what it does not.
 
 ---
 

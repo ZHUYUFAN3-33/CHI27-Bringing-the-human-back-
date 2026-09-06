@@ -6,32 +6,39 @@ import {
   s2AllocationSnapshot, reconcileS2Allocation, setS2CellTarget, setS2AllTargets, setS2CellEnabled
 } from "./allocation.js";
 import {
-  buildS2Plan, publicS2Plan, s2PlanItems, S2_ORDER_KEYS, S2_ORDERS, S2_ITEMS, S2_CONFIDENCE, S2_SCALE,
-  S2_SEGMENT_KEYS, S2_VERSION
+  buildS2Plan, publicS2Plan, s2PlanItems, S2_ORDER_KEYS, S2_ORDERS, S2_SEGMENT_KEYS, S2_VERSION,
+  S2_CONDITION_KEYS, S2_CONDITIONS, S2_ITEMS, S2_AMOUNT, S2_EXTENT, S2_SCALE
 } from "../../shared/s2-instrument.js";
 
 export default async function s2AdminRoutes(app) {
 
-  /* The plan for any clip order, without a participant row or a slot. */
+  /* The plan for any condition and clip order, without a participant row or
+     a slot. The design block names the condition — this is the researcher's
+     view, behind the admin token; the participant's plan never carries it. */
   app.get("/api/s2/admin/preview-plan", async (req, reply) => {
+    const cond = String(req.query.cond ?? S2_CONDITION_KEYS[0]);
     const order = String(req.query.order ?? S2_ORDER_KEYS[0]);
-    if (!S2_ORDER_KEYS.includes(order)) {
-      return reply.code(400).send({ error: "unknown_order", allowed: S2_ORDER_KEYS });
-    }
-    const plan = buildS2Plan(order);
+    if (!S2_CONDITION_KEYS.includes(cond)) return reply.code(400).send({ error: "unknown_condition", allowed: S2_CONDITION_KEYS });
+    if (!S2_ORDER_KEYS.includes(order)) return reply.code(400).send({ error: "unknown_order", allowed: S2_ORDER_KEYS });
+    const plan = buildS2Plan(cond, order);
     return {
-      design: { order, segOrder: plan.segOrder, instrumentVersion: S2_VERSION, itemCount: s2PlanItems(plan).length },
+      design: { condition: cond, ctrl: plan.ctrl, profile: plan.profile, order, segOrder: plan.segOrder,
+                instrumentVersion: S2_VERSION, itemCount: s2PlanItems(plan).length },
       plan: publicS2Plan(plan)
     };
   });
 
   app.get("/api/s2/admin/design", async () => ({
+    conditions: S2_CONDITION_KEYS.map(key => ({ key, ...S2_CONDITIONS[key] })),
     orders: S2_ORDER_KEYS.map(key => ({ key, segments: S2_ORDERS[key] })),
     segments: S2_SEGMENT_KEYS,
     items: {
-      WHO: S2_ITEMS.WHO, DIS: S2_ITEMS.DIS,
-      AU1: { stem: S2_ITEMS.AU1.stem, options: S2_SCALE },
-      CONF: { stem: S2_ITEMS.CONF_WHO.stem, options: S2_CONFIDENCE }
+      CTRL_REC: S2_ITEMS.CTRL_REC, FINAL: S2_ITEMS.FINAL, PROF_REC: S2_ITEMS.PROF_REC,
+      CTRL_P: { stem: S2_ITEMS.CTRL_P.stem, options: S2_AMOUNT },
+      CTRL_AI: { stem: S2_ITEMS.CTRL_AI.stem, options: S2_AMOUNT },
+      LIM_MOB: { stem: S2_ITEMS.LIM_MOB.stem, options: S2_EXTENT },
+      LIM_COG: { stem: S2_ITEMS.LIM_COG.stem, options: S2_EXTENT },
+      BEL1: { stem: S2_ITEMS.BEL1.stem, options: S2_SCALE }
     },
     instrumentVersion: S2_VERSION
   }));
@@ -51,13 +58,17 @@ export default async function s2AdminRoutes(app) {
                               AND attention_pass IS FALSE)              AS attention_fail,
            COUNT(*) FILTER (WHERE status = 'completed'
                               AND comprehension_pass IS FALSE)          AS comprehension_fail,
+           COUNT(*) FILTER (WHERE status = 'completed' AND ctrl_recognised)    AS ctrl_recognised,
+           COUNT(*) FILTER (WHERE status = 'completed' AND profile_recognised) AS profile_recognised,
+           COUNT(*) FILTER (WHERE status = 'completed' AND final_recognised)   AS final_recognised,
            ROUND(percentile_cont(0.5) WITHIN GROUP (
              ORDER BY EXTRACT(EPOCH FROM (last_answer_at - first_answer_at))
            ) FILTER (WHERE status = 'completed'))                       AS median_seconds
          FROM s2_participants WHERE NOT is_test`),
       s2AllocationSnapshot(),
-      q(`SELECT id, short_code, seg_order, status, source, external_pid, answered_count,
-                complete_pass, attention_pass, comprehension_pass, started_at, completed_at, last_seen_at
+      q(`SELECT id, short_code, condition, seg_order, status, source, external_pid, answered_count,
+                complete_pass, attention_pass, comprehension_pass,
+                ctrl_recognised, final_recognised, profile_recognised, started_at, completed_at, last_seen_at
            FROM s2_participants WHERE NOT is_test
           ORDER BY started_at DESC LIMIT 40`),
       q(`SELECT COUNT(*) AS n FROM s2_participants
@@ -92,36 +103,34 @@ export default async function s2AdminRoutes(app) {
 
   /* The study's headline numbers: how the two forced-choice items were
      answered, per clip and per position, among completed participants. */
+  /* The validation outcomes by arm: recognition rates, and mean and median of
+     each seven-point item. This is the table the study exists to produce, and
+     the predicted pattern for each row is in STUDY2_PLAN.md. */
   app.get("/api/s2/admin/tally", async () => {
-    const [bySegment, byPosition, ratings] = await Promise.all([
-      q(`SELECT r.segment, split_part(r.item_id, '_', 2) AS code, r.value_num::int AS option, COUNT(*)::int AS n
-           FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
-          WHERE NOT p.is_test AND p.status = 'completed' AND r.item_type = 'mc' AND r.segment IS NOT NULL
-          GROUP BY 1, 2, 3 ORDER BY 1, 2, 3`),
-      q(`SELECT r.seg_position, split_part(r.item_id, '_', 2) AS code, r.value_num::int AS option, COUNT(*)::int AS n
-           FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
-          WHERE NOT p.is_test AND p.status = 'completed' AND r.item_type = 'mc' AND r.segment IS NOT NULL
-          GROUP BY 1, 2, 3 ORDER BY 1, 2, 3`),
-      /* The seven-point items, per clip: how genuine the interaction felt and
-         how confident people were in each of the three answers. With the open
-         descriptions gone these are the only continuous signal there is to
-         watch while collection runs. AT1 is excluded — it measures attention,
-         not an impression, and its mean means nothing. */
-      q(`SELECT r.segment, split_part(r.item_id, '_', 2)
-                  || CASE WHEN r.item_id LIKE '%\_CONF' THEN '_CONF' ELSE '' END AS code,
+    const [recognition, scales, options] = await Promise.all([
+      q(`SELECT condition,
                 COUNT(*)::int AS n,
+                COUNT(*) FILTER (WHERE ctrl_recognised)::int    AS ctrl,
+                COUNT(*) FILTER (WHERE final_recognised)::int   AS final,
+                COUNT(*) FILTER (WHERE profile_recognised)::int AS profile,
+                COUNT(*) FILTER (WHERE attention_pass)::int     AS attention,
+                COUNT(*) FILTER (WHERE comprehension_pass)::int AS comprehension
+           FROM s2_participants WHERE NOT is_test AND status = 'completed'
+          GROUP BY 1 ORDER BY 1`),
+      q(`SELECT p.condition, r.item_id, COUNT(*)::int AS n,
                 ROUND(AVG(r.value_num)::numeric, 2)::float8 AS mean,
                 ROUND(percentile_cont(0.5) WITHIN GROUP (ORDER BY r.value_num)::numeric, 1)::float8 AS median
            FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
+          WHERE NOT p.is_test AND p.status = 'completed' AND r.item_type = 'likert7'
+            AND r.item_id IN ('V_CTRL_P', 'V_CTRL_AI', 'V_LIM_MOB', 'V_LIM_COG', 'BEL1')
+          GROUP BY 1, 2 ORDER BY 1, 2`),
+      q(`SELECT p.condition, r.item_id, r.value_num::int AS option, COUNT(*)::int AS n
+           FROM s2_responses r JOIN s2_participants p ON p.id = r.participant_id
           WHERE NOT p.is_test AND p.status = 'completed'
-            AND r.item_type = 'likert7' AND r.item_id NOT LIKE '%\_AT1'
-            /* Clip items only. Nothing on the background page is seven-point
-               any more, but the guard stays: a future background scale must
-               not silently join a per-clip table. */
-            AND r.segment IS NOT NULL
-          GROUP BY 1, 2 ORDER BY 1, 2`)
+            AND r.item_id IN ('V_CTRL_REC', 'V_FINAL', 'V_PROF_REC')
+          GROUP BY 1, 2, 3 ORDER BY 1, 2, 3`)
     ]);
-    return { bySegment: bySegment.rows, byPosition: byPosition.rows, ratings: ratings.rows };
+    return { recognition: recognition.rows, scales: scales.rows, options: options.rows };
   });
 
   app.post("/api/s2/admin/allocation/reconcile", async () => ({ cells: await reconcileS2Allocation() }));

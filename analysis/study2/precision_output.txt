@@ -80,7 +80,20 @@ Study 2 (Track A) — precision and power
    sizeable gap, not for a small one, and the plan treats them as a
    secondary question reported with intervals either way.
 
+6. The validation design (s2-v6): five arms, recognition outcomes
+   A recognition rate is a per-arm proportion; the graded items are
+   per-arm means compared between arms. Both have large expected
+   effects, which is what lets thirty per arm be enough.
+
+    per arm   rate .80 ±   lower bound > .50 needs rate ≥   80% power: d=0.8   d=0.6
+         25        ±15 pp                             72%               81%     56%
+         30        ±14 pp                             70%               87%     64%
+         44        ±12 pp                             66%               96%     80%
+         60        ±10 pp                             63%               99%     91%
+
+   The success rule in STUDY2_PLAN.md §4 is a Wilson lower bound above
+   50%: at thirty per arm that needs an observed rate of 70% or more.
+
 ========================================================================
-Recommendation: 300 usable participants, recruit about 330 completers
-to absorb 8-10% loss to the two prespecified quality checks. At 300
-usable, no proportion is reported less precisely than +/-5.6 points.
+Track A (no disclosure): 300 usable, recruit about 330. The validation
+design (s2-v6): 150 recruited, thirty per arm.
