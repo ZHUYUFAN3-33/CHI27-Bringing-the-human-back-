@@ -73,10 +73,10 @@ description: recognition of what was said, not judgement of what the videos
 looked like. Two one-line instructions sit inside the block: above items 3–4,
 "The next two questions are separate. Your two answers do not need to add
 up."; above items 7–8, "If you were told there was no human operator, choose
-'Not at all' for the next two questions." Wording as of `s2-v8`
+'Not at all' for the next two questions." Wording as of `s2-v9`
 (2026-09-06), revised so that every recognition item has exactly one right
 answer per arm and every distractor is unambiguously wrong; ids, keys and
-outcomes did not change (commit `b1fd653` on `study2`). `s2-v8` (commit `bb04ad0`) then moved `BEL1` to the top of the background page with back navigation disabled.
+outcomes did not change (commit `b1fd653` on `study2`). `s2-v8` (commit `bb04ad0`) then moved `BEL1` to the top of the background page with back navigation disabled. `s2-v9` (commit `d44097b`) simplified the two limitation stems and dropped their examples: an example is our reading of the label, and the participant's own reading is what the items measure.
 
 | # | id | item | options |
 |---|---|---|---|
@@ -86,8 +86,8 @@ outcomes did not change (commit `b1fd653` on `study2`). `s2-v8` (commit `bb04ad0
 | 4 | `V_CTRL_AI` | … controlled by an AI system? | same seven points |
 | 5 | `V_FINAL` | According to the description, who made the final decisions about what OriHime said and did? | "A person. Even if an AI system made suggestions, the person had the last word." / "An AI system. Even if a person was involved, the AI system had the last word." / "A person and an AI system equally. Neither one had the last word." / not sure |
 | 6 | `V_PROF_REC` | Which of these best matches what the description said about who operated OriHime? | mobility-related disability / intellectual or cognitive disability / a person, no disability was mentioned / there was no human operator / not sure |
-| 7 | `V_LIM_MOB` | Based on the description, how limited did you understand the operator to be in physical movement or mobility (for example walking, or using their hands)? | 1 Not at all … 7 Extremely |
-| 8 | `V_LIM_COG` | … in thinking, learning, or understanding (for example memory, reasoning, or following instructions)? | same |
+| 7 | `V_LIM_MOB` | According to the description, to what extent did the operator appear limited in their physical mobility? | 1 Not at all … 7 Extremely |
+| 8 | `V_LIM_COG` | According to the description, to what extent did the operator appear limited in their cognitive and intellectual abilities? | same |
 | 9 | `BEL1` | How much DID YOU BELIEVE the description of the OriHime operator you were given at the beginning of the questionnaire? | Study 1's item and scale, verbatim; asked at the top of the next page, after items 1–8 are submitted |
 
 Quality checks: the instructed-response item on the clip shown second
