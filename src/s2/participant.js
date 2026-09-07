@@ -33,6 +33,21 @@ const BACKFILL_SQL = `
   external_study   = COALESCE(external_study,   $3),
   external_session = COALESCE(external_session, $4)`;
 
+/* The row a returning platform participant gets back. Matched on
+   lower(external_pid), not on the text as it arrived: an id that comes back in
+   different casing is the same person. One function rather than two copies,
+   because the second caller is the race handler below and the two must not
+   drift — a rejoin that differs by path is a second row waiting to happen. */
+const rejoinByPid = pid => q(
+  `UPDATE s2_participants SET last_seen_at = now()
+    WHERE id = (SELECT id FROM s2_participants
+                 WHERE lower(external_pid) = lower($1) AND NOT is_test
+                   AND condition IS NOT NULL
+                 ORDER BY started_at DESC LIMIT 1)
+    RETURNING *`,
+  [pid]
+).then(r => r.rows);
+
 const completionFor = p => ({
   code: config.s2CompletionCode || p.short_code,
   redirectUrl: config.s2CompletionRedirectUrl || null,
@@ -124,15 +139,7 @@ export default async function s2ParticipantRoutes(app) {
          them past the Study 1 exclusion below. The partial unique index in
          db/s2-schema.sql is on the same expression, so two starts racing under
          one id cannot both insert. */
-      const { rows: prior } = await q(
-        `UPDATE s2_participants SET last_seen_at = now()
-          WHERE id = (SELECT id FROM s2_participants
-                       WHERE lower(external_pid) = lower($1) AND NOT is_test
-                         AND condition IS NOT NULL
-                       ORDER BY started_at DESC LIMIT 1)
-          RETURNING *`,
-        [ext.pid]
-      );
+      const prior = await rejoinByPid(ext.pid);
       if (prior.length) {
         req.log.info({ pid: prior[0].id, external_pid: ext.pid, status: prior[0].status }, "s2 session rejoined by platform id");
         return { resumed: true, rejoined: true, token: prior[0].token, ...sessionView(prior[0]) };
@@ -175,7 +182,9 @@ export default async function s2ParticipantRoutes(app) {
     }
 
     const token = newToken();
-    const { rows } = await q(
+    let rows;
+    try {
+      ({ rows } = await q(
       `INSERT INTO s2_participants (
          token, short_code, cell, condition, ctrl, profile, seg_order, instrument_ver, source,
          external_pid, external_study, external_session, is_test,
@@ -195,7 +204,29 @@ export default async function s2ParticipantRoutes(app) {
         hashIp(clientIp(req)),
         "intro", 0
       ]
-    );
+      ));
+    } catch (err) {
+      /* The cell was taken before the row existed, so anything that stops the
+         row from existing has to give it back; otherwise the slot is burnt
+         until the next reconcile, and with per-cell targets set that quietly
+         shrinks an arm. */
+      await releaseS2Cell(cell.cell);
+
+      /* 23505 on this table means two of one participant's own requests raced
+         and the partial unique index on lower(external_pid) let exactly one of
+         them insert — which is what the index is for. The loser must not hand a
+         database error to a participant: it has the winner's row to give them.
+         Double-clicking the platform link is the ordinary way to get here. */
+      if (err?.code === "23505" && !isTest && ext.pid) {
+        const prior = await rejoinByPid(ext.pid);
+        if (prior.length) {
+          req.log.info({ external_pid: ext.pid, cell: cell.cell },
+            "s2 start raced under one platform id; returned the row that won");
+          return { resumed: true, rejoined: true, token: prior[0].token, ...sessionView(prior[0]) };
+        }
+      }
+      throw err;
+    }
     if (isTest) await releaseS2Cell(cell.cell);
 
     req.log.info({ cell: cell.cell, test: isTest }, "s2 session started");
