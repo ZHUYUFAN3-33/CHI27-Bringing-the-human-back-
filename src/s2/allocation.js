@@ -6,11 +6,15 @@
 import { q } from "../db.js";
 import { config } from "../config.js";
 
+/* `condition IS NOT NULL`: a deployment that ran an earlier instrument still
+   holds its order-only cells, closed by migrateS2 at boot. The dashboard can
+   reopen them, and a cell with no condition has no plan — the pick must never
+   hand one out, whatever its enabled flag says. */
 const PICK = `
   UPDATE s2_allocation SET assigned = assigned + 1
   WHERE cell = (
     SELECT cell FROM s2_allocation
-    WHERE enabled AND (target = 0 OR assigned < target)
+    WHERE enabled AND condition IS NOT NULL AND (target = 0 OR assigned < target)
     ORDER BY assigned ASC, random()
     LIMIT 1
     FOR UPDATE SKIP LOCKED
@@ -44,7 +48,8 @@ export async function s2AllocationSnapshot() {
 
 export async function s2HasCapacity() {
   const { rows } = await q(
-    `SELECT 1 FROM s2_allocation WHERE enabled AND (target = 0 OR assigned < target) LIMIT 1`
+    `SELECT 1 FROM s2_allocation
+      WHERE enabled AND condition IS NOT NULL AND (target = 0 OR assigned < target) LIMIT 1`
   );
   return rows.length > 0;
 }

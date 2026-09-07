@@ -487,20 +487,50 @@ function textBlock(item) {
   input.autocomplete = "off";
   const cur = S.answers.get(item.id);
   if (cur) input.value = isNum ? (cur.num ?? "") : (cur.text ?? "");
+
+  /* A number outside the item's range is left on screen rather than stored,
+     so the participant can fix the typo — and the page says so. The server
+     refuses such a value, and a refusal nobody sees is an answer lost: the
+     row would reach the end with this item missing and be dropped from the
+     usable sample. */
+  const hint = isNum ? el("p", "charhint") : null;
+  const inRange = n => (item.min == null || n >= item.min) && (item.max == null || n <= item.max);
+  const rangeMsg = item.min != null && item.max != null
+    ? `Please enter a whole number between ${item.min} and ${item.max}.`
+    : item.min != null ? `Please enter a number of at least ${item.min}.`
+    : item.max != null ? `Please enter a number no more than ${item.max}.`
+    : "Please enter a number.";
+  const showHint = msg => {
+    if (!hint) return;
+    hint.className = "charhint" + (msg ? " short" : "");
+    hint.textContent = msg || "";
+  };
   input.addEventListener("input", () => {
     const raw = input.value.trim();
-    if (!raw) { S.answers.delete(item.id); updateNext(); return; }
+    if (!raw) {
+      S.answers.delete(item.id);
+      /* Firefox and Safari leave value empty when a number box holds text
+         such as "18 years", while the box still shows it. */
+      showHint(isNum && input.validity?.badInput ? "Please enter digits only." : "");
+      updateNext();
+      return;
+    }
     if (isNum) {
       const n = Number(raw);
-      /* Out of range is left on screen rather than stored: the participant can
-         still fix a typo, and the server would refuse it anyway. */
-      if (!Number.isFinite(n)) { S.answers.delete(item.id); updateNext(); return; }
+      if (!Number.isFinite(n) || !inRange(n)) {
+        S.answers.delete(item.id);
+        showHint(rangeMsg);
+        updateNext();
+        return;
+      }
+      showHint("");
       setAnswer(item.id, { num: n, text: null }, wrap);
     } else {
       setAnswer(item.id, { num: null, text: raw }, wrap);
     }
   });
   wrap.append(input);
+  if (hint) wrap.append(hint);
   return wrap;
 }
 
@@ -526,23 +556,58 @@ function setAnswer(id, value, node) {
    that will not run offers the clip on YouTube instead. */
 
 let YT_READY = false;
+let YT_FAILED = null;          // why the API never arrived, once we have given up
 let currentPlayer = null;
+
+/* The API script can fail to arrive — an ad blocker with a broad youtube.com
+   rule, a school or corporate network, a DNS sinkhole — and it fails
+   silently: no script error the player could report, no player, no gate.
+   Left alone, the clip page stays locked with no way forward and no way to
+   the fallback, because the fallback only appears when a player reports an
+   error and there is no player. So the page gives up after a while and
+   offers the fallback itself. */
+function youTubeUnavailable(why) {
+  if (YT_READY || YT_FAILED) return;
+  YT_FAILED = why;
+  const p = S.plan?.pages[S.page];
+  if (p?.kind === "segment") mountPlayer(p);
+}
 
 (function loadYouTube() {
   const s = document.createElement("script");
   s.src = "https://www.youtube.com/iframe_api";
   s.async = true;
+  s.onerror = () => youTubeUnavailable("script_error");
   document.head.append(s);
+  setTimeout(() => youTubeUnavailable("timeout"), 15_000);
 })();
 
 window.onYouTubeIframeAPIReady = () => {
   YT_READY = true;
+  /* Arrived after the page had given up: the real player takes over. The
+     fallback already offered stays usable; the gate stops calling the video
+     unplayable. */
+  if (YT_FAILED) {
+    YT_FAILED = null;
+    for (const g of Object.values(S.gates)) if (g.error === "api_unavailable") g.error = null;
+  }
   const p = S.plan?.pages[S.page];
   if (p?.kind === "segment") mountPlayer(p);
 };
 
 function mountPlayer(page) {
-  if (!YT_READY || !window.YT?.Player) return;
+  if (!YT_READY || !window.YT?.Player) {
+    if (YT_FAILED) {
+      const g = S.gates[page.segment] ??= { started: null, watch: 0, done: false, error: null };
+      if (g.error == null && !g.done) {
+        g.error = "api_unavailable";
+        logVideo(page, "error", { detail: `api_unavailable:${YT_FAILED}` });
+        flushVideoQueue();
+      }
+      paintGate(page);
+    }
+    return;
+  }
   const host = document.getElementById(`yt_${page.key}`);
   const shell = document.getElementById(`ytbox_${page.key}`);
   if (!host || !shell || shell.dataset.mounted) return;
@@ -757,7 +822,10 @@ nextBtn.addEventListener("click", async () => {
   savePage(page, trip ? null : nextPage);
 
   if (trip) {
-    post(`${API}/screen-out`, { reason: trip.screenOutReason }).catch(() => {});
+    /* Through the queue, not a bare post: if this request is lost the row
+       stays in_progress and keeps its allocation slot, and the reconciler
+       will not reclaim it because the consent answer counts as an answer. */
+    enqueue(`${API}/screen-out`, { reason: trip.screenOutReason });
     S.done = true;
     return terminal("Thank you for your interest",
       "Unfortunately you are not eligible to take part in this study. You may now close this page. " +

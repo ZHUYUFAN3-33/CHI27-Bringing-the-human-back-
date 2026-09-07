@@ -57,6 +57,12 @@ await app.register(fastifyCookie);
 
    A page turn is one request and the keepalive is one a minute, so a real
    participant uses well under twenty requests a minute. */
+
+/* Dashboard, preview and export links carry the admin token in the query
+   string. Every place a URL is logged goes through here, so the log keeps the
+   path and drops the secret. */
+const safeUrl = req => String(req.url).replace(/([?&]token=)[^&]*/gi, "$1[redacted]");
+
 await app.register(fastifyRateLimit, {
   global: true,
   max: config.rateLimitMax,
@@ -70,8 +76,8 @@ await app.register(fastifyRateLimit, {
      that endpoint gets its own, larger IP-keyed budget rather than the
      per-participant one. */
   skipOnError: true,
-  onExceeding: req => req.log.warn({ url: req.url, ip: clientIp(req) }, "rate limit approaching"),
-  onExceeded:  req => req.log.warn({ url: req.url, ip: clientIp(req) }, "rate limit exceeded")
+  onExceeding: req => req.log.warn({ url: safeUrl(req), ip: clientIp(req) }, "rate limit approaching"),
+  onExceeded:  req => req.log.warn({ url: safeUrl(req), ip: clientIp(req) }, "rate limit exceeded")
 });
 
 /* ------------------------------------------------------- request logging */
@@ -80,7 +86,7 @@ app.addHook("onResponse", (req, reply, done) => {
   if (req.url === "/healthz" || req.url === "/api/session/ping") return done();
   req.log.info({
     method: req.method,
-    url: req.url,
+    url: safeUrl(req),
     status: reply.statusCode,
     ms: Math.round(reply.elapsedTime)
   }, "req");
@@ -301,7 +307,7 @@ app.setNotFoundHandler((req, reply) => {
 });
 
 app.setErrorHandler((err, req, reply) => {
-  req.log.error({ err, url: req.url }, "unhandled");
+  req.log.error({ err, url: safeUrl(req) }, "unhandled");
   const status = err.statusCode && err.statusCode >= 400 ? err.statusCode : 500;
   reply.code(status).send({
     error: status === 500 ? "internal_error" : err.code || "error",

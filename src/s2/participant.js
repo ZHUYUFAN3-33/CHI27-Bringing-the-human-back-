@@ -48,6 +48,29 @@ const rejoinByPid = pid => q(
   [pid]
 ).then(r => r.rows);
 
+/* last_seen_at, plus whichever platform ids the row is still missing. When the
+   id this request carries already belongs to another countable row, the
+   partial unique index refuses the backfill — correctly — and that refusal
+   must not become a 500 on every page load. The row keeps the ids it has and
+   carries on. `where` is one of two literal clauses written below, never
+   input. */
+async function touch(where, key, ext, log) {
+  try {
+    const { rows } = await q(
+      `UPDATE s2_participants SET last_seen_at = now(), ${BACKFILL_SQL} WHERE ${where} RETURNING *`,
+      [key, ext.pid, ext.study, ext.session]
+    );
+    return rows;
+  } catch (err) {
+    if (err?.code !== "23505") throw err;
+    log?.warn?.({ external_pid: ext.pid }, "s2 backfill refused: platform id belongs to another row");
+    const { rows } = await q(
+      `UPDATE s2_participants SET last_seen_at = now() WHERE ${where} RETURNING *`, [key]
+    );
+    return rows;
+  }
+}
+
 const completionFor = p => ({
   code: config.s2CompletionCode || p.short_code,
   redirectUrl: config.s2CompletionRedirectUrl || null,
@@ -119,11 +142,7 @@ export default async function s2ParticipantRoutes(app) {
 
     if (existing) {
       const ext = externalIds(body.params ?? {});
-      const { rows } = await q(
-        `UPDATE s2_participants SET last_seen_at = now(), ${BACKFILL_SQL}
-          WHERE token = $1 AND condition IS NOT NULL RETURNING *`,
-        [existing, ext.pid, ext.study, ext.session]
-      );
+      const rows = await touch("token = $1 AND condition IS NOT NULL", existing, ext, req.log);
       if (rows.length) return { resumed: true, token: existing, ...sessionView(rows[0]) };
     }
 
@@ -245,11 +264,7 @@ export default async function s2ParticipantRoutes(app) {
          FROM s2_video_events WHERE participant_id = $1 GROUP BY segment`, [p.id]
     );
     const ext = externalIds(req.body?.params ?? {});
-    const { rows: upd } = await q(
-      `UPDATE s2_participants SET last_seen_at = now(), ${BACKFILL_SQL}
-        WHERE id = $1 RETURNING *`,
-      [p.id, ext.pid, ext.study, ext.session]
-    );
+    const upd = await touch("id = $1", p.id, ext, req.log);
     return {
       resumed: true,
       token: p.token,
@@ -272,6 +287,9 @@ export default async function s2ParticipantRoutes(app) {
     const p = req.participant;
     if (!p) return reply.code(401).send({ error: "unknown_token" });
     if (p.status === "completed") return { ok: true, ignored: "already_completed" };
+    /* A second tab on a row that has screened out must not keep writing
+       answers into it; its part ended at the eligibility questions. */
+    if (p.status === "screened_out") return { ok: true, ignored: "screened_out" };
 
     const body = req.body ?? {};
     const index = s2PlanIndex(buildS2Plan(p.condition, p.seg_order));
@@ -341,7 +359,14 @@ export default async function s2ParticipantRoutes(app) {
            SELECT $1, u.segment, u.seg_position, u.video_id, u.event, u.detail, u.position_s, u.watch_s, u.at
              FROM unnest($2::text[], $3::smallint[], $4::text[], $5::text[], $6::text[],
                          $7::float8[], $8::float8[], $9::timestamptz[])
-               AS u(segment, seg_position, video_id, event, detail, position_s, watch_s, at)`,
+               AS u(segment, seg_position, video_id, event, detail, position_s, watch_s, at)
+            /* The unload beacon re-sends queued jobs without dequeuing them,
+               so a job the tab then also flushes arrives twice with the same
+               client timestamp; the copy is dropped here. */
+            WHERE NOT EXISTS (
+              SELECT 1 FROM s2_video_events e
+               WHERE e.participant_id = $1 AND e.segment = u.segment
+                 AND e.event = u.event AND e.at = u.at)`,
           [
             p.id,
             videos.map(v => String(v.segment ?? "").slice(0, 8)),
@@ -397,6 +422,15 @@ export default async function s2ParticipantRoutes(app) {
   app.post("/api/s2/complete", async (req, reply) => {
     const p = req.participant;
     if (!p) return reply.code(401).send({ error: "unknown_token" });
+    /* A row that screened out has no completion to record — its consent or
+       eligibility answer already ended its part. A second tab that reaches
+       submit must not turn a declined consent into a completed row. */
+    if (p.status === "screened_out") {
+      return reply.code(409).send({
+        error: "screened_out",
+        message: "This session ended at the eligibility questions and cannot be submitted."
+      });
+    }
 
     const items = s2PlanItems(buildS2Plan(p.condition, p.seg_order));
     const { rows: stored } = await q(
@@ -445,7 +479,7 @@ export default async function s2ParticipantRoutes(app) {
                 final_recognised = $6,
                 profile_recognised = $7,
                 answered_count = (SELECT COUNT(*) FROM s2_responses WHERE participant_id = $1)
-          WHERE id = $1
+          WHERE id = $1 AND status <> 'screened_out'
           RETURNING short_code`,
         [p.id, missing.length === 0, attentionPass, comprehensionPass,
          ctrlRecognised, finalRecognised, profileRecognised]
