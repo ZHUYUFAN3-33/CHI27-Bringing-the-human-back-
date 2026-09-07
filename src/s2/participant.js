@@ -109,7 +109,9 @@ function coerce(item, raw) {
     }
     case "number": {
       const n = Number(raw?.num);
-      if (!Number.isFinite(n)) return null;
+      /* Whole numbers only — the box says so, and the codebook calls the
+         column an integer. */
+      if (!Number.isInteger(n)) return null;
       if (item.min != null && n < item.min) return null;
       if (item.max != null && n > item.max) return null;
       return { value_num: n, value_text: null };
@@ -287,12 +289,19 @@ export default async function s2ParticipantRoutes(app) {
     const p = req.participant;
     if (!p) return reply.code(401).send({ error: "unknown_token" });
     if (p.status === "completed") return { ok: true, ignored: "already_completed" };
-    /* A second tab on a row that has screened out must not keep writing
-       answers into it; its part ended at the eligibility questions. */
-    if (p.status === "screened_out") return { ok: true, ignored: "screened_out" };
 
     const body = req.body ?? {};
     const index = s2PlanIndex(buildS2Plan(p.condition, p.seg_order));
+
+    /* A second tab on a row that has screened out must not keep writing
+       answers into it; its part ended at the eligibility questions. The one
+       page let through is the page that screened it out: the unload beacon
+       can deliver the screen-out ahead of that page's own save, and the
+       eligibility answers belong on the row whichever arrives first. */
+    if (p.status === "screened_out") {
+      const screenPage = [...index.values()].find(it => it.screenOut)?.pageKey ?? null;
+      if ((body.page?.key ?? null) !== screenPage) return { ok: true, ignored: "screened_out" };
+    }
 
     const rows = [];
     const rejected = [];
@@ -315,6 +324,14 @@ export default async function s2ParticipantRoutes(app) {
     const videos = Array.isArray(body.videoEvents) ? body.videoEvents.slice(0, 100) : [];
 
     await withTx(async client => {
+      /* Same-participant saves serialise here, before anything is written.
+         The unload beacon delivers a queued job twice at once, and two
+         transactions racing the video-events check below would each see a
+         table without the other's row and both insert. Holding the
+         participant row first makes the second wait for the first to commit,
+         and its check then sees what was committed. */
+      await client.query(`SELECT 1 FROM s2_participants WHERE id = $1 FOR UPDATE`, [p.id]);
+
       if (rows.length) {
         await client.query(
           `INSERT INTO s2_responses (participant_id, item_id, page_key, item_type, segment,

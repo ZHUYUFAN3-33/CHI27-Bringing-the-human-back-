@@ -517,7 +517,7 @@ function textBlock(item) {
     }
     if (isNum) {
       const n = Number(raw);
-      if (!Number.isFinite(n) || !inRange(n)) {
+      if (!Number.isInteger(n) || !inRange(n)) {
         S.answers.delete(item.id);
         showHint(rangeMsg);
         updateNext();
@@ -557,6 +557,7 @@ function setAnswer(id, value, node) {
 
 let YT_READY = false;
 let YT_FAILED = null;          // why the API never arrived, once we have given up
+let ytTimer = null;            // armed the first time a clip page needs the player
 let currentPlayer = null;
 
 /* The API script can fail to arrive — an ad blocker with a broad youtube.com
@@ -579,17 +580,27 @@ function youTubeUnavailable(why) {
   s.async = true;
   s.onerror = () => youTubeUnavailable("script_error");
   document.head.append(s);
-  setTimeout(() => youTubeUnavailable("timeout"), 15_000);
 })();
 
 window.onYouTubeIframeAPIReady = () => {
   YT_READY = true;
-  /* Arrived after the page had given up: the real player takes over. The
-     fallback already offered stays usable; the gate stops calling the video
-     unplayable. */
+  if (ytTimer) { clearTimeout(ytTimer); ytTimer = null; }
+  /* Arrived after the page had given up: the real player takes over. A
+     fallback the participant has already started using stays; one they have
+     not touched is withdrawn, and the recovery is logged so the earlier
+     error event can be read for what it was. */
   if (YT_FAILED) {
     YT_FAILED = null;
-    for (const g of Object.values(S.gates)) if (g.error === "api_unavailable") g.error = null;
+    const cur = S.plan?.pages[S.page];
+    for (const [seg, g] of Object.entries(S.gates)) {
+      if (g.error !== "api_unavailable") continue;
+      g.error = null;
+      if (cur?.kind === "segment" && cur.segment === seg) {
+        logVideo(cur, "api_recovered", { detail: "late" });
+        if (!g.fallbackStarted) document.getElementById(`fb_${cur.key}`)?.remove();
+      }
+    }
+    flushVideoQueue();
   }
   const p = S.plan?.pages[S.page];
   if (p?.kind === "segment") mountPlayer(p);
@@ -597,6 +608,10 @@ window.onYouTubeIframeAPIReady = () => {
 
 function mountPlayer(page) {
   if (!YT_READY || !window.YT?.Player) {
+    /* The wait is measured from the moment a clip page needs the player, not
+       from script load: a slow but working download on the consent page is
+       not a failure, and must not be recorded as one. */
+    if (!YT_FAILED && ytTimer == null) ytTimer = setTimeout(() => youTubeUnavailable("timeout"), 15_000);
     if (YT_FAILED) {
       const g = S.gates[page.segment] ??= { started: null, watch: 0, done: false, error: null };
       if (g.error == null && !g.done) {
@@ -698,6 +713,10 @@ function renderFallback(page) {
   const gate = document.getElementById(`gate_${page.key}`);
   if (!gate || document.getElementById(`fb_${page.key}`)) return;
   const g = S.gates[page.segment];
+  /* Captured once: the reason the fallback was offered, not the gate's state
+     at the moment of a later click — an API that arrives late clears g.error
+     while this box is still on screen. */
+  const why = g.error;
   const need = Math.round(page.video.duration * S.plan.gateFraction);
 
   const box = el("div", "fallback");
@@ -726,7 +745,7 @@ function renderFallback(page) {
   link.addEventListener("click", () => {
     if (g.fallbackStarted == null) {
       g.fallbackStarted = Date.now();
-      logVideo(page, "fallback_open", { detail: `err:${g.error}` });
+      logVideo(page, "fallback_open", { detail: `err:${why}` });
       flushVideoQueue();
     }
     paint();
@@ -736,7 +755,7 @@ function renderFallback(page) {
     g.watch = Math.max(g.watch ?? 0, watched);
     g.done = true;
     g.fallback = true;
-    logVideo(page, "fallback_confirm", { watchS: watched, detail: `err:${g.error}` });
+    logVideo(page, "fallback_confirm", { watchS: watched, detail: `err:${why}` });
     logVideo(page, "gate_open", { watchS: watched, detail: "fallback" });
     flushVideoQueue();
     paintGate(page);
@@ -825,7 +844,7 @@ nextBtn.addEventListener("click", async () => {
     /* Through the queue, not a bare post: if this request is lost the row
        stays in_progress and keeps its allocation slot, and the reconciler
        will not reclaim it because the consent answer counts as an answer. */
-    enqueue(`${API}/screen-out`, { reason: trip.screenOutReason });
+    if (!S.preview) enqueue(`${API}/screen-out`, { reason: trip.screenOutReason });
     S.done = true;
     return terminal("Thank you for your interest",
       "Unfortunately you are not eligible to take part in this study. You may now close this page. " +
@@ -920,7 +939,14 @@ async function submit() {
     /* The token is kept: a reload shows this same page with the same code. */
     S.page++;
     render();
-  } catch {
+  } catch (err) {
+    /* A permanent refusal, not a bad connection: this row screened out —
+       usually in another tab — and has nothing to submit. Same terminal page
+       boot() shows for a screened-out session, so both tabs end alike. */
+    if (err?.payload?.error === "screened_out") {
+      S.done = true;
+      return terminal("Thank you", "You are not eligible for this study. You may now close this page.");
+    }
     retry("We could not record your completion. Please press the button again.");
   }
 }
