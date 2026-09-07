@@ -133,6 +133,14 @@ export const S2_INFO = {
         "You can close the page at any time, without giving a reason and without penalty.\n\n" +
         "At the end you receive a completion code. If you later want your responses removed, send us that code and we will delete them."
     },
+    /* Study 1's approved sentence, verbatim. The description each arm reads
+       is presented as fact and varied between participants; the debrief says
+       so, and consent has to say beforehand that something is held back. */
+    {
+      key: "note",
+      heading: "One important note",
+      body: "Some details of this study are not described in full until the end. There is a complete explanation on the last page, before you finish."
+    },
     {
       key: "questions",
       heading: "Questions",
