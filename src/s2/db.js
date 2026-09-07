@@ -19,14 +19,23 @@ export async function migrateS2(log = console) {
   );
   /* A deployment that ran an earlier instrument seeded allocation rows for the
      cells it had — s2-v5 had six, one per clip order. They survive the schema
-     upgrade with no condition, and the pick, which takes the least-filled
-     enabled cell, would take one and then fail to build a plan for it. Close
-     them rather than delete them: the pick skips closed cells, the dashboard
-     shows them closed, and nothing is destroyed. */
+     upgrade with no condition, and a cell with no condition has no plan. A
+     stale cell no participant ever landed in is removed: it holds nothing,
+     and on the dashboard it only invites a click. One that some row still
+     names is kept but closed, so that row's cell stays readable; the pick
+     skips it either way. */
+  const { rowCount: removed } = await pool.query(
+    `DELETE FROM s2_allocation a
+      WHERE a.cell <> ALL($1::text[])
+        AND NOT EXISTS (SELECT 1 FROM s2_participants p WHERE p.cell = a.cell)`,
+    [cells.map(c => c.cell)]
+  );
   const { rowCount: closed } = await pool.query(
     `UPDATE s2_allocation SET enabled = FALSE
       WHERE enabled AND cell <> ALL($1::text[])`,
     [cells.map(c => c.cell)]
   );
-  log.info?.(`s2 schema applied (${cells.length} cells${closed ? `, ${closed} stale cell(s) closed` : ""})`);
+  log.info?.(`s2 schema applied (${cells.length} cells` +
+    `${removed ? `, ${removed} stale cell(s) removed` : ""}` +
+    `${closed ? `, ${closed} stale cell(s) closed` : ""})`);
 }
