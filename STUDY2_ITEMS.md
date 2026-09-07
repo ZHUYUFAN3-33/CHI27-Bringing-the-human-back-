@@ -145,17 +145,20 @@ might reach for, and then the HA1 rate could not be read.*
 |---|---|---|
 | `V_PROF_REC` | Which of these best matches what the description said about who operated OriHime? | A person with a mobility-related disability / A person with an intellectual or cognitive disability / A person — no disability was mentioned / There was no human operator / I'm not sure |
 | — | *Instruction shown above the next two items:* If you were told there was no human operator, choose "Not at all" for the next two questions. | |
-| `V_LIM_MOB` | Based on the description, how limited did you understand the operator to be in physical movement or mobility (for example walking, or using their hands)? | 1 Not at all · 2 Very little · 3 A little · 4 Somewhat · 5 Quite a lot · 6 Very much · 7 Extremely |
-| `V_LIM_COG` | Based on the description, how limited did you understand the operator to be in thinking, learning, or understanding (for example memory, reasoning, or following instructions)? | same seven points |
+| `V_LIM_MOB` | According to the description, to what extent did the operator appear limited in their physical mobility? | 1 Not at all · 2 Very little · 3 A little · 4 Somewhat · 5 Quite a lot · 6 Very much · 7 Extremely |
+| `V_LIM_COG` | According to the description, to what extent did the operator appear limited in their cognitive and intellectual abilities? | same seven points |
 
 *"No disability was mentioned" is the correct answer for H1 and HA1: Study 1's
 profile 1 says nothing, deliberately. There is no "unspecified disability"
 condition and so no specificity item.*
 *The two limitation items ask what the participant understood, not what the
 text hinted: the construct is the operator model the label produced, which is
-what a stereotype account of Study 1's null would need. `V_LIM_COG` avoids the
-words "cognitive or intellectual functioning" — lay wording, same construct.
-Arm A is told to answer "Not at all"; its rows are reported, not compared.*
+what a stereotype account of Study 1's null would need. No examples in the
+stems: an example would be our reading of the label, and the participant's
+own reading is what is being measured; the key words mirror the two labels
+(mobility, intellectual), so the dimension is already fixed for anyone who
+read one, and shorter stems read better. Arm A is told to answer "Not at
+all"; its rows are reported, not compared.*
 
 ---
 

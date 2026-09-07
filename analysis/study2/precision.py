@@ -210,7 +210,7 @@ def main():
     print("   secondary question reported with intervals either way.")
     print()
 
-    print("6. The validation design (s2-v7): five arms, recognition outcomes")
+    print("6. The validation design (s2-v9): five arms, recognition outcomes")
     print("   A recognition rate is a per-arm proportion; the graded items are")
     print("   per-arm means compared between arms. Both have large expected")
     print("   effects, which is what lets thirty per arm be enough.")
@@ -228,7 +228,7 @@ def main():
 
     print("=" * 72)
     print("Track A (no disclosure): 300 usable, recruit about 330. The validation")
-    print("design (s2-v7): 150 recruited, thirty per arm.")
+    print("design (s2-v9): 150 recruited, thirty per arm.")
 
 
 if __name__ == "__main__":

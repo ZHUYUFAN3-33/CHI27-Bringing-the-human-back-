@@ -35,6 +35,12 @@
    its own page it is seen only after page 6 is submitted, and with back
    locked, page 6 cannot be revised afterwards.
 
+   s2-v9 simplified the two limitation stems to "to what extent did the
+   operator appear limited in …" and dropped their bracketed examples. An
+   example is our reading of the label; the participant's own reading is what
+   the item measures, and the two stems' key words already mirror the two
+   labels (mobility, intellectual). Shorter stems read better too.
+
    Same rules as shared/instrument.js: item ids are the contract with the
    database and are frozen once collection starts; the browser renders the plan
    the server sends it; the server validates every answer against this file;
@@ -47,7 +53,7 @@ import {
   CONDITIONS, INTRO_TEXT, CONTROL_TEXT, PERSONA_HUMAN, PERSONA_AI, PROFILE_STATEMENT
 } from "./instrument.js";
 
-export const S2_VERSION = "s2-v8";
+export const S2_VERSION = "s2-v9";
 
 /* Study 1's per-clip comprehension bank, reused rather than restated: a recut
    clip changes the question in one place. Each entry is { options, correct }. */
@@ -85,7 +91,7 @@ export const S2_AMOUNT = [
   "None of it", "Very little", "Some", "About half", "Most", "Almost all", "All of it"
 ];
 
-/* "How limited did you understand the operator to be in …". */
+/* "To what extent did the operator appear limited in …". */
 export const S2_EXTENT = [
   "Not at all", "Very little", "A little", "Somewhat", "Quite a lot", "Very much", "Extremely"
 ];
@@ -206,9 +212,13 @@ export const S2_ITEMS = {
   },
   /* What the participant took the label to mean, not what the text hinted:
      the construct is the operator model the label produced, which is what
-     a stereotype account of Study 1's null would need. */
-  LIM_MOB: { stem: "Based on the description, how limited did you understand the operator to be in physical movement or mobility (for example walking, or using their hands)?" },
-  LIM_COG: { stem: "Based on the description, how limited did you understand the operator to be in thinking, learning, or understanding (for example memory, reasoning, or following instructions)?" },
+     a stereotype account of Study 1's null would need. No examples in the
+     stems: an example would be our reading of the label, and the
+     participant's own reading is the thing being measured. The key words
+     mirror the two labels, so the dimension is already fixed for anyone who
+     read one. */
+  LIM_MOB: { stem: "According to the description, to what extent did the operator appear limited in their physical mobility?" },
+  LIM_COG: { stem: "According to the description, to what extent did the operator appear limited in their cognitive and intellectual abilities?" },
   BEL1: {
     /* Study 1's item, word for word, including the emphasis. */
     stem: "How much ***DID YOU BELIEVE*** the description of the OriHime operator you were given at the beginning of the questionnaire?"
